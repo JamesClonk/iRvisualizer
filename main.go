@@ -14,7 +14,7 @@ func main() {
 	dc := gg.NewContext(int(imageLength), int(imageHeight))
 
 	// background
-	dc.SetRGB255(217, 217, 217) // light gray 1
+	dc.SetRGB255(241, 241, 241) // light gray 2.5
 	dc.Clear()
 
 	// header
@@ -51,13 +51,31 @@ func main() {
 		dc.Fill()
 	}
 
+	// empty events
+	eventDays := 7
+	eventSlots := 12
+	eventHeight := ((imageHeight - headerHeight - timeslotHeight) / float64(eventDays)) - 1
+	eventLength := ((imageLength - dayLength) / float64(eventSlots)) - 1
+	for day := 0; day < eventDays; day++ {
+		for slot := 0; slot < eventSlots; slot++ {
+			dc.DrawRectangle(
+				(float64(slot)*(eventLength+1))+(dayLength+1),
+				(float64(day)*(eventHeight+1))+(headerHeight+timeslotHeight+1),
+				eventLength, eventHeight)
+			dc.SetRGB255(255, 255, 255) // white
+			dc.Fill()
+		}
+	}
+
 	dc.SavePNG("public/test.png")
 }
 
 /*
 	Colors:
+	dc.SetRGB255(255, 255, 255) // white
 	dc.SetRGB255(217, 217, 217) // light gray 1
 	dc.SetRGB255(239, 239, 239) // light gray 2
+	dc.SetRGB255(241, 241, 241) // light gray 2.5
 	dc.SetRGB255(243, 243, 243) // light gray 3
 	dc.SetRGB255(7, 55, 99) // dark blue 3
 */
