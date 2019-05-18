@@ -1,0 +1,27 @@
+---
+# See manifest.yml documentation available at:
+# https://docs.developer.swisscom.com/devguide/deploy-apps/manifest.html
+
+applications:
+- name: iRvisualizer
+  memory: 64M
+  disk_quota: 256M
+  instances: 2
+
+  routes:
+  - route: irvisualizer.scapp.io
+  - route: irvisualizer.applicationcloud.io
+  services:
+  - ircollector_db
+
+  buildpacks:
+  - go_buildpack
+  health-check-type: http
+  health-check-http-endpoint: /health
+  command: iRvisualizer
+  path: .
+
+  env:
+    LOG_LEVEL: debug
+    AUTH_USERNAME: ((auth_username))
+    AUTH_PASSWORD: ((auth_password))
