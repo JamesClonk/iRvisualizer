@@ -17,3 +17,6 @@
 # Binaries
 gin-bin
 iRvisualizer
+
+# Test output
+public/*.png

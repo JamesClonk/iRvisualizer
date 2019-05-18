@@ -1,0 +1,44 @@
+hash: ab7ea1de5ff4815298a48d4d65d5c39e6195280742cd30011a9d5dbd23079170
+updated: 2019-05-18T14:38:21.528043116+02:00
+imports:
+- name: github.com/fogleman/gg
+  version: 0403632d5b905943a1c2a5b2763aaecd568467ec
+- name: github.com/golang/freetype
+  version: e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4
+  subpackages:
+  - raster
+  - truetype
+- name: github.com/konsorten/go-windows-terminal-sequences
+  version: f55edac94c9bbba5d6182a4be46d86a2c9b5b50e
+- name: github.com/sirupsen/logrus
+  version: e1e72e9de974bd926e5c56f83753fba2df402ce5
+- name: golang.org/x/crypto
+  version: 22d7a77e9e5f409e934ed268692e56707cd169e5
+  subpackages:
+  - ssh/terminal
+- name: golang.org/x/image
+  version: 61b8692d9a5c9886248d7f96e0ba50ad77baab4c
+  subpackages:
+  - draw
+  - font
+  - font/basicfont
+  - math/f64
+  - math/fixed
+- name: golang.org/x/sys
+  version: 61b9204099cb1bebc803c9ffb9b2d3acd9d457d9
+  subpackages:
+  - unix
+  - windows
+testImports:
+- name: github.com/davecgh/go-spew
+  version: d8f796af33cc11cb798c1aaeb27a4ebc5099927d
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: 5d4384ee4fb2527b0a1256a821ebfc92f91efefc
+  subpackages:
+  - difflib
+- name: github.com/stretchr/testify
+  version: ffdc059bfe9ce6a4e144ba849dbedead332c6053
+  subpackages:
+  - assert
