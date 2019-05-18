@@ -1,8 +1,11 @@
 package main
 
-import "github.com/fogleman/gg"
+import (
+	"github.com/JamesClonk/iRvisualizer/log"
+	"github.com/fogleman/gg"
+)
 
-var (
+const (
 	imageHeight    = float64(480)
 	imageLength    = float64(1024)
 	headerHeight   = float64(45)
@@ -21,6 +24,21 @@ func main() {
 	dc.DrawRectangle(0, 0, imageLength, headerHeight)
 	dc.SetRGB255(7, 55, 99) // dark blue 3
 	dc.Fill()
+	dc.DrawRectangle(imageLength/2+dayLength/2, 0, imageLength/2, headerHeight)
+	dc.SetRGB255(11, 83, 148) // dark blue 2
+	dc.Fill()
+
+	if err := dc.LoadFontFace("public/fonts/Roboto-Italic.ttf", 20); err != nil {
+		log.Fatalf("could not load font: %v", err)
+	}
+	dc.SetRGB255(255, 255, 255) // white
+	dc.DrawStringAnchored("Pro Mazda Championship - 2019 Season 2 - Week 10", dayLength/4, headerHeight/2, 0, 0.5)
+
+	if err := dc.LoadFontFace("public/fonts/Roboto-Italic.ttf", 20); err != nil {
+		log.Fatalf("could not load font: %v", err)
+	}
+	dc.SetRGB255(255, 255, 255) // white
+	dc.DrawStringAnchored("Spa-Francorchamps - Classic Pits", imageLength-dayLength/4, headerHeight/2, 1, 0.5)
 
 	// timeslots
 	dc.DrawRectangle(0, headerHeight, dayLength, timeslotHeight)
@@ -77,5 +95,7 @@ func main() {
 	dc.SetRGB255(239, 239, 239) // light gray 2
 	dc.SetRGB255(241, 241, 241) // light gray 2.5
 	dc.SetRGB255(243, 243, 243) // light gray 3
+	dc.SetRGB255(61, 133, 198) // dark blue 1
+	dc.SetRGB255(11, 83, 148) // dark blue 2
 	dc.SetRGB255(7, 55, 99) // dark blue 3
 */

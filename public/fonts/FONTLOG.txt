@@ -1,0 +1,103 @@
+
+  FONTLOG: Roboto Mono
+
+  --------------------------------------------
+  Roboto Mono Bold Italic
+  --------------------------------------------
+
+  This file provides detailed information on the Roboto Mono 
+  font Software.
+  This information should be distributed along with the 
+  Inconsolata fonts and any derivative works.
+  
+  Roboto Mono Font Information
+  
+  Roboto Mono is a monospaced addition to the Roboto type 
+  family. Like the other members of the Roboto family, the 
+  fonts are optimized for readability on screens across a 
+  wide variety of devices and reading environments. While the 
+  monospaced version is related to its variable width cousin, 
+  it doesn’t hesitate to change forms to better fit the 
+  constraints of a monospaced environment. For example, 
+  narrow glyphs like ‘I’ ‘l’and ‘i’have added 
+  serifs for more even texture while wider glyphs are 
+  adjusted for weight. Curved caps like ‘C’and 
+  ‘O’take on the straighter sides from Roboto Condensed.
+  
+  Special consideration is given to glyphs important for 
+  reading and writing software source code. Letters with 
+  similar shapes are easy to tell apart. Digit ‘1’ 
+  lowercase ‘l’and capital ‘I’are easily 
+  differentiated as are zero and the letter ‘O’ 
+  Punctuation important for code has also been considered. 
+  For example, the curly braces ‘ }’have exaggerated 
+  points to clearly differentiate them from parenthesis ‘ 
+  )’and braces ‘ ]’ Periods and commas are also 
+  exaggerated to identify them more quickly. The scale and 
+  weight of symbols commonly used as operators have also been 
+  optimized.
+  
+  
+  ChangeLog
+  
+  12 Jun 2015 (Christoph Haag)
+- created fontforge sources as base to work on GNU/Linux
+- added FONTLOG to .sfdir
+- Mastered Font from Fontforge SFDIR to 
+  UFO,OTF,TTF,EOT,WOFF,SVG
+  
+  ??? (Christian Robertson)
+- Initial Release.
+  
+  Acknowledgements
+  
+  If you make modifications be sure to add your name (N), 
+  email (E), web-address (if you have one) (W) and 
+  description (D). This list is in alphabetical order.
+  
+  N: Christoph Haag
+  E: christoph@lafkon.net
+  W: www.lafkon.net
+  D: Transformer
+  
+  N: Christian Robertson
+  W: www.betatype.com
+  D: Designer
+
+
+  --------------------------------------------
+  Roboto Mono Italic
+  --------------------------------------------
+  see above
+  --------------------------------------------
+  Roboto Mono
+  --------------------------------------------
+  see above
+  --------------------------------------------
+  Roboto Mono Light
+  --------------------------------------------
+  see above
+  --------------------------------------------
+  Roboto Mono Thin
+  --------------------------------------------
+  see above
+  --------------------------------------------
+  Roboto Mono Medium Italic
+  --------------------------------------------
+  see above
+  --------------------------------------------
+  Roboto Mono Light Italic
+  --------------------------------------------
+  see above
+  --------------------------------------------
+  Roboto Mono Bold
+  --------------------------------------------
+  see above
+  --------------------------------------------
+  Roboto Mono Thin Italic
+  --------------------------------------------
+  see above
+  --------------------------------------------
+  Roboto Mono Medium
+  --------------------------------------------
+  see above
