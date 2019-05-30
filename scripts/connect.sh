@@ -5,7 +5,7 @@ set -e
 
 # =============================================================================================
 if [[ "$(basename $PWD)" == "scripts" ]]; then
-	cd ..
+    cd ..
 fi
 echo $PWD
 
@@ -14,5 +14,5 @@ source .env
 source ~/.config/ircollector_db.conf || true
 
 # =============================================================================================
-echo "running iRvisualizer ..."
-./iRvisualizer
+echo "connecting to iRvisualizer database ..."
+psql ${IRVISUALIZER_DB_URI}

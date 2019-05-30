@@ -1,6 +1,10 @@
 package main
 
 import (
+	"fmt"
+
+	"github.com/JamesClonk/iRcollector/database"
+	"github.com/JamesClonk/iRvisualizer/env"
 	"github.com/JamesClonk/iRvisualizer/log"
 	"github.com/fogleman/gg"
 )
@@ -13,7 +17,76 @@ const (
 	dayLength      = float64(160)
 )
 
+var (
+	username, password string
+	db                 database.Database
+)
+
 func main() {
+	port := env.Get("PORT", "8080")
+	level := env.Get("LOG_LEVEL", "info")
+	username = env.MustGet("AUTH_USERNAME")
+	password = env.MustGet("AUTH_PASSWORD")
+
+	log.Infoln("port:", port)
+	log.Infoln("log level:", level)
+	log.Infoln("auth username:", username)
+
+	// setup database connection
+	db = database.NewDatabase(database.NewAdapter())
+
+	seasonID := 2377
+	week := 11
+
+	season, err := getSeason(seasonID)
+	if err != nil {
+		log.Errorf("could not get season: %v", err)
+		return
+	}
+
+	raceweek, track, results, err := getWeek(seasonID, week)
+	if err != nil {
+		log.Errorf("could not get raceweek results: %v", err)
+		return
+	}
+
+	drawHeatmap(season, raceweek, track, results)
+}
+
+func getSeason(seasonID int) (database.Season, error) {
+	log.Infof("collect season [%d]", seasonID)
+	return db.GetSeasonByID(seasonID)
+}
+
+func getWeek(seasonID, week int) (database.RaceWeek, database.Track, []database.RaceWeekResult, error) {
+	log.Infof("collect results for season [%d], week [%d]", seasonID, week)
+
+	raceweek, err := db.GetRaceWeekBySeasonIDAndWeek(seasonID, week)
+	if err != nil {
+		return database.RaceWeek{}, database.Track{}, nil, err
+	}
+
+	track, err := db.GetTrackByID(raceweek.TrackID)
+	if err != nil {
+		return raceweek, database.Track{}, nil, err
+	}
+
+	results, err := db.GetRaceWeekResultsBySeasonIDAndWeek(seasonID, week)
+	if err != nil {
+		return raceweek, track, nil, err
+	}
+
+	return raceweek, track, results, nil
+}
+
+func drawHeatmap(season database.Season, week database.RaceWeek, track database.Track, results []database.RaceWeekResult) {
+	heatmapTitle := fmt.Sprintf("%s - Week %d", season.SeasonName, week.RaceWeek+1)
+	heatmap2ndTitle := track.Name
+	if len(track.Config) > 0 {
+		heatmap2ndTitle = fmt.Sprintf("%s - %s", track.Name, track.Config)
+	}
+
+	log.Infof("draw heatmap for [%s] - [%s]", heatmapTitle, heatmap2ndTitle)
 	dc := gg.NewContext(int(imageLength), int(imageHeight))
 
 	// background
@@ -32,13 +105,13 @@ func main() {
 		log.Fatalf("could not load font: %v", err)
 	}
 	dc.SetRGB255(255, 255, 255) // white
-	dc.DrawStringAnchored("Pro Mazda Championship - 2019 Season 2 - Week 10", dayLength/4, headerHeight/2, 0, 0.5)
+	dc.DrawStringAnchored(heatmapTitle, dayLength/4, headerHeight/2, 0, 0.5)
 
 	if err := dc.LoadFontFace("public/fonts/Roboto-Italic.ttf", 20); err != nil {
 		log.Fatalf("could not load font: %v", err)
 	}
 	dc.SetRGB255(255, 255, 255) // white
-	dc.DrawStringAnchored("Spa-Francorchamps - Classic Pits", imageLength-dayLength/4, headerHeight/2, 1, 0.5)
+	dc.DrawStringAnchored(heatmap2ndTitle, imageLength-dayLength/4, headerHeight/2, 1, 0.5)
 
 	// timeslots
 	dc.DrawRectangle(0, headerHeight, dayLength, timeslotHeight)
