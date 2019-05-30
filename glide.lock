@@ -1,15 +1,43 @@
-hash: ab7ea1de5ff4815298a48d4d65d5c39e6195280742cd30011a9d5dbd23079170
-updated: 2019-05-18T14:38:21.528043116+02:00
+hash: 4a7ff59e22e0794bc8a9e62b5200cf0fffdbd40c443fad876ed50d3ec2058b71
+updated: 2019-05-30T19:04:18.937730623+02:00
 imports:
+- name: github.com/cloudfoundry-community/go-cfenv
+  version: f920e9562d5f951cbf11785728f67258c38a10d0
 - name: github.com/fogleman/gg
   version: 0403632d5b905943a1c2a5b2763aaecd568467ec
+- name: github.com/golang-migrate/migrate
+  version: 4937cd088f7c7193ee59b319c1c2caa7482aae8e
+  subpackages:
+  - database
+  - database/postgres
+  - source
+  - source/file
 - name: github.com/golang/freetype
   version: e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4
   subpackages:
   - raster
   - truetype
+- name: github.com/JamesClonk/iRcollector
+  version: 8a07dbb816d67a37de024b0e038d9736595f5a7b
+  subpackages:
+  - database
+  - env
+  - log
+- name: github.com/jmoiron/sqlx
+  version: d161d7a76b5661016ad0b085869f77fd410f3e6a
+  subpackages:
+  - reflectx
 - name: github.com/konsorten/go-windows-terminal-sequences
   version: f55edac94c9bbba5d6182a4be46d86a2c9b5b50e
+- name: github.com/lib/pq
+  version: bc6a3c0594130b1e34005880bc600b6d3f49fa7f
+  subpackages:
+  - oid
+  - scram
+- name: github.com/mitchellh/mapstructure
+  version: 3536a929edddb9a5b34bd6861dc4a9647cb459fe
+- name: github.com/robfig/cron
+  version: b41be1df696709bb6395fe435af20370037c0b4c
 - name: github.com/sirupsen/logrus
   version: e1e72e9de974bd926e5c56f83753fba2df402ce5
 - name: golang.org/x/crypto

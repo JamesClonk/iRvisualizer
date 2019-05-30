@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/JamesClonk/iRcollector/database"
 	"github.com/JamesClonk/iRvisualizer/env"
 	"github.com/JamesClonk/iRvisualizer/log"
 	"github.com/fogleman/gg"
+	"github.com/robfig/cron"
 )
 
 const (
@@ -75,6 +77,10 @@ func getWeek(seasonID, week int) (database.RaceWeek, database.Track, []database.
 	if err != nil {
 		return raceweek, track, nil, err
 	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].StartTime.Before(results[j].StartTime)
+	})
 
 	return raceweek, track, results, nil
 }
@@ -145,6 +151,11 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 	// empty events
 	eventDays := 7
 	eventSlots := 12
+
+	p := cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow)
+	schedule, err := p.Parse(season.Timeslots)
+	schedule.Next(database.WeekStart(season.StartDate.Add(week.RaceWeek * 7)))
+
 	eventHeight := ((imageHeight - headerHeight - timeslotHeight) / float64(eventDays)) - 1
 	eventLength := ((imageLength - dayLength) / float64(eventSlots)) - 1
 	for day := 0; day < eventDays; day++ {
