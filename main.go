@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/JamesClonk/iRcollector/database"
 	"github.com/JamesClonk/iRvisualizer/env"
@@ -93,6 +94,23 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 	}
 
 	log.Infof("draw heatmap for [%s] - [%s]", heatmapTitle, heatmap2ndTitle)
+
+	// figure out timeslots
+	p := cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow)
+	schedule, err := p.Parse(season.Timeslots)
+	if err != nil {
+		log.Errorf("could not parse timeslot [%s] to crontab format: %v", season.Timeslots, err)
+		return
+	}
+	start := database.WeekStart(season.StartDate.UTC().AddDate(0, 0, week.RaceWeek*7).Add(-1 * time.Minute))
+	next := start
+	timeslotsPerDay := 0
+	for next.Before(schedule.Next(start.AddDate(0, 0, 1))) {
+		timeslotsPerDay++
+		next = schedule.Next(next)
+	}
+
+	// create canvas
 	dc := gg.NewContext(int(imageLength), int(imageHeight))
 
 	// background
@@ -123,9 +141,8 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 	dc.DrawRectangle(0, headerHeight, dayLength, timeslotHeight)
 	dc.SetRGB255(239, 239, 239) // light gray 2
 	dc.Fill()
-	slots := 12
-	timeslotLength := ((imageLength - dayLength) / float64(slots)) - 1
-	for slot := 0; slot < slots; slot++ {
+	timeslotLength := ((imageLength - dayLength) / float64(timeslotsPerDay)) - 1
+	for slot := 0; slot < timeslotsPerDay; slot++ {
 		dc.DrawRectangle((float64(slot)*(timeslotLength+1))+(dayLength+1), headerHeight, timeslotLength, timeslotHeight)
 		if slot%2 == 0 {
 			dc.SetRGB255(243, 243, 243) // light gray 3
@@ -150,24 +167,10 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 
 	// empty events
 	eventDays := 7
-	eventSlots := 12
-
-	p := cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow)
-	schedule, err := p.Parse(season.Timeslots)
-	if err != nil {
-		log.Errorf("could not parse timeslot [%s] to crontab format: %v", season.Timeslots, err)
-		return
-	}
-
-	start := database.WeekStart(season.StartDate.UTC().AddDate(0, 0, week.RaceWeek*7))
-	for d := 0; d < 7; d++ {
-		log.Infoln(schedule.Next(start.AddDate(0, 0, d)))
-	}
-
 	eventHeight := ((imageHeight - headerHeight - timeslotHeight) / float64(eventDays)) - 1
-	eventLength := ((imageLength - dayLength) / float64(eventSlots)) - 1
+	eventLength := ((imageLength - dayLength) / float64(timeslotsPerDay)) - 1
 	for day := 0; day < eventDays; day++ {
-		for slot := 0; slot < eventSlots; slot++ {
+		for slot := 0; slot < timeslotsPerDay; slot++ {
 			dc.DrawRectangle(
 				(float64(slot)*(eventLength+1))+(dayLength+1),
 				(float64(day)*(eventHeight+1))+(headerHeight+timeslotHeight+1),
