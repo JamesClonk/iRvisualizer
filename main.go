@@ -104,10 +104,10 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 	}
 	days := 7
 	start := database.WeekStart(season.StartDate.UTC().AddDate(0, 0, week.RaceWeek*days).Add(-1 * time.Minute))
-	next := start
-	timeslotsPerDay := 0
+	timeslots := make([]time.Time, 0)
+	next := schedule.Next(start)
 	for next.Before(schedule.Next(start.AddDate(0, 0, 1))) {
-		timeslotsPerDay++
+		timeslots = append(timeslots, next)
 		next = schedule.Next(next)
 	}
 
@@ -142,8 +142,16 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 	dc.DrawRectangle(0, headerHeight, dayLength, timeslotHeight)
 	dc.SetRGB255(239, 239, 239) // light gray 2
 	dc.Fill()
-	timeslotLength := ((imageLength - dayLength) / float64(timeslotsPerDay)) - 1
-	for slot := 0; slot < timeslotsPerDay; slot++ {
+	if err := dc.LoadFontFace("public/fonts/roboto-mono_thin.ttf", 14); err != nil {
+		log.Fatalf("could not load font: %v", err)
+	}
+	dc.SetRGB255(0, 0, 0) // black
+	dc.DrawStringAnchored("UTC / GMT+0", dayLength/2, headerHeight+timeslotHeight/2, 0.5, 0.5)
+	if err := dc.LoadFontFace("public/fonts/roboto-mono_medium.ttf", 16); err != nil {
+		log.Fatalf("could not load font: %v", err)
+	}
+	timeslotLength := ((imageLength - dayLength) / float64(len(timeslots))) - 1
+	for slot := 0; slot < len(timeslots); slot++ {
 		dc.DrawRectangle((float64(slot)*(timeslotLength+1))+(dayLength+1), headerHeight, timeslotLength, timeslotHeight)
 		if slot%2 == 0 {
 			dc.SetRGB255(243, 243, 243) // light gray 3
@@ -151,6 +159,9 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 			dc.SetRGB255(239, 239, 239) // light gray 2
 		}
 		dc.Fill()
+
+		dc.SetRGB255(0, 0, 0) // black
+		dc.DrawStringAnchored(timeslots[slot].Format("15:04"), (float64(slot)*(timeslotLength+1))+(dayLength+1)+(timeslotLength/2), headerHeight+timeslotHeight/2, 0.5, 0.5)
 	}
 
 	// weekdays
@@ -167,9 +178,9 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 
 	// empty events
 	eventHeight := ((imageHeight - headerHeight - timeslotHeight) / float64(days)) - 1
-	eventLength := ((imageLength - dayLength) / float64(timeslotsPerDay)) - 1
+	eventLength := ((imageLength - dayLength) / float64(len(timeslots))) - 1
 	for day := 0; day < days; day++ {
-		for slot := 0; slot < timeslotsPerDay; slot++ {
+		for slot := 0; slot < len(timeslots); slot++ {
 			dc.DrawRectangle(
 				(float64(slot)*(eventLength+1))+(dayLength+1),
 				(float64(day)*(eventHeight+1))+(headerHeight+timeslotHeight+1),
@@ -184,6 +195,7 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 
 /*
 	Colors:
+	dc.SetRGB255(0, 0, 0) // black
 	dc.SetRGB255(255, 255, 255) // white
 	dc.SetRGB255(217, 217, 217) // light gray 1
 	dc.SetRGB255(239, 239, 239) // light gray 2
