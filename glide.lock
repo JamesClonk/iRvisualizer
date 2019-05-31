@@ -1,5 +1,5 @@
 hash: 4a7ff59e22e0794bc8a9e62b5200cf0fffdbd40c443fad876ed50d3ec2058b71
-updated: 2019-05-30T19:04:18.937730623+02:00
+updated: 2019-05-31T15:38:54.923783866+02:00
 imports:
 - name: github.com/cloudfoundry-community/go-cfenv
   version: f920e9562d5f951cbf11785728f67258c38a10d0
@@ -18,7 +18,7 @@ imports:
   - raster
   - truetype
 - name: github.com/JamesClonk/iRcollector
-  version: 8a07dbb816d67a37de024b0e038d9736595f5a7b
+  version: 397de463664a8b0a2aba9020b5b7dc9e96c6f411
   subpackages:
   - database
   - env

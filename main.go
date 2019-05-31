@@ -154,7 +154,15 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 
 	p := cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow)
 	schedule, err := p.Parse(season.Timeslots)
-	schedule.Next(database.WeekStart(season.StartDate.Add(week.RaceWeek * 7)))
+	if err != nil {
+		log.Errorf("could not parse timeslot [%s] to crontab format: %v", season.Timeslots, err)
+		return
+	}
+
+	start := database.WeekStart(season.StartDate.UTC().AddDate(0, 0, week.RaceWeek*7))
+	for d := 0; d < 7; d++ {
+		log.Infoln(schedule.Next(start.AddDate(0, 0, d)))
+	}
 
 	eventHeight := ((imageHeight - headerHeight - timeslotHeight) / float64(eventDays)) - 1
 	eventLength := ((imageLength - dayLength) / float64(eventSlots)) - 1

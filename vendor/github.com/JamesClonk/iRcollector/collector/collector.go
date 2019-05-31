@@ -60,46 +60,55 @@ func (c *Collector) Run() {
 				if namerx.MatchString(season.SeriesName) { // does seriesName match seriesRegex from db?
 					log.Infof("Season: %s", season)
 
-					// figure out which season we are in
-					var year, quarter int
-					if seasonrx.MatchString(season.SeasonNameShort) {
-						var err error
-						year, err = strconv.Atoi(season.SeasonNameShort[0:4])
-						if err != nil {
-							log.Errorf("could not convert SeasonNameShort [%s] to year: %v", season.SeasonNameShort, err)
-						}
-						quarter, err = strconv.Atoi(season.SeasonNameShort[12:13])
-						if err != nil {
-							log.Errorf("could not convert SeasonNameShort [%s] to quarter: %v", season.SeasonNameShort, err)
-						}
+					// does it already exists in db?
+					s, err := c.db.GetSeasonByID(season.SeasonID)
+					if err != nil {
+						log.Errorf("could not get season [%d] from database: %v", season.SeasonID, err)
 					}
-					// if we couldn't figure out the season from SeasonNameShort, then we'll try to calculate it based on 2018S1 which started on 2017-12-12
-					if year < 2010 || quarter < 1 {
-						iracingEpoch := time.Date(2017, 12, 12, 0, 0, 0, 0, time.UTC)
-						daysSince := int(time.Now().Sub(iracingEpoch).Hours() / 24)
-						weeksSince := daysSince / 7
-						seasonsSince := weeksSince / 13
-						yearsSince := seasonsSince / 4
-						year = 2018 + yearsSince
-						quarter = (seasonsSince % 4) + 1
-					}
-					log.Infof("Current season: %dS%d", year, quarter)
+					if err != nil || len(s.SeasonName) == 0 || len(s.Timeslots) == 0 || s.StartDate.Before(time.Now().AddDate(-1, -1, -1)) {
+						// figure out which season we are in
+						var year, quarter int
+						if seasonrx.MatchString(season.SeasonNameShort) {
+							var err error
+							year, err = strconv.Atoi(season.SeasonNameShort[0:4])
+							if err != nil {
+								log.Errorf("could not convert SeasonNameShort [%s] to year: %v", season.SeasonNameShort, err)
+							}
+							quarter, err = strconv.Atoi(season.SeasonNameShort[12:13])
+							if err != nil {
+								log.Errorf("could not convert SeasonNameShort [%s] to quarter: %v", season.SeasonNameShort, err)
+							}
+						}
+						// if we couldn't figure out the season from SeasonNameShort, then we'll try to calculate it based on 2018S1 which started on 2017-12-12
+						if year < 2010 || quarter < 1 {
+							iracingEpoch := time.Date(2017, 12, 12, 0, 0, 0, 0, time.UTC)
+							daysSince := int(time.Now().Sub(iracingEpoch).Hours() / 24)
+							weeksSince := daysSince / 7
+							seasonsSince := weeksSince / 13
+							yearsSince := seasonsSince / 4
+							year = 2018 + yearsSince
+							quarter = (seasonsSince % 4) + 1
+						}
 
-					// upsert current season
-					s := database.Season{
-						SeriesID:        series.SeriesID,
-						SeasonID:        season.SeasonID,
-						Year:            year,
-						Quarter:         quarter,
-						Category:        season.Category,
-						SeasonName:      season.SeasonName,
-						SeasonNameShort: season.SeasonNameShort,
-						BannerImage:     season.BannerImage,
-						PanelImage:      season.PanelImage,
-						LogoImage:       season.LogoImage,
-					}
-					if err := c.db.UpsertSeason(s); err != nil {
-						log.Errorf("could not store season [%s] in database: %v", season.SeasonName, err)
+						startDate := database.WeekStart(time.Now().UTC().AddDate(0, 0, -7*season.RaceWeek))
+						log.Infof("Current season: %dS%d, started: %s", year, quarter, startDate)
+
+						// upsert current season
+						s.SeriesID = series.SeriesID
+						s.SeasonID = season.SeasonID
+						s.Year = year
+						s.Quarter = quarter
+						s.Category = season.Category
+						s.SeasonName = season.SeasonName
+						s.SeasonNameShort = season.SeasonNameShort
+						s.BannerImage = season.BannerImage
+						s.PanelImage = season.PanelImage
+						s.LogoImage = season.LogoImage
+						s.Timeslots = s.Timeslots
+						s.StartDate = startDate
+						if err := c.db.UpsertSeason(s); err != nil {
+							log.Errorf("could not store season [%s] in database: %v", season.SeasonName, err)
+						}
 					}
 
 					// insert current raceweek
@@ -115,9 +124,9 @@ func (c *Collector) Run() {
 							log.Fatalf("%v", err)
 						}
 						for _, s := range ss {
-							yearToFind := year
-							quarterToFind := quarter - 1
-							if quarter == 1 {
+							yearToFind := s.Year
+							quarterToFind := s.Quarter - 1
+							if s.Quarter == 1 {
 								yearToFind = yearToFind - 1
 								quarterToFind = 4
 							}
