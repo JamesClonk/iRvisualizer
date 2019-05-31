@@ -102,7 +102,8 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 		log.Errorf("could not parse timeslot [%s] to crontab format: %v", season.Timeslots, err)
 		return
 	}
-	start := database.WeekStart(season.StartDate.UTC().AddDate(0, 0, week.RaceWeek*7).Add(-1 * time.Minute))
+	days := 7
+	start := database.WeekStart(season.StartDate.UTC().AddDate(0, 0, week.RaceWeek*days).Add(-1 * time.Minute))
 	next := start
 	timeslotsPerDay := 0
 	for next.Before(schedule.Next(start.AddDate(0, 0, 1))) {
@@ -153,7 +154,6 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 	}
 
 	// weekdays
-	days := 7
 	dayHeight := ((imageHeight - headerHeight - timeslotHeight) / float64(days)) - 1
 	for day := 0; day < days; day++ {
 		dc.DrawRectangle(0, (float64(day)*(dayHeight+1))+(headerHeight+timeslotHeight+1), dayLength, dayHeight)
@@ -166,10 +166,9 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 	}
 
 	// empty events
-	eventDays := 7
-	eventHeight := ((imageHeight - headerHeight - timeslotHeight) / float64(eventDays)) - 1
+	eventHeight := ((imageHeight - headerHeight - timeslotHeight) / float64(days)) - 1
 	eventLength := ((imageLength - dayLength) / float64(timeslotsPerDay)) - 1
-	for day := 0; day < eventDays; day++ {
+	for day := 0; day < days; day++ {
 		for slot := 0; slot < timeslotsPerDay; slot++ {
 			dc.DrawRectangle(
 				(float64(slot)*(eventLength+1))+(dayLength+1),
