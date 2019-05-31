@@ -106,6 +106,7 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 	start := database.WeekStart(season.StartDate.UTC().AddDate(0, 0, week.RaceWeek*days).Add(-1 * time.Minute))
 	timeslots := make([]time.Time, 0)
 	next := schedule.Next(start)
+	weekStart := next
 	for next.Before(schedule.Next(start.AddDate(0, 0, 1))) {
 		timeslots = append(timeslots, next)
 		next = schedule.Next(next)
@@ -165,6 +166,9 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 	}
 
 	// weekdays
+	if err := dc.LoadFontFace("public/fonts/RobotoCondensed-Regular.ttf", 20); err != nil {
+		log.Fatalf("could not load font: %v", err)
+	}
 	dayHeight := ((imageHeight - headerHeight - timeslotHeight) / float64(days)) - 1
 	for day := 0; day < days; day++ {
 		dc.DrawRectangle(0, (float64(day)*(dayHeight+1))+(headerHeight+timeslotHeight+1), dayLength, dayHeight)
@@ -174,6 +178,9 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 			dc.SetRGB255(239, 239, 239) // light gray 2
 		}
 		dc.Fill()
+
+		dc.SetRGB255(0, 0, 0) // black
+		dc.DrawStringAnchored(weekStart.AddDate(0, 0, day).Weekday().String(), dayLength/2, (float64(day)*(dayHeight+1))+(headerHeight+timeslotHeight+1)+dayHeight/2, 0.5, 0.5)
 	}
 
 	// empty events
