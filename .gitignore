@@ -20,3 +20,4 @@ iRvisualizer
 
 # Test output
 public/*.png
+public/heatmaps/*.png
