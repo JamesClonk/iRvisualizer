@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	borderSize     = float64(7)
 	imageHeight    = float64(480)
 	imageLength    = float64(1024)
 	headerHeight   = float64(45)
@@ -274,12 +275,19 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 		}
 	}
 
-	dc.SavePNG("public/test.png")
+	// add border to image
+	fdc := gg.NewContext(int(imageLength+borderSize*2), int(imageHeight+borderSize*2))
+	fdc.SetRGB255(39, 39, 39) // dark gray 1
+	fdc.Clear()
+	fdc.DrawImage(dc.Image(), int(borderSize), int(borderSize))
+
+	fdc.SavePNG("public/test.png")
 }
 
 /*
 	Colors:
 	dc.SetRGB255(0, 0, 0) // black
+	dc.SetRGB255(39, 39, 39) // dark gray 1
 	dc.SetRGB255(255, 255, 255) // white
 	dc.SetRGB255(217, 217, 217) // light gray 1
 	dc.SetRGB255(239, 239, 239) // light gray 2
