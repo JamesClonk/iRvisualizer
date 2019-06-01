@@ -91,6 +91,7 @@ func getWeek(seasonID, week int) (database.RaceWeek, database.Track, []database.
 func getResult(slot time.Time, results []database.RaceWeekResult) database.RaceWeekResult {
 	for _, result := range results {
 		if result.StartTime.UTC() == slot.UTC() {
+			-- TODO: if there was a split, you'll need to add it together (max(sof), sum(size)) and return that instead
 			return result
 		}
 	}
