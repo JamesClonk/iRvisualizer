@@ -40,6 +40,7 @@ func main() {
 
 	seasonID := 2377
 	week := 11
+	maxSOF := 2500
 
 	season, err := getSeason(seasonID)
 	if err != nil {
@@ -53,7 +54,7 @@ func main() {
 		return
 	}
 
-	drawHeatmap(season, raceweek, track, results)
+	drawHeatmap(season, raceweek, track, results, maxSOF)
 }
 
 func getSeason(seasonID int) (database.Season, error) {
@@ -86,7 +87,20 @@ func getWeek(seasonID, week int) (database.RaceWeek, database.Track, []database.
 	return raceweek, track, results, nil
 }
 
-func drawHeatmap(season database.Season, week database.RaceWeek, track database.Track, results []database.RaceWeekResult) {
+func getResult(slot time.Time, results []database.RaceWeekResult) database.RaceWeekResult {
+	for _, result := range results {
+		if result.StartTime.UTC() == slot.UTC() {
+			return result
+		}
+	}
+	return database.RaceWeekResult{
+		SizeOfField:     0,
+		StrengthOfField: 0,
+	}
+}
+
+func drawHeatmap(season database.Season, week database.RaceWeek, track database.Track, results []database.RaceWeekResult, maxSOF int) {
+	// heatmap titles, season + track
 	heatmapTitle := fmt.Sprintf("%s - Week %d", season.SeasonName, week.RaceWeek+1)
 	heatmap2ndTitle := track.Name
 	if len(track.Config) > 0 {
@@ -102,14 +116,23 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 		log.Errorf("could not parse timeslot [%s] to crontab format: %v", season.Timeslots, err)
 		return
 	}
-	days := 7
-	start := database.WeekStart(season.StartDate.UTC().AddDate(0, 0, week.RaceWeek*days).Add(-1 * time.Minute))
+	days := 7 // pretty sure that's never gonna change..
+	// start -1 minute to previous day, to make sure schedule.Next will catch a midnight start (00:00)
+	start := database.WeekStart(season.StartDate.UTC().AddDate(0, 0, (week.RaceWeek+1)*days).Add(-1 * time.Minute))
 	timeslots := make([]time.Time, 0)
-	next := schedule.Next(start)
-	weekStart := next
-	for next.Before(schedule.Next(start.AddDate(0, 0, 1))) {
+	next := schedule.Next(start)                             // get first timeslot
+	weekStart := next                                        // first timeslot is our week start
+	for next.Before(schedule.Next(start.AddDate(0, 0, 1))) { // collect all timeslots of 1 day
 		timeslots = append(timeslots, next)
 		next = schedule.Next(next)
+	}
+	// figure out dynamic max SOF
+	if maxSOF == 0 {
+		for _, result := range results {
+			if result.StrengthOfField > maxSOF {
+				maxSOF = result.StrengthOfField
+			}
+		}
 	}
 
 	// create canvas
@@ -127,12 +150,13 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 	dc.SetRGB255(11, 83, 148) // dark blue 2
 	dc.Fill()
 
+	// draw season name
 	if err := dc.LoadFontFace("public/fonts/Roboto-Italic.ttf", 20); err != nil {
 		log.Fatalf("could not load font: %v", err)
 	}
 	dc.SetRGB255(255, 255, 255) // white
 	dc.DrawStringAnchored(heatmapTitle, dayLength/4, headerHeight/2, 0, 0.5)
-
+	// draw track config
 	if err := dc.LoadFontFace("public/fonts/Roboto-Italic.ttf", 20); err != nil {
 		log.Fatalf("could not load font: %v", err)
 	}
@@ -160,9 +184,13 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 			dc.SetRGB255(239, 239, 239) // light gray 2
 		}
 		dc.Fill()
-
+		// draw timeslot starting time
 		dc.SetRGB255(0, 0, 0) // black
-		dc.DrawStringAnchored(timeslots[slot].Format("15:04"), (float64(slot)*(timeslotLength+1))+(dayLength+1)+(timeslotLength/2), headerHeight+timeslotHeight/2, 0.5, 0.5)
+		dc.DrawStringAnchored(
+			timeslots[slot].Format("15:04"),
+			(float64(slot)*(timeslotLength+1))+(dayLength+1)+(timeslotLength/2),
+			headerHeight+timeslotHeight/2,
+			0.5, 0.5)
 	}
 
 	// weekdays
@@ -178,12 +206,16 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 			dc.SetRGB255(239, 239, 239) // light gray 2
 		}
 		dc.Fill()
-
+		// draw weekday name
 		dc.SetRGB255(0, 0, 0) // black
-		dc.DrawStringAnchored(weekStart.AddDate(0, 0, day).Weekday().String(), dayLength/2, (float64(day)*(dayHeight+1))+(headerHeight+timeslotHeight+1)+dayHeight/2, 0.5, 0.5)
+		dc.DrawStringAnchored(
+			weekStart.AddDate(0, 0, day).Weekday().String(),
+			dayLength/2,
+			(float64(day)*(dayHeight+1))+(headerHeight+timeslotHeight+1)+dayHeight/2,
+			0.5, 0.5)
 	}
 
-	// empty events
+	// events
 	eventHeight := ((imageHeight - headerHeight - timeslotHeight) / float64(days)) - 1
 	eventLength := ((imageLength - dayLength) / float64(len(timeslots))) - 1
 	for day := 0; day < days; day++ {
@@ -194,6 +226,31 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 				eventLength, eventHeight)
 			dc.SetRGB255(255, 255, 255) // white
 			dc.Fill()
+
+			// draw event values
+			timeslot := weekStart.AddDate(0, 0, day).Add(time.Hour * time.Duration(timeslots[slot].Hour()))
+			result := getResult(timeslot, results)
+			dc.SetRGB255(0, 0, 0) // black
+			sof := 0
+			if result.Official {
+				sof = result.StrengthOfField
+			}
+			if err := dc.LoadFontFace("public/fonts/roboto-mono_regular.ttf", 15); err != nil {
+				log.Fatalf("could not load font: %v", err)
+			}
+			dc.DrawStringAnchored(
+				fmt.Sprintf("%d", sof),
+				(float64(slot)*(eventLength+1))+(dayLength+1)+eventLength/2,
+				(float64(day)*(eventHeight+1))+(headerHeight+timeslotHeight+1)+eventHeight/3,
+				0.5, 0.5)
+			if err := dc.LoadFontFace("public/fonts/roboto-mono_light.ttf", 13); err != nil {
+				log.Fatalf("could not load font: %v", err)
+			}
+			dc.DrawStringAnchored(
+				fmt.Sprintf("%d", result.SizeOfField),
+				(float64(slot)*(eventLength+1))+(dayLength+1)+eventLength/2,
+				(float64(day)*(eventHeight+1))+(headerHeight+timeslotHeight+1)+eventHeight/1.5,
+				0.5, 0.5)
 		}
 	}
 
