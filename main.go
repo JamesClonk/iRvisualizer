@@ -99,6 +99,17 @@ func getResult(slot time.Time, results []database.RaceWeekResult) database.RaceW
 	}
 }
 
+func mapValueIntoRange(rangeStart, rangeEnd, min, max, value int) int {
+	if value <= min {
+		value = min + 1
+	}
+	if value >= max {
+		return rangeEnd
+	}
+	rangeSize := rangeEnd - rangeStart
+	return rangeStart + int((float64(value-min)/float64(max-min))*float64(rangeSize))
+}
+
 func drawHeatmap(season database.Season, week database.RaceWeek, track database.Track, results []database.RaceWeekResult, maxSOF int) {
 	// heatmap titles, season + track
 	heatmapTitle := fmt.Sprintf("%s - Week %d", season.SeasonName, week.RaceWeek+1)
@@ -126,8 +137,10 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 		timeslots = append(timeslots, next)
 		next = schedule.Next(next)
 	}
-	// figure out dynamic max SOF
+	// figure out dynamic SOF
+	minSOF := 1000
 	if maxSOF == 0 {
+		maxSOF = minSOF * 2
 		for _, result := range results {
 			if result.StrengthOfField > maxSOF {
 				maxSOF = result.StrengthOfField
@@ -230,11 +243,18 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 			// draw event values
 			timeslot := weekStart.AddDate(0, 0, day).Add(time.Hour * time.Duration(timeslots[slot].Hour()))
 			result := getResult(timeslot, results)
-			dc.SetRGB255(0, 0, 0) // black
 			sof := 0
 			if result.Official {
 				sof = result.StrengthOfField
+				// draw background color
+				dc.DrawRectangle(
+					(float64(slot)*(eventLength+1))+(dayLength+1),
+					(float64(day)*(eventHeight+1))+(headerHeight+timeslotHeight+1),
+					eventLength, eventHeight)
+				dc.SetRGBA255(0, 0, 240-mapValueIntoRange(0, 120, minSOF, maxSOF, sof), mapValueIntoRange(15, 200, minSOF, maxSOF, sof)) // sof color
+				dc.Fill()
 			}
+			dc.SetRGB255(0, 0, 0) // black
 			if err := dc.LoadFontFace("public/fonts/roboto-mono_regular.ttf", 15); err != nil {
 				log.Fatalf("could not load font: %v", err)
 			}
