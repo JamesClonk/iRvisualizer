@@ -20,7 +20,7 @@ func Test_HealthEndpoint(t *testing.T) {
 	h := &Handler{
 		Username: "iracing",
 		Password: "secret",
-		DB:       database.Database{},
+		DB:       database.NewDatabase(&database.PostgresAdapter{}),
 		Mutex:    &sync.Mutex{},
 	}
 	router(h).ServeHTTP(rec, req)
