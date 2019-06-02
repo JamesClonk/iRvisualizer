@@ -1,20 +1,13 @@
 package main
 
 import (
-	"crypto/subtle"
 	"fmt"
-	"net/http"
-	"os"
-	"sort"
-	"strconv"
-	"sync"
 	"time"
 
 	"github.com/JamesClonk/iRcollector/database"
-	"github.com/JamesClonk/iRvisualizer/env"
 	"github.com/JamesClonk/iRvisualizer/log"
+	"github.com/JamesClonk/iRvisualizer/util"
 	"github.com/fogleman/gg"
-	"github.com/gorilla/mux"
 	"github.com/robfig/cron"
 )
 
@@ -25,187 +18,23 @@ const (
 	headerHeight   = float64(45)
 	timeslotHeight = float64(50)
 	dayLength      = float64(160)
+	days           = 7 // pretty sure that's never gonna change..
 )
 
-type Handler struct {
-	Username string
-	Password string
-	DB       database.Database
-	Mutex    *sync.Mutex
+func Filename(season database.Season, week database.RaceWeek) {
+	return fmt.Sprintf("public/heatmaps/season_%d_week_%d.png", season.SeasonID, week.RaceWeek+1)
 }
 
-func main() {
-	port := env.Get("PORT", "8080")
-	level := env.Get("LOG_LEVEL", "info")
-	username := env.MustGet("AUTH_USERNAME")
-	password := env.MustGet("AUTH_PASSWORD")
-
-	log.Infoln("port:", port)
-	log.Infoln("log level:", level)
-	log.Infoln("auth username:", username)
-
-	// setup database connection
-	db := database.NewDatabase(database.NewAdapter())
-
-	// global handler
-	h := &Handler{
-		Username: username,
-		Password: password,
-		DB:       db,
-		Mutex:    &sync.Mutex{},
-	}
-
-	// start listener
-	log.Fatalln(http.ListenAndServe(":"+port, router(h)))
-}
-
-func router(h *Handler) *mux.Router {
-	r := mux.NewRouter()
-	r.PathPrefix("/health").HandlerFunc(h.health)
-
-	r.HandleFunc("/heatmap/season/{seasonID}/week/{week}", h.heatmap).Methods("GET")
-	return r
-}
-
-func (h *Handler) failure(rw http.ResponseWriter, req *http.Request, err error) {
-	rw.WriteHeader(500)
-	rw.Header().Set("Content-Type", "application/json")
-	rw.Write([]byte(fmt.Sprintf(`{ "error": "%v" }`, err.Error())))
-}
-
-func (h *Handler) health(rw http.ResponseWriter, req *http.Request) {
-	rw.WriteHeader(200)
-	rw.Header().Set("Content-Type", "application/json")
-	rw.Write([]byte(`{ "status": "ok" }`))
-}
-
-func (h *Handler) heatmap(rw http.ResponseWriter, req *http.Request) {
-	if !h.verifyBasicAuth(rw, req) {
-		return
-	}
-
-	vars := mux.Vars(req)
-	seasonID, err := strconv.Atoi(vars["seasonID"])
-	if err != nil {
-		log.Errorf("could not convert seasonID [%s] to int: %v", vars["seasonID"], err)
-		h.failure(rw, req, err)
-		return
-	}
-	week, err := strconv.Atoi(vars["week"])
-	if err != nil {
-		log.Errorf("could not convert week [%s] to int: %v", vars["week"], err)
-		h.failure(rw, req, err)
-		return
-	}
-
-	// check if file already exists
-	filename := fmt.Sprintf("public/heatmaps/season_%d_week_%d.png", seasonID, week)
-	if !fileExists(filename) {
-		season, err := h.getSeason(seasonID)
-		if err != nil {
-			log.Errorf("could not get season: %v", err)
-			h.failure(rw, req, err)
-			return
-		}
-
-		raceweek, track, results, err := h.getWeek(seasonID, week-1)
-		if err != nil {
-			log.Errorf("could not get raceweek results: %v", err)
-			h.failure(rw, req, err)
-			return
-		}
-
-		maxSOF := 2500
-		if err := drawHeatmap(season, raceweek, track, results, maxSOF); err != nil {
-			log.Errorf("could not create heatmap: %v", err)
-			h.failure(rw, req, err)
+func Draw(season database.Season, week database.RaceWeek, track database.Track, results []database.RaceWeekResult, maxSOF int, forceOverwrite bool) error {
+	// check if we need to update/overwrite the image file
+	filename := Filename(season, week)
+	if !forceOverwrite && util.FileExists(filename) {
+		metadata := ReadMetadata(season, week)
+		if metadata.LastUpdated.After(time.Now().Sub(time.Hour * 2)) {
 			return
 		}
 	}
-	http.ServeFile(rw, req, filename)
-}
 
-func (h *Handler) verifyBasicAuth(rw http.ResponseWriter, req *http.Request) bool {
-	user, pw, ok := req.BasicAuth()
-	if !ok || subtle.ConstantTimeCompare([]byte(user), []byte(h.Username)) != 1 || subtle.ConstantTimeCompare([]byte(pw), []byte(h.Password)) != 1 {
-		rw.Header().Set("WWW-Authenticate", `Basic realm="iRcollector"`)
-		rw.WriteHeader(401)
-		rw.Write([]byte("Unauthorized"))
-		return false
-	}
-	return true
-}
-
-func (h *Handler) getSeason(seasonID int) (database.Season, error) {
-	log.Infof("collect season [%d]", seasonID)
-	return h.DB.GetSeasonByID(seasonID)
-}
-
-func (h *Handler) getWeek(seasonID, week int) (database.RaceWeek, database.Track, []database.RaceWeekResult, error) {
-	log.Infof("collect results for season [%d], week [%d]", seasonID, week)
-
-	raceweek, err := h.DB.GetRaceWeekBySeasonIDAndWeek(seasonID, week)
-	if err != nil {
-		return database.RaceWeek{}, database.Track{}, nil, err
-	}
-
-	track, err := h.DB.GetTrackByID(raceweek.TrackID)
-	if err != nil {
-		return raceweek, database.Track{}, nil, err
-	}
-
-	results, err := h.DB.GetRaceWeekResultsBySeasonIDAndWeek(seasonID, week)
-	if err != nil {
-		return raceweek, track, nil, err
-	}
-
-	sort.Slice(results, func(i, j int) bool {
-		return results[i].StartTime.Before(results[j].StartTime)
-	})
-
-	return raceweek, track, results, nil
-}
-
-func getResult(slot time.Time, results []database.RaceWeekResult) database.RaceWeekResult {
-	sessions := make([]database.RaceWeekResult, 0)
-	for _, result := range results {
-		if result.StartTime.UTC() == slot.UTC() {
-			sessions = append(sessions, result)
-		}
-	}
-
-	// summarize splits
-	result := database.RaceWeekResult{
-		SizeOfField:     0,
-		StrengthOfField: 0,
-	}
-	for _, session := range sessions {
-		result.Official = session.Official
-		result.SizeOfField += session.SizeOfField
-		if session.StrengthOfField > result.StrengthOfField {
-			result.StrengthOfField = session.StrengthOfField
-		}
-	}
-	return result
-}
-
-func mapValueIntoRange(rangeStart, rangeEnd, min, max, value int) int {
-	if value <= min {
-		value = min + 1
-	}
-	if value >= max {
-		return rangeEnd
-	}
-	rangeSize := rangeEnd - rangeStart
-	return rangeStart + int((float64(value-min)/float64(max-min))*float64(rangeSize))
-}
-
-func fileExists(filename string) bool {
-	_, err := os.Stat(filename)
-	return err == nil
-}
-
-func drawHeatmap(season database.Season, week database.RaceWeek, track database.Track, results []database.RaceWeekResult, maxSOF int) error {
 	// heatmap titles, season + track
 	heatmapTitle := fmt.Sprintf("%s - Week %d", season.SeasonName, week.RaceWeek+1)
 	heatmap2ndTitle := track.Name
@@ -221,7 +50,6 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 	if err != nil {
 		return fmt.Errorf("could not parse timeslot [%s] to crontab format: %v", season.Timeslots, err)
 	}
-	days := 7 // pretty sure that's never gonna change..
 	// start -1 minute to previous day, to make sure schedule.Next will catch a midnight start (00:00)
 	start := database.WeekStart(season.StartDate.UTC().AddDate(0, 0, (week.RaceWeek+1)*days).Add(-1 * time.Minute))
 	timeslots := make([]time.Time, 0)
@@ -372,8 +200,10 @@ func drawHeatmap(season database.Season, week database.RaceWeek, track database.
 	fdc.Clear()
 	fdc.DrawImage(dc.Image(), int(borderSize), int(borderSize))
 
-	filename := fmt.Sprintf("public/heatmaps/season_%d_week_%d.png", season.SeasonID, week.RaceWeek+1)
-	return fdc.SavePNG(filename)
+	if err := WriteMetadata(season, week, track); err != nil {
+		return err
+	}
+	return fdc.SavePNG(filename) // finally write to file
 }
 
 /*
