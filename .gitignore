@@ -20,4 +20,6 @@ iRvisualizer
 
 # Test output
 public/*.png
+public/*.json
 public/heatmaps/*.png
+public/heatmaps/*.json

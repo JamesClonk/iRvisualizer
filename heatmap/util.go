@@ -6,9 +6,9 @@ import (
 	"github.com/JamesClonk/iRcollector/database"
 )
 
-func getResult(slot time.Time, results []database.RaceWeekResult) database.RaceWeekResult {
+func (h *Heatmap) GetResult(slot time.Time) database.RaceWeekResult {
 	sessions := make([]database.RaceWeekResult, 0)
-	for _, result := range results {
+	for _, result := range h.Results {
 		if result.StartTime.UTC() == slot.UTC() {
 			sessions = append(sessions, result)
 		}
