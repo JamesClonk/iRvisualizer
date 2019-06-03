@@ -199,7 +199,7 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 		metadata := heatmap.GetMetadata(metaFilename)
 		// if it's older than 2 hours
 		if (time.Now().Sub(metadata.LastUpdated) < time.Hour*2) ||
-			// or if it's from a week longer than 10 days ago and updated somewhere within 10 days after weekstart
+			// or if it's from longer than a season ago and updated somewhere within 10 days afterwards
 			(time.Now().Sub(metadata.StartDate.AddDate(0, 0, 12*7)) > time.Hour*24*10 &&
 				metadata.LastUpdated.Sub(metadata.StartDate.AddDate(0, 0, 12*7)) > time.Hour*24*10) {
 			// serve image immediately
