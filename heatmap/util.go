@@ -9,7 +9,9 @@ import (
 func (h *Heatmap) GetResult(slot time.Time) database.RaceWeekResult {
 	sessions := make([]database.RaceWeekResult, 0)
 	for _, result := range h.Results {
-		if result.StartTime.UTC() == slot.UTC() {
+		if result.StartTime.UTC().Weekday() == slot.UTC().Weekday() &&
+			result.StartTime.UTC().Hour() == slot.UTC().Hour() &&
+			result.StartTime.UTC().Minute() == slot.UTC().Minute() {
 			sessions = append(sessions, result)
 		}
 	}

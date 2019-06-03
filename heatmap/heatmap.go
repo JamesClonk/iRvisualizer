@@ -41,10 +41,16 @@ func New(season database.Season, week database.RaceWeek, track database.Track, r
 }
 
 func HeatmapFilename(seasonID, week int) string {
+	if week == -1 {
+		return fmt.Sprintf("public/heatmaps/season_%d.png", seasonID)
+	}
 	return fmt.Sprintf("public/heatmaps/season_%d_week_%d.png", seasonID, week)
 }
 
 func (h *Heatmap) Filename() string {
+	if h.Week.RaceWeek == -1 {
+		return HeatmapFilename(h.Season.SeasonID, -1)
+	}
 	return HeatmapFilename(h.Season.SeasonID, h.Week.RaceWeek+1)
 }
 
@@ -52,13 +58,17 @@ func (h *Heatmap) Draw(maxSOF int) error {
 	// heatmap titles, season + track
 	heatmapTitle := fmt.Sprintf("%s - Week %d", h.Season.SeasonName, h.Week.RaceWeek+1)
 	heatmap2ndTitle := h.Track.Name
+	if h.Week.RaceWeek == -1 { // seasonal avg. map
+		heatmapTitle = fmt.Sprintf("%s", h.Season.SeasonName)
+		heatmap2ndTitle = "Seasonal Average"
+	}
 	// if len(track.Config) > 0 {
 	// 	heatmap2ndTitle = fmt.Sprintf("%s - %s", h.Track.Name, h.Track.Config)
 	// }
 
 	log.Infof("draw heatmap for [%s] - [%s]", heatmapTitle, heatmap2ndTitle)
 
-	// figure out timeslots
+	// figure out timeslots schedule
 	p := cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow)
 	schedule, err := p.Parse(h.Season.Timeslots)
 	if err != nil {
@@ -95,7 +105,7 @@ func (h *Heatmap) Draw(maxSOF int) error {
 	dc.DrawRectangle(0, 0, h.ImageWidth, h.HeaderHeight)
 	dc.SetRGB255(7, 55, 99) // dark blue 3
 	dc.Fill()
-	dc.DrawRectangle(h.ImageWidth/2+h.DayWidth/2, 0, h.ImageWidth/2, h.HeaderHeight)
+	dc.DrawRectangle(h.ImageWidth/2+h.DayWidth/3, 0, h.ImageWidth/2, h.HeaderHeight)
 	dc.SetRGB255(11, 83, 148) // dark blue 2
 	dc.Fill()
 

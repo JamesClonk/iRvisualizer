@@ -25,6 +25,9 @@ func MetadataFilename(seasonID, week int) string {
 }
 
 func (h *Heatmap) MetadataFilename() string {
+	if h.Week.RaceWeek == -1 {
+		return MetadataFilename(h.Season.SeasonID, -1)
+	}
 	return MetadataFilename(h.Season.SeasonID, h.Week.RaceWeek+1)
 }
 
