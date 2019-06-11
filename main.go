@@ -158,7 +158,7 @@ func (h *Handler) weeklyHeatmap(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	hm := heatmap.New(season, raceweek, track, results)
-	if err := hm.Draw(minSOF, maxSOF); err != nil {
+	if err := hm.Draw(minSOF, maxSOF, true); err != nil {
 		log.Errorf("could not create heatmap: %v", err)
 		h.failure(rw, req, err)
 		return
@@ -252,12 +252,14 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 	// sum/avg all weeks together
 	sessionIdx := 0
 	results := make([]database.RaceWeekResult, 0)
+	var weeksNotFound int
 	for week := 0; week < 12; week++ {
 		_, _, rs, err := h.getWeek(seasonID, week)
 		if err != nil {
+			weeksNotFound++
 			log.Errorf("could not get raceweek results: %v", err)
-			h.failure(rw, req, err)
-			return
+			// h.failure(rw, req, err)
+			// return
 		}
 
 		// sum/avg splits first
@@ -327,10 +329,10 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 			}
 		}
 	}
-	// divide by 12 weeks
+	// divide by 12 weeks (minus weeksNotFound)
 	for i := range results {
-		results[i].StrengthOfField = results[i].StrengthOfField / 12
-		results[i].SizeOfField = results[i].SizeOfField / 12
+		results[i].StrengthOfField = results[i].StrengthOfField / (12 - weeksNotFound)
+		results[i].SizeOfField = results[i].SizeOfField / (12 - weeksNotFound)
 	}
 	// sort again to be on the safe side..
 	sort.Slice(results, func(i, j int) bool {
@@ -338,7 +340,7 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 	})
 
 	hm := heatmap.New(season, database.RaceWeek{RaceWeek: -1}, database.Track{}, results)
-	if err := hm.Draw(minSOF, maxSOF); err != nil {
+	if err := hm.Draw(minSOF, maxSOF, false); err != nil {
 		log.Errorf("could not create seasonal heatmap: %v", err)
 		h.failure(rw, req, err)
 		return

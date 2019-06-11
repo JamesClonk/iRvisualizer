@@ -54,7 +54,7 @@ func (h *Heatmap) Filename() string {
 	return HeatmapFilename(h.Season.SeasonID, h.Week.RaceWeek+1)
 }
 
-func (h *Heatmap) Draw(minSOF, maxSOF int) error {
+func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 	// heatmap titles, season + track
 	heatmapTitle := fmt.Sprintf("%s - Week %d", h.Season.SeasonName, h.Week.RaceWeek+1)
 	heatmap2ndTitle := h.Track.Name
@@ -192,33 +192,37 @@ func (h *Heatmap) Draw(minSOF, maxSOF int) error {
 			// draw event values
 			timeslot := weekStart.AddDate(0, 0, day).Add(time.Hour * time.Duration(timeslots[slot].Hour())).Add(time.Minute * time.Duration(timeslots[slot].Minute()))
 			result := h.GetResult(timeslot)
-			// only draw event if a session actually happened already
-			if timeslot.Before(time.Now().Add(time.Hour * -2)) {
-				sof := 0
-				if result.Official {
-					sof = result.StrengthOfField
-					if result.StrengthOfField > minSOF {
-						// draw background color
-						dc.DrawRectangle(slotX, slotY, eventWidth, eventHeight)
-						dc.SetRGBA255(0, 0, 240-mapValueIntoRange(0, 120, minSOF, maxSOF, sof), mapValueIntoRange(10, 200, minSOF, maxSOF, sof)) // sof color
-						dc.Fill()
+
+			// only draw empty slots if enabled
+			if result.StrengthOfField > 0 || drawEmptySlots {
+				// only draw event if a session actually happened already
+				if timeslot.Before(time.Now().Add(time.Hour * -2)) {
+					sof := 0
+					if result.Official {
+						sof = result.StrengthOfField
+						if result.StrengthOfField > minSOF {
+							// draw background color
+							dc.DrawRectangle(slotX, slotY, eventWidth, eventHeight)
+							dc.SetRGBA255(0, 0, 240-mapValueIntoRange(0, 120, minSOF, maxSOF, sof), mapValueIntoRange(10, 200, minSOF, maxSOF, sof)) // sof color
+							dc.Fill()
+						}
 					}
-				}
 
-				dc.SetRGB255(39, 39, 39) // dark gray 1
-				dc.SetLineWidth(1)
-				dc.DrawLine(slotX+eventWidth/3, slotY+eventHeight/2, slotX+eventWidth/1.5, slotY+eventHeight/2)
-				dc.Stroke()
+					dc.SetRGB255(39, 39, 39) // dark gray 1
+					dc.SetLineWidth(1)
+					dc.DrawLine(slotX+eventWidth/3, slotY+eventHeight/2, slotX+eventWidth/1.5, slotY+eventHeight/2)
+					dc.Stroke()
 
-				dc.SetRGB255(0, 0, 0) // black
-				if err := dc.LoadFontFace("public/fonts/roboto-mono_regular.ttf", 15); err != nil {
-					return fmt.Errorf("could not load font: %v", err)
+					dc.SetRGB255(0, 0, 0) // black
+					if err := dc.LoadFontFace("public/fonts/roboto-mono_regular.ttf", 15); err != nil {
+						return fmt.Errorf("could not load font: %v", err)
+					}
+					dc.DrawStringAnchored(fmt.Sprintf("%d", sof), slotX+eventWidth/2, slotY+eventHeight/3-1, 0.5, 0.5)
+					if err := dc.LoadFontFace("public/fonts/roboto-mono_light.ttf", 13); err != nil {
+						return fmt.Errorf("could not load font: %v", err)
+					}
+					dc.DrawStringAnchored(fmt.Sprintf("%d", result.SizeOfField), slotX+eventWidth/2, slotY+eventHeight/1.5+1, 0.5, 0.5)
 				}
-				dc.DrawStringAnchored(fmt.Sprintf("%d", sof), slotX+eventWidth/2, slotY+eventHeight/3-1, 0.5, 0.5)
-				if err := dc.LoadFontFace("public/fonts/roboto-mono_light.ttf", 13); err != nil {
-					return fmt.Errorf("could not load font: %v", err)
-				}
-				dc.DrawStringAnchored(fmt.Sprintf("%d", result.SizeOfField), slotX+eventWidth/2, slotY+eventHeight/1.5+1, 0.5, 0.5)
 			}
 		}
 	}
