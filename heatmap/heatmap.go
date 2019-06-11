@@ -194,7 +194,7 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 			result := h.GetResult(timeslot)
 
 			// only draw empty slots if enabled
-			if result.StrengthOfField > 0 || drawEmptySlots {
+			if result.Official || drawEmptySlots {
 				// only draw event if a session actually happened already
 				if timeslot.Before(time.Now().Add(time.Hour * -2)) {
 					sof := 0
