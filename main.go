@@ -252,7 +252,7 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 
 		// collect all needed timeslots per week
 		// and make sure all timeslots are present, even if they were a 0-show
-		start := database.WeekStart(season.StartDate.UTC().AddDate(0, 0, (week+1)*7).Add(-1 * time.Minute))
+		start := database.WeekStart(season.StartDate.UTC().AddDate(0, 0, (week+1)*7)).Add(-1 * time.Minute)
 		timeslots := make([]time.Time, 0)
 		next := schedule.Next(start)                             // get first timeslot
 		for next.Before(schedule.Next(start.AddDate(0, 0, 7))) { // collect all timeslots of 1 week

@@ -74,8 +74,8 @@ func (h *Heatmap) Draw(maxSOF int) error {
 	if err != nil {
 		return fmt.Errorf("could not parse timeslot [%s] to crontab format: %v", h.Season.Timeslots, err)
 	}
-	// start -5 minute to previous day, to make sure schedule.Next will catch a midnight start (00:00)
-	start := database.WeekStart(h.Season.StartDate.UTC().AddDate(0, 0, (h.Week.RaceWeek+1)*h.Days).Add(-5 * time.Minute))
+	// start -1 minute to previous day, to make sure schedule.Next will catch a midnight start (00:00)
+	start := database.WeekStart(h.Season.StartDate.UTC().AddDate(0, 0, (h.Week.RaceWeek+1)*h.Days)).Add(-1 * time.Minute)
 	timeslots := make([]time.Time, 0)
 	next := schedule.Next(start)                             // get first timeslot
 	weekStart := next                                        // first timeslot is our week start
