@@ -92,9 +92,21 @@ func (h *Handler) weeklyHeatmap(rw http.ResponseWriter, req *http.Request) {
 		week = 0
 	}
 
+	// was there a minSOF given?
+	minSOF := 1000
+	value := req.URL.Query().Get("minSOF")
+	if len(value) > 0 {
+		minSOF, err = strconv.Atoi(value)
+		if err != nil {
+			log.Errorf("could not convert minSOF [%s] to int: %v", value, err)
+			h.failure(rw, req, err)
+			return
+		}
+	}
+
 	// was there a maxSOF given?
 	maxSOF := 2500
-	value := req.URL.Query().Get("maxSOF")
+	value = req.URL.Query().Get("maxSOF")
 	if len(value) > 0 {
 		maxSOF, err = strconv.Atoi(value)
 		if err != nil {
@@ -146,7 +158,7 @@ func (h *Handler) weeklyHeatmap(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	hm := heatmap.New(season, raceweek, track, results)
-	if err := hm.Draw(maxSOF); err != nil {
+	if err := hm.Draw(minSOF, maxSOF); err != nil {
 		log.Errorf("could not create heatmap: %v", err)
 		h.failure(rw, req, err)
 		return
@@ -168,9 +180,21 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 		seasonID = 2377
 	}
 
+	// was there a minSOF given?
+	minSOF := 1000
+	value := req.URL.Query().Get("minSOF")
+	if len(value) > 0 {
+		minSOF, err = strconv.Atoi(value)
+		if err != nil {
+			log.Errorf("could not convert minSOF [%s] to int: %v", value, err)
+			h.failure(rw, req, err)
+			return
+		}
+	}
+
 	// was there a maxSOF given?
 	maxSOF := 2500
-	value := req.URL.Query().Get("maxSOF")
+	value = req.URL.Query().Get("maxSOF")
 	if len(value) > 0 {
 		maxSOF, err = strconv.Atoi(value)
 		if err != nil {
@@ -314,7 +338,7 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 	})
 
 	hm := heatmap.New(season, database.RaceWeek{RaceWeek: -1}, database.Track{}, results)
-	if err := hm.Draw(maxSOF); err != nil {
+	if err := hm.Draw(minSOF, maxSOF); err != nil {
 		log.Errorf("could not create seasonal heatmap: %v", err)
 		h.failure(rw, req, err)
 		return

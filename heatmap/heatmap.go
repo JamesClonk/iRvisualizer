@@ -30,7 +30,7 @@ func New(season database.Season, week database.RaceWeek, track database.Track, r
 		Week:           week,
 		Track:          track,
 		Results:        results,
-		BorderSize:     float64(7),
+		BorderSize:     float64(3),
 		ImageHeight:    float64(480),
 		ImageWidth:     float64(1024),
 		HeaderHeight:   float64(45),
@@ -54,7 +54,7 @@ func (h *Heatmap) Filename() string {
 	return HeatmapFilename(h.Season.SeasonID, h.Week.RaceWeek+1)
 }
 
-func (h *Heatmap) Draw(maxSOF int) error {
+func (h *Heatmap) Draw(minSOF, maxSOF int) error {
 	// heatmap titles, season + track
 	heatmapTitle := fmt.Sprintf("%s - Week %d", h.Season.SeasonName, h.Week.RaceWeek+1)
 	heatmap2ndTitle := h.Track.Name
@@ -85,7 +85,9 @@ func (h *Heatmap) Draw(maxSOF int) error {
 	}
 
 	// figure out dynamic SOF
-	minSOF := 1000
+	if minSOF == 0 {
+		minSOF = 1000
+	}
 	if maxSOF == 0 {
 		maxSOF = minSOF * 2
 		for _, result := range h.Results {
@@ -195,10 +197,12 @@ func (h *Heatmap) Draw(maxSOF int) error {
 				sof := 0
 				if result.Official {
 					sof = result.StrengthOfField
-					// draw background color
-					dc.DrawRectangle(slotX, slotY, eventWidth, eventHeight)
-					dc.SetRGBA255(0, 0, 240-mapValueIntoRange(0, 120, minSOF, maxSOF, sof), mapValueIntoRange(10, 200, minSOF, maxSOF, sof)) // sof color
-					dc.Fill()
+					if result.StrengthOfField > minSOF {
+						// draw background color
+						dc.DrawRectangle(slotX, slotY, eventWidth, eventHeight)
+						dc.SetRGBA255(0, 0, 240-mapValueIntoRange(0, 120, minSOF, maxSOF, sof), mapValueIntoRange(10, 200, minSOF, maxSOF, sof)) // sof color
+						dc.Fill()
+					}
 				}
 
 				dc.SetRGB255(39, 39, 39) // dark gray 1
