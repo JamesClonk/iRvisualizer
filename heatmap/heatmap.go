@@ -75,14 +75,15 @@ func (h *Heatmap) Draw(maxSOF int) error {
 		return fmt.Errorf("could not parse timeslot [%s] to crontab format: %v", h.Season.Timeslots, err)
 	}
 	// start -1 minute to previous day, to make sure schedule.Next will catch a midnight start (00:00)
-	start := database.WeekStart(h.Season.StartDate.UTC().AddDate(0, 0, (h.Week.RaceWeek+1)*h.Days)).Add(-1 * time.Minute)
+	weekStart := database.WeekStart(h.Season.StartDate.UTC().AddDate(0, 0, (h.Week.RaceWeek+1)*h.Days))
+	start := weekStart.Add(-1 * time.Minute)
 	timeslots := make([]time.Time, 0)
 	next := schedule.Next(start)                             // get first timeslot
-	weekStart := next                                        // first timeslot is our week start
 	for next.Before(schedule.Next(start.AddDate(0, 0, 1))) { // collect all timeslots of 1 day
 		timeslots = append(timeslots, next)
 		next = schedule.Next(next)
 	}
+
 	// figure out dynamic SOF
 	minSOF := 1000
 	if maxSOF == 0 {
@@ -187,7 +188,7 @@ func (h *Heatmap) Draw(maxSOF int) error {
 			dc.Fill()
 
 			// draw event values
-			timeslot := weekStart.AddDate(0, 0, day).Add(time.Hour * time.Duration(timeslots[slot].Hour()))
+			timeslot := weekStart.AddDate(0, 0, day).Add(time.Hour * time.Duration(timeslots[slot].Hour())).Add(time.Minute * time.Duration(timeslots[slot].Minute()))
 			result := h.GetResult(timeslot)
 			// only draw event if a session actually happened already
 			if timeslot.Before(time.Now().Add(time.Hour * -2)) {
