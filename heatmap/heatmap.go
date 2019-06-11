@@ -74,8 +74,8 @@ func (h *Heatmap) Draw(maxSOF int) error {
 	if err != nil {
 		return fmt.Errorf("could not parse timeslot [%s] to crontab format: %v", h.Season.Timeslots, err)
 	}
-	// start -1 minute to previous day, to make sure schedule.Next will catch a midnight start (00:00)
-	start := database.WeekStart(h.Season.StartDate.UTC().AddDate(0, 0, (h.Week.RaceWeek+1)*h.Days).Add(-1 * time.Minute))
+	// start -5 minute to previous day, to make sure schedule.Next will catch a midnight start (00:00)
+	start := database.WeekStart(h.Season.StartDate.UTC().AddDate(0, 0, (h.Week.RaceWeek+1)*h.Days).Add(-5 * time.Minute))
 	timeslots := make([]time.Time, 0)
 	next := schedule.Next(start)                             // get first timeslot
 	weekStart := next                                        // first timeslot is our week start
@@ -105,22 +105,22 @@ func (h *Heatmap) Draw(maxSOF int) error {
 	dc.DrawRectangle(0, 0, h.ImageWidth, h.HeaderHeight)
 	dc.SetRGB255(7, 55, 99) // dark blue 3
 	dc.Fill()
-	dc.DrawRectangle(h.ImageWidth/2+h.DayWidth/3, 0, h.ImageWidth/2, h.HeaderHeight)
+	dc.DrawRectangle(h.ImageWidth/2+h.DayWidth/2, 0, h.ImageWidth/2, h.HeaderHeight)
 	dc.SetRGB255(11, 83, 148) // dark blue 2
 	dc.Fill()
 
 	// draw season name
-	if err := dc.LoadFontFace("public/fonts/Roboto-Italic.ttf", 20); err != nil {
+	if err := dc.LoadFontFace("public/fonts/Roboto-Italic.ttf", 19); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
 	dc.SetRGB255(255, 255, 255) // white
-	dc.DrawStringAnchored(heatmapTitle, h.DayWidth/4, h.HeaderHeight/2, 0, 0.5)
+	dc.DrawStringAnchored(heatmapTitle, h.DayWidth/7, h.HeaderHeight/2, 0, 0.5)
 	// draw track config
-	if err := dc.LoadFontFace("public/fonts/Roboto-Italic.ttf", 20); err != nil {
+	if err := dc.LoadFontFace("public/fonts/Roboto-Italic.ttf", 19); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
 	dc.SetRGB255(255, 255, 255) // white
-	dc.DrawStringAnchored(heatmap2ndTitle, h.ImageWidth-h.DayWidth/4, h.HeaderHeight/2, 1, 0.5)
+	dc.DrawStringAnchored(heatmap2ndTitle, h.ImageWidth-h.DayWidth/7, h.HeaderHeight/2, 1, 0.5)
 
 	// timeslots
 	dc.DrawRectangle(0, h.HeaderHeight, h.DayWidth, h.TimeslotHeight)
