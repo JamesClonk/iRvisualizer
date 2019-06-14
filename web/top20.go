@@ -3,11 +3,14 @@ package web
 import (
 	"net/http"
 	"strconv"
+	"sync"
 
 	"github.com/JamesClonk/iRvisualizer/image/top20"
 	"github.com/JamesClonk/iRvisualizer/log"
 	"github.com/gorilla/mux"
 )
+
+var top20Mutex = &sync.Mutex{}
 
 func (h *Handler) weeklyTop20(rw http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
@@ -42,9 +45,17 @@ func (h *Handler) weeklyTop20(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// check if file already exists
+	// do we need to update the image file?
+	// check if file already exists and is up-to-date, serve it immediately if yes
 	if !forceOverwrite && top20.IsAvailable(seasonID, week) {
-		// serve image immediately
+		http.ServeFile(rw, req, top20.Filename(seasonID, week))
+		return
+	}
+	// lock global mutex
+	top20Mutex.Lock()
+	defer top20Mutex.Unlock()
+	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
+	if !forceOverwrite && top20.IsAvailable(seasonID, week) {
 		http.ServeFile(rw, req, top20.Filename(seasonID, week))
 		return
 	}

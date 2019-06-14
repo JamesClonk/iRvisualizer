@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/JamesClonk/iRcollector/database"
@@ -12,6 +13,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/robfig/cron"
 )
+
+var heatmapMutex = &sync.Mutex{}
 
 func (h *Handler) weeklyHeatmap(rw http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
@@ -70,9 +73,17 @@ func (h *Handler) weeklyHeatmap(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// check if file already exists
+	// do we need to update the image file?
+	// check if file already exists and is up-to-date, serve it immediately if yes
 	if !forceOverwrite && heatmap.IsAvailable(seasonID, week) {
-		// serve image immediately
+		http.ServeFile(rw, req, heatmap.Filename(seasonID, week))
+		return
+	}
+	// lock global mutex
+	heatmapMutex.Lock()
+	defer heatmapMutex.Unlock()
+	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
+	if !forceOverwrite && heatmap.IsAvailable(seasonID, week) {
 		http.ServeFile(rw, req, heatmap.Filename(seasonID, week))
 		return
 	}
@@ -149,9 +160,17 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// check if file already exists
+	// do we need to update the image file?
+	// check if file already exists and is up-to-date, serve it immediately if yes
 	if !forceOverwrite && heatmap.IsAvailable(seasonID, -1) {
-		// serve image immediately
+		http.ServeFile(rw, req, heatmap.Filename(seasonID, -1))
+		return
+	}
+	// lock global mutex
+	heatmapMutex.Lock()
+	defer heatmapMutex.Unlock()
+	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
+	if !forceOverwrite && heatmap.IsAvailable(seasonID, -1) {
 		http.ServeFile(rw, req, heatmap.Filename(seasonID, -1))
 		return
 	}
