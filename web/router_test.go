@@ -1,4 +1,4 @@
-package main
+package web
 
 import (
 	"net/http"
@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_HealthEndpoint(t *testing.T) {
+func Test_Health(t *testing.T) {
 	rec := httptest.NewRecorder()
 	req, err := http.NewRequest("GET", "/health", nil)
 	if err != nil {
