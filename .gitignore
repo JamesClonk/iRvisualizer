@@ -23,3 +23,9 @@ public/*.png
 public/*.json
 public/heatmaps/*.png
 public/heatmaps/*.json
+public/heatmap/*.png
+public/heatmap/*.json
+public/top20/*.png
+public/top20/*.json
+public/top/*.png
+public/top/*.json

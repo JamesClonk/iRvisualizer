@@ -1,4 +1,4 @@
-package heatmap
+package image
 
 import (
 	"encoding/json"
@@ -20,15 +20,8 @@ type Metadata struct {
 	LastUpdated   time.Time `json:"LastUpdated"`
 }
 
-func MetadataFilename(seasonID, week int) string {
-	return fmt.Sprintf("%s.json", HeatmapFilename(seasonID, week))
-}
-
-func (h *Heatmap) MetadataFilename() string {
-	if h.Week.RaceWeek == -1 {
-		return MetadataFilename(h.Season.SeasonID, -1)
-	}
-	return MetadataFilename(h.Season.SeasonID, h.Week.RaceWeek+1)
+func MetadataFilename(image string, seasonID, week int) string {
+	return fmt.Sprintf("%s.json", ImageFilename(image, seasonID, week))
 }
 
 func GetMetadata(filename string) (meta Metadata) {
@@ -47,21 +40,18 @@ func GetMetadata(filename string) (meta Metadata) {
 	return meta
 }
 
-func (h *Heatmap) ReadMetadata() (meta Metadata) {
-	return GetMetadata(h.MetadataFilename())
-}
-
-func (h *Heatmap) WriteMetadata() error {
-	log.Debugf("write metadata to [%s]", h.MetadataFilename())
+func WriteMetadata(image string, seasonID, week int, season string, year, quarter int, track string, startDate time.Time) error {
+	filename := MetadataFilename(image, seasonID, week)
+	log.Debugf("write metadata to [%s]", filename)
 
 	meta := Metadata{
-		ImageFilename: h.Filename(),
-		Season:        h.Season.SeasonName,
-		Year:          h.Season.Year,
-		Quarter:       h.Season.Quarter,
-		Week:          h.Week.RaceWeek,
-		Track:         h.Track.Name,
-		StartDate:     h.Season.StartDate,
+		ImageFilename: ImageFilename(image, seasonID, week),
+		Season:        season,
+		Year:          year,
+		Quarter:       quarter,
+		Week:          week,
+		Track:         track,
+		StartDate:     startDate,
 		LastUpdated:   time.Now().UTC(),
 	}
 
@@ -69,5 +59,5 @@ func (h *Heatmap) WriteMetadata() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(h.MetadataFilename(), metaJson, 0644)
+	return ioutil.WriteFile(filename, metaJson, 0644)
 }

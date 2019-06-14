@@ -7,9 +7,8 @@ import (
 	"time"
 
 	"github.com/JamesClonk/iRcollector/database"
-	"github.com/JamesClonk/iRvisualizer/heatmap"
+	"github.com/JamesClonk/iRvisualizer/image/heatmap"
 	"github.com/JamesClonk/iRvisualizer/log"
-	"github.com/JamesClonk/iRvisualizer/util"
 	"github.com/gorilla/mux"
 	"github.com/robfig/cron"
 )
@@ -31,8 +30,8 @@ func (h *Handler) weeklyHeatmap(rw http.ResponseWriter, req *http.Request) {
 		h.failure(rw, req, err)
 		return
 	}
-	if week < 0 || week > 12 {
-		week = 0
+	if week < 1 || week > 12 {
+		week = 1
 	}
 
 	// was there a minSOF given?
@@ -72,19 +71,10 @@ func (h *Handler) weeklyHeatmap(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// check if file already exists
-	heatmapFilename := heatmap.HeatmapFilename(seasonID, week)
-	metaFilename := heatmap.MetadataFilename(seasonID, week)
-	if !forceOverwrite && util.FileExists(metaFilename) && util.FileExists(heatmapFilename) {
-		metadata := heatmap.GetMetadata(metaFilename)
-		// if it's older than 2 hours
-		if (time.Now().Sub(metadata.LastUpdated) < time.Hour*2) ||
-			// or if it's from a week longer than 10 days ago and updated somewhere within 10 days after weekstart
-			(time.Now().Sub(metadata.StartDate.AddDate(0, 0, metadata.Week*7)) > time.Hour*24*10 &&
-				metadata.LastUpdated.Sub(metadata.StartDate.AddDate(0, 0, metadata.Week*7)) > time.Hour*24*10) {
-			// serve image immediately
-			http.ServeFile(rw, req, heatmapFilename)
-			return
-		}
+	if !forceOverwrite && heatmap.IsAvailable(seasonID, week) {
+		// serve image immediately
+		http.ServeFile(rw, req, heatmap.Filename(seasonID, week))
+		return
 	}
 
 	// create/update heatmap image
@@ -108,7 +98,7 @@ func (h *Handler) weeklyHeatmap(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// serve new/updated image
-	http.ServeFile(rw, req, heatmapFilename)
+	http.ServeFile(rw, req, heatmap.Filename(seasonID, week))
 }
 
 func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
@@ -160,19 +150,10 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// check if file already exists
-	heatmapFilename := heatmap.HeatmapFilename(seasonID, -1)
-	metaFilename := heatmap.MetadataFilename(seasonID, -1)
-	if !forceOverwrite && util.FileExists(metaFilename) && util.FileExists(heatmapFilename) {
-		metadata := heatmap.GetMetadata(metaFilename)
-		// if it's older than 2 hours
-		if (time.Now().Sub(metadata.LastUpdated) < time.Hour*2) ||
-			// or if it's from longer than a season ago and updated somewhere within 10 days afterwards
-			(time.Now().Sub(metadata.StartDate.AddDate(0, 0, 12*7)) > time.Hour*24*10 &&
-				metadata.LastUpdated.Sub(metadata.StartDate.AddDate(0, 0, 12*7)) > time.Hour*24*10) {
-			// serve image immediately
-			http.ServeFile(rw, req, heatmapFilename)
-			return
-		}
+	if !forceOverwrite && heatmap.IsAvailable(seasonID, -1) {
+		// serve image immediately
+		http.ServeFile(rw, req, heatmap.Filename(seasonID, -1))
+		return
 	}
 
 	// create/update heatmap image
@@ -290,5 +271,5 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// serve new/updated image
-	http.ServeFile(rw, req, heatmapFilename)
+	http.ServeFile(rw, req, heatmap.Filename(seasonID, -1))
 }

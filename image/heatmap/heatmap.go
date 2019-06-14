@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/JamesClonk/iRcollector/database"
+	"github.com/JamesClonk/iRvisualizer/image"
 	"github.com/JamesClonk/iRvisualizer/log"
 	"github.com/fogleman/gg"
 	"github.com/robfig/cron"
@@ -40,18 +41,16 @@ func New(season database.Season, week database.RaceWeek, track database.Track, r
 	}
 }
 
-func HeatmapFilename(seasonID, week int) string {
-	if week == -1 {
-		return fmt.Sprintf("public/heatmaps/season_%d.png", seasonID)
-	}
-	return fmt.Sprintf("public/heatmaps/season_%d_week_%d.png", seasonID, week)
+func IsAvailable(seasonID, week int) bool {
+	return image.IsAvailable("heatmap", seasonID, week)
+}
+
+func Filename(seasonID, week int) string {
+	return image.ImageFilename("heatmap", seasonID, week)
 }
 
 func (h *Heatmap) Filename() string {
-	if h.Week.RaceWeek == -1 {
-		return HeatmapFilename(h.Season.SeasonID, -1)
-	}
-	return HeatmapFilename(h.Season.SeasonID, h.Week.RaceWeek+1)
+	return Filename(h.Season.SeasonID, h.Week.RaceWeek+1)
 }
 
 func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
@@ -191,7 +190,7 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 
 			// draw event values
 			timeslot := weekStart.AddDate(0, 0, day).Add(time.Hour * time.Duration(timeslots[slot].Hour())).Add(time.Minute * time.Duration(timeslots[slot].Minute()))
-			result := h.GetResult(timeslot)
+			result := image.GetResult(timeslot, h.Results)
 
 			// only draw empty slots if enabled
 			if result.Official || drawEmptySlots {
@@ -203,7 +202,7 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 						if result.StrengthOfField > minSOF {
 							// draw background color
 							dc.DrawRectangle(slotX, slotY, eventWidth, eventHeight)
-							dc.SetRGBA255(0, 0, 240-mapValueIntoRange(0, 120, minSOF, maxSOF, sof), mapValueIntoRange(10, 200, minSOF, maxSOF, sof)) // sof color
+							dc.SetRGBA255(0, 0, 240-image.MapValueIntoRange(0, 120, minSOF, maxSOF, sof), image.MapValueIntoRange(10, 200, minSOF, maxSOF, sof)) // sof color
 							dc.Fill()
 						}
 					}

@@ -28,13 +28,18 @@ func NewRouter(username, password string) *mux.Router {
 		DB:       db,
 		Mutex:    &sync.Mutex{},
 	}
+	return router(h)
+}
 
+func router(h *Handler) *mux.Router {
 	// mux router
 	r := mux.NewRouter()
 	r.PathPrefix("/health").HandlerFunc(h.health)
 
 	r.HandleFunc("/season/{seasonID}/week/{week}/heatmap.png", h.weeklyHeatmap).Methods("GET")
 	r.HandleFunc("/season/{seasonID}/heatmap.png", h.seasonalHeatmap).Methods("GET")
+
+	//r.HandleFunc("/season/{seasonID}/week/{week}/top20.png", h.weeklyTop20).Methods("GET")
 
 	return r
 }
