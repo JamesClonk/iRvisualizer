@@ -39,7 +39,7 @@ func router(h *Handler) *mux.Router {
 	r.HandleFunc("/season/{seasonID}/week/{week}/heatmap.png", h.weeklyHeatmap).Methods("GET")
 	r.HandleFunc("/season/{seasonID}/heatmap.png", h.seasonalHeatmap).Methods("GET")
 
-	//r.HandleFunc("/season/{seasonID}/week/{week}/top20.png", h.weeklyTop20).Methods("GET")
+	r.HandleFunc("/season/{seasonID}/week/{week}/top20.png", h.weeklyTop20).Methods("GET")
 
 	return r
 }
