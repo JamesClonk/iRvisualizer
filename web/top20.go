@@ -47,16 +47,16 @@ func (h *Handler) weeklyTop20(rw http.ResponseWriter, req *http.Request) {
 
 	// do we need to update the image file?
 	// check if file already exists and is up-to-date, serve it immediately if yes
-	if !forceOverwrite && top20.IsAvailable(seasonID, week) {
-		http.ServeFile(rw, req, top20.Filename(seasonID, week))
+	if !forceOverwrite && top20.IsAvailable("points", seasonID, week) {
+		http.ServeFile(rw, req, top20.Filename("points", seasonID, week))
 		return
 	}
 	// lock global mutex
 	top20Mutex.Lock()
 	defer top20Mutex.Unlock()
 	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
-	if !forceOverwrite && top20.IsAvailable(seasonID, week) {
-		http.ServeFile(rw, req, top20.Filename(seasonID, week))
+	if !forceOverwrite && top20.IsAvailable("points", seasonID, week) {
+		http.ServeFile(rw, req, top20.Filename("points", seasonID, week))
 		return
 	}
 
@@ -67,13 +67,13 @@ func (h *Handler) weeklyTop20(rw http.ResponseWriter, req *http.Request) {
 		h.failure(rw, req, err)
 		return
 	}
-	raceweek, track, results, err := h.getWeek(seasonID, week-1)
+	raceweek, track, _, err := h.getWeek(seasonID, week-1)
 	if err != nil {
 		log.Errorf("could not get raceweek results: %v", err)
 		h.failure(rw, req, err)
 		return
 	}
-	hm := top20.New(season, raceweek, track, results)
+	hm := top20.New("points", season, raceweek, track, nil)
 	if err := hm.Draw(); err != nil {
 		log.Errorf("could not create top20: %v", err)
 		h.failure(rw, req, err)
@@ -81,5 +81,5 @@ func (h *Handler) weeklyTop20(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// serve new/updated image
-	http.ServeFile(rw, req, top20.Filename(seasonID, week))
+	http.ServeFile(rw, req, top20.Filename("points", seasonID, week))
 }

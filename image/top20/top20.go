@@ -9,44 +9,59 @@ import (
 	"github.com/fogleman/gg"
 )
 
+type DataSet struct {
+	Title string
+	Rows  []struct {
+		Driver string
+		Value  string
+	}
+}
+
 type Top20 struct {
+	Name         string
 	Season       database.Season
 	Week         database.RaceWeek
 	Track        database.Track
-	Results      []database.RaceWeekResult
+	Data         []DataSet
 	BorderSize   float64
 	ImageHeight  float64
 	ImageWidth   float64
 	HeaderHeight float64
 	DriverHeight float64
+	PaddingSize  float64
+	Columns      float64
 	ColumnWidth  float64
 }
 
-func New(season database.Season, week database.RaceWeek, track database.Track, results []database.RaceWeekResult) Top20 {
-	return Top20{
+func New(name string, season database.Season, week database.RaceWeek, track database.Track, data []DataSet) Top20 {
+	top20 := Top20{
+		Name:         name,
 		Season:       season,
 		Week:         week,
 		Track:        track,
-		Results:      results,
+		Data:         data,
 		BorderSize:   float64(2),
 		ImageHeight:  float64(480),
 		ImageWidth:   float64(1024),
 		HeaderHeight: float64(30),
 		DriverHeight: float64(26),
-		ColumnWidth:  float64(300),
+		PaddingSize:  float64(3),
+		Columns:      float64(len(data)),
 	}
+	top20.ColumnWidth = top20.ImageWidth / top20.Columns
+	return top20
 }
 
-func IsAvailable(seasonID, week int) bool {
-	return image.IsAvailable("top20", seasonID, week)
+func IsAvailable(name string, seasonID, week int) bool {
+	return image.IsAvailable("top20/"+name, seasonID, week)
 }
 
-func Filename(seasonID, week int) string {
-	return image.ImageFilename("top20", seasonID, week)
+func Filename(name string, seasonID, week int) string {
+	return image.ImageFilename("top20/"+name, seasonID, week)
 }
 
 func (t *Top20) Filename() string {
-	return Filename(t.Season.SeasonID, t.Week.RaceWeek+1)
+	return Filename(t.Name, t.Season.SeasonID, t.Week.RaceWeek+1)
 }
 
 func (t *Top20) Draw() error {
@@ -75,17 +90,40 @@ func (t *Top20) Draw() error {
 	dc.Fill()
 
 	// draw season name
-	if err := dc.LoadFontFace("public/fonts/Roboto-Italic.ttf", 14); err != nil {
+	if err := dc.LoadFontFace("public/fonts/Roboto-BoldItalic.ttf", 14); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
 	dc.SetRGB255(255, 255, 255) // white
 	dc.DrawStringAnchored(top20Title, t.ImageWidth/4, t.HeaderHeight/2, 0.5, 0.5)
 	// draw track title
-	if err := dc.LoadFontFace("public/fonts/Roboto-Italic.ttf", 14); err != nil {
+	if err := dc.LoadFontFace("public/fonts/Roboto-BoldItalic.ttf", 14); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
 	dc.SetRGB255(255, 255, 255) // white
 	dc.DrawStringAnchored(top20TrackTitle, t.ImageWidth/2+t.ImageWidth/4, t.HeaderHeight/2, 0.5, 0.5)
+
+	// draw the columns
+	for column := float64(0); column < t.Columns; column++ {
+		dc.DrawRectangle(
+			(t.PaddingSize/2)+(column*t.ColumnWidth), t.HeaderHeight+t.PaddingSize,
+			t.ColumnWidth-t.PaddingSize, t.ImageHeight-(t.PaddingSize*2)-t.HeaderHeight,
+		)
+		dc.SetRGB255(217, 217, 217) // light gray 1
+		dc.Fill()
+	}
+
+	// draw the data inside the columns
+	for column, data := range t.Data {
+		for row, entry := range data.Rows {
+			dc.DrawRectangle(
+				(t.PaddingSize/2)+(float64(column)*t.ColumnWidth), t.HeaderHeight+t.PaddingSize+float64(row)*((t.ImageHeight-(t.PaddingSize*2)-t.HeaderHeight)/float64(len(data.Rows))),
+				t.ColumnWidth-t.PaddingSize, t.ImageHeight-(t.PaddingSize*2)-t.HeaderHeight-float64(row)*((t.ImageHeight-(t.PaddingSize*2)-t.HeaderHeight)/float64(len(data.Rows))),
+			)
+			dc.SetRGB255(239, 239, 239) // light gray 2
+			dc.SetRGB255(243, 243, 243) // light gray 3
+			dc.Fill()
+		}
+	}
 
 	// add border to image
 	fdc := gg.NewContext(int(t.ImageWidth+t.BorderSize*2), int(t.ImageHeight+t.BorderSize*2))

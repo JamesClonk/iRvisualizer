@@ -5,7 +5,7 @@ import (
 )
 
 func (t *Top20) MetadataFilename() string {
-	return image.MetadataFilename("top20", t.Season.SeasonID, t.Week.RaceWeek+1)
+	return image.MetadataFilename("top20/"+t.Name, t.Season.SeasonID, t.Week.RaceWeek+1)
 }
 
 func (t *Top20) ReadMetadata() (meta image.Metadata) {
@@ -14,7 +14,7 @@ func (t *Top20) ReadMetadata() (meta image.Metadata) {
 
 func (t *Top20) WriteMetadata() error {
 	// image string, seasonID, week int, season string, year, quarter int, track string, startDate time.Time
-	return image.WriteMetadata("top20",
+	return image.WriteMetadata("top20/"+t.Name,
 		t.Season.SeasonID, t.Week.RaceWeek+1,
 		t.Season.SeasonName, t.Season.Year, t.Season.Quarter,
 		t.Track.Name, t.Season.StartDate,

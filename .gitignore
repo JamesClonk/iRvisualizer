@@ -29,3 +29,7 @@ public/top20/*.png
 public/top20/*.json
 public/top/*.png
 public/top/*.json
+public/top20/*/*.png
+public/top20/*/*.json
+public/top/*/*.png
+public/top/*/*.json
