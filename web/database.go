@@ -12,27 +12,39 @@ func (h *Handler) getSeason(seasonID int) (database.Season, error) {
 	return h.DB.GetSeasonByID(seasonID)
 }
 
-func (h *Handler) getWeek(seasonID, week int) (database.RaceWeek, database.Track, []database.RaceWeekResult, error) {
-	log.Infof("collect results for season [%d], week [%d]", seasonID, week)
+func (h *Handler) getRaceWeek(seasonID, week int) (database.RaceWeek, database.Track, error) {
+	log.Infof("collect raceweek for season [%d], week [%d]", seasonID, week)
 
 	raceweek, err := h.DB.GetRaceWeekBySeasonIDAndWeek(seasonID, week)
 	if err != nil {
-		return database.RaceWeek{}, database.Track{}, nil, err
+		return database.RaceWeek{}, database.Track{}, err
 	}
-
 	track, err := h.DB.GetTrackByID(raceweek.TrackID)
 	if err != nil {
-		return raceweek, database.Track{}, nil, err
+		return raceweek, database.Track{}, err
 	}
+	return raceweek, track, nil
+}
+
+func (h *Handler) getRaceWeekResults(seasonID, week int) ([]database.RaceWeekResult, error) {
+	log.Infof("collect raceweek results for season [%d], week [%d]", seasonID, week)
 
 	results, err := h.DB.GetRaceWeekResultsBySeasonIDAndWeek(seasonID, week)
 	if err != nil {
-		return raceweek, track, nil, err
+		return nil, err
 	}
-
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].StartTime.Before(results[j].StartTime)
 	})
+	return results, nil
+}
 
-	return raceweek, track, results, nil
+func (h *Handler) getRaceWeekSummaries(seasonID, week int) ([]database.Summary, error) {
+	log.Infof("collect raceweek summaries for season [%d], week [%d]", seasonID, week)
+
+	summaries, err := h.DB.GetDriverSummariesBySeasonIDAndWeek(seasonID, week)
+	if err != nil {
+		return nil, err
+	}
+	return summaries, nil
 }

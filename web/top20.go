@@ -1,7 +1,9 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"sync"
 
@@ -67,13 +69,72 @@ func (h *Handler) weeklyTop20(rw http.ResponseWriter, req *http.Request) {
 		h.failure(rw, req, err)
 		return
 	}
-	raceweek, track, _, err := h.getWeek(seasonID, week-1)
+	raceweek, track, err := h.getRaceWeek(seasonID, week-1)
 	if err != nil {
-		log.Errorf("could not get raceweek results: %v", err)
+		log.Errorf("could not get raceweek: %v", err)
 		h.failure(rw, req, err)
 		return
 	}
-	hm := top20.New("points", season, raceweek, track, nil)
+	summaries, err := h.getRaceWeekSummaries(seasonID, week-1)
+	if err != nil {
+		log.Errorf("could not get raceweek summaries: %v", err)
+		h.failure(rw, req, err)
+		return
+	}
+
+	data := make([]top20.DataSet, 0)
+	// champ points
+	champ := top20.DataSet{
+		Title: "Champ Points",
+		Rows:  make([]top20.DataSetRow, 0),
+	}
+	// sort by champ points
+	sort.Slice(summaries, func(i, j int) bool {
+		return summaries[i].HighestChampPoints > summaries[j].HighestChampPoints
+	})
+	for i := 0; i < 25; i++ {
+		champ.Rows = append(champ.Rows, top20.DataSetRow{
+			Driver: summaries[i].Driver.Name,
+			Value:  fmt.Sprintf("%d", summaries[i].HighestChampPoints),
+		})
+	}
+	data = append(data, champ)
+
+	// club points
+	club := top20.DataSet{
+		Title: "Club Points",
+		Rows:  make([]top20.DataSetRow, 0),
+	}
+	// sort by club points
+	sort.Slice(summaries, func(i, j int) bool {
+		return summaries[i].TotalClubPoints > summaries[j].TotalClubPoints
+	})
+	for i := 0; i < 25; i++ {
+		club.Rows = append(club.Rows, top20.DataSetRow{
+			Driver: summaries[i].Driver.Name,
+			Value:  fmt.Sprintf("%d", summaries[i].TotalClubPoints),
+		})
+	}
+	data = append(data, club)
+
+	// laps
+	laps := top20.DataSet{
+		Title: "Laps",
+		Rows:  make([]top20.DataSetRow, 0),
+	}
+	// sort by laps
+	sort.Slice(summaries, func(i, j int) bool {
+		return summaries[i].LapsCompleted > summaries[j].LapsCompleted
+	})
+	for i := 0; i < 25; i++ {
+		laps.Rows = append(laps.Rows, top20.DataSetRow{
+			Driver: summaries[i].Driver.Name,
+			Value:  fmt.Sprintf("%d", summaries[i].LapsCompleted),
+		})
+	}
+	data = append(data, laps)
+
+	hm := top20.New("points", season, raceweek, track, data)
 	if err := hm.Draw(); err != nil {
 		log.Errorf("could not create top20: %v", err)
 		h.failure(rw, req, err)

@@ -11,10 +11,12 @@ import (
 
 type DataSet struct {
 	Title string
-	Rows  []struct {
-		Driver string
-		Value  string
-	}
+	Rows  []DataSetRow
+}
+
+type DataSetRow struct {
+	Driver string
+	Value  string
 }
 
 type Top20 struct {
@@ -115,13 +117,25 @@ func (t *Top20) Draw() error {
 	// draw the data inside the columns
 	for column, data := range t.Data {
 		for row, entry := range data.Rows {
-			dc.DrawRectangle(
-				(t.PaddingSize/2)+(float64(column)*t.ColumnWidth), t.HeaderHeight+t.PaddingSize+float64(row)*((t.ImageHeight-(t.PaddingSize*2)-t.HeaderHeight)/float64(len(data.Rows))),
-				t.ColumnWidth-t.PaddingSize, t.ImageHeight-(t.PaddingSize*2)-t.HeaderHeight-float64(row)*((t.ImageHeight-(t.PaddingSize*2)-t.HeaderHeight)/float64(len(data.Rows))),
-			)
-			dc.SetRGB255(239, 239, 239) // light gray 2
-			dc.SetRGB255(243, 243, 243) // light gray 3
-			dc.Fill()
+			xPos := (t.PaddingSize / 2) + (float64(column) * t.ColumnWidth)
+			yPos := t.HeaderHeight + t.PaddingSize + float64(row)*((t.ImageHeight-(t.PaddingSize*2)-t.HeaderHeight)/float64(len(data.Rows)))
+			xLength := t.ColumnWidth - t.PaddingSize
+			//yHeight := t.ImageHeight - (t.PaddingSize * 2) - t.HeaderHeight - float64(row)*((t.ImageHeight-(t.PaddingSize*2)-t.HeaderHeight)/float64(len(data.Rows)))
+
+			// dc.DrawRectangle(xPos, yPos, xLength, yHeight)
+			// dc.SetRGB255(239, 239, 239) // light gray 2
+			// dc.SetRGB255(243, 243, 243) // light gray 3
+			// dc.Fill()
+
+			dc.SetRGB255(0, 0, 0) // black
+			if err := dc.LoadFontFace("public/fonts/roboto-mono_light.ttf", 10); err != nil {
+				return fmt.Errorf("could not load font: %v", err)
+			}
+			dc.DrawStringAnchored(entry.Driver, xPos+xLength/20, yPos, 0, 1)
+			if err := dc.LoadFontFace("public/fonts/roboto-mono_light.ttf", 11); err != nil {
+				return fmt.Errorf("could not load font: %v", err)
+			}
+			dc.DrawStringAnchored(entry.Value, xPos+xLength-xLength/20, yPos, 1, 1)
 		}
 	}
 

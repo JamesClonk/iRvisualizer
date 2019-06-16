@@ -95,7 +95,13 @@ func (h *Handler) weeklyHeatmap(rw http.ResponseWriter, req *http.Request) {
 		h.failure(rw, req, err)
 		return
 	}
-	raceweek, track, results, err := h.getWeek(seasonID, week-1)
+	raceweek, track, err := h.getRaceWeek(seasonID, week-1)
+	if err != nil {
+		log.Errorf("could not get raceweek: %v", err)
+		h.failure(rw, req, err)
+		return
+	}
+	results, err := h.getRaceWeekResults(seasonID, week-1)
 	if err != nil {
 		log.Errorf("could not get raceweek results: %v", err)
 		h.failure(rw, req, err)
@@ -197,10 +203,10 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 	results := make([]database.RaceWeekResult, 0)
 	var weeksNotFound int
 	for week := 0; week < 12; week++ {
-		_, _, rs, err := h.getWeek(seasonID, week)
+		rs, err := h.getRaceWeekResults(seasonID, week)
 		if err != nil {
 			weeksNotFound++
-			log.Errorf("could not get raceweek results: %v", err)
+			log.Warnf("could not get raceweek results: %v", err)
 			// h.failure(rw, req, err)
 			// return
 		}
