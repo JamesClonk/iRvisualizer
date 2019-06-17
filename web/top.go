@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/JamesClonk/iRcollector/database"
 	"github.com/JamesClonk/iRvisualizer/image/top"
 	"github.com/JamesClonk/iRvisualizer/log"
 	"github.com/JamesClonk/iRvisualizer/util"
@@ -365,28 +366,28 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 
 	data := make([]top.DataSet, 0)
 	// tt lap
-	club := top.DataSet{
+	tt := top.DataSet{
 		Title: "Fastest TimeTrial Lap",
 		Rows:  make([]top.DataSetRow, 0),
 	}
 	// filter by > 100
-	filteredTT := timeRankings[:0]
+	filtered := make([]database.TimeRanking, 0)
 	for _, ranking := range timeRankings {
 		if ranking.TimeTrial > 100 {
-			filteredTT = append(filteredTT, ranking)
+			filtered = append(filtered, ranking)
 		}
 	}
 	// sort by tt lap
-	sort.Slice(filteredTT, func(i, j int) bool {
-		return filteredTT[i].TimeTrial < filteredTT[j].TimeTrial
+	sort.Slice(filtered, func(i, j int) bool {
+		return filtered[i].TimeTrial < filtered[j].TimeTrial
 	})
-	for i := 0; i < 25 && i < len(filteredTT); i++ {
-		club.Rows = append(club.Rows, top.DataSetRow{
-			Driver: filteredTT[i].Driver.Name,
-			Value:  util.ConvertLaptime(filteredTT[i].TimeTrial),
+	for i := 0; i < 25 && i < len(filtered); i++ {
+		tt.Rows = append(tt.Rows, top.DataSetRow{
+			Driver: filtered[i].Driver.Name,
+			Value:  util.ConvertLaptime(filtered[i].TimeTrial),
 		})
 	}
-	data = append(data, club)
+	data = append(data, tt)
 
 	// race lap
 	race := top.DataSet{
@@ -394,20 +395,20 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 		Rows:  make([]top.DataSetRow, 0),
 	}
 	// filter by > 100
-	filteredR := timeRankings[:0]
+	filtered = make([]database.TimeRanking, 0)
 	for _, ranking := range timeRankings {
 		if ranking.Race > 100 {
-			filteredR = append(filteredR, ranking)
+			filtered = append(filtered, ranking)
 		}
 	}
 	// sort by race lap
-	sort.Slice(filteredR, func(i, j int) bool {
-		return filteredR[i].Race < filteredR[j].Race
+	sort.Slice(filtered, func(i, j int) bool {
+		return filtered[i].Race < filtered[j].Race
 	})
-	for i := 0; i < 25 && i < len(filteredR); i++ {
+	for i := 0; i < 25 && i < len(filtered); i++ {
 		race.Rows = append(race.Rows, top.DataSetRow{
-			Driver: filteredR[i].Driver.Name,
-			Value:  util.ConvertLaptime(filteredR[i].Race),
+			Driver: filtered[i].Driver.Name,
+			Value:  util.ConvertLaptime(filtered[i].Race),
 		})
 	}
 	data = append(data, race)
