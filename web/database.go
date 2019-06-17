@@ -48,3 +48,13 @@ func (h *Handler) getRaceWeekSummaries(seasonID, week int) ([]database.Summary, 
 	}
 	return summaries, nil
 }
+
+func (h *Handler) getRaceWeekTimeRankings(seasonID, week int) ([]database.TimeRanking, error) {
+	log.Infof("collect raceweek timerankings for season [%d], week [%d]", seasonID, week)
+
+	timeRankings, err := h.DB.GetTimeRankingsBySeasonIDAndWeek(seasonID, week)
+	if err != nil {
+		return nil, err
+	}
+	return timeRankings, nil
+}

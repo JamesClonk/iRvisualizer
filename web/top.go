@@ -9,6 +9,7 @@ import (
 
 	"github.com/JamesClonk/iRvisualizer/image/top"
 	"github.com/JamesClonk/iRvisualizer/log"
+	"github.com/JamesClonk/iRvisualizer/util"
 	"github.com/gorilla/mux"
 )
 
@@ -218,22 +219,22 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	data := make([]top.DataSet, 0)
-	// irating-gained
-	irating := top.DataSet{
-		Title: "TODO: TOP5-HYPE",
+	// top5 positions
+	top5 := top.DataSet{
+		Title: "Top-5 Hype!",
 		Rows:  make([]top.DataSetRow, 0),
 	}
-	// sort by irating-gained
+	// sort by top5
 	sort.Slice(summaries, func(i, j int) bool {
-		return summaries[i].HighestIRatingGain > summaries[j].HighestIRatingGain
+		return summaries[i].Top5 > summaries[j].Top5
 	})
 	for i := 0; i < 25 && i < len(summaries); i++ {
-		irating.Rows = append(irating.Rows, top.DataSetRow{
+		top5.Rows = append(top5.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
-			Value:  fmt.Sprintf("%d", summaries[i].HighestIRatingGain),
+			Value:  fmt.Sprintf("%d", summaries[i].Top5),
 		})
 	}
-	data = append(data, irating)
+	data = append(data, top5)
 
 	// positions-gained
 	positions := top.DataSet{
@@ -258,22 +259,22 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	}
 	data = append(data, positions)
 
-	// sr-gained
-	sr := top.DataSet{
-		Title: "TODO: NOF RACES",
+	// races driven
+	races := top.DataSet{
+		Title: "Most Races",
 		Rows:  make([]top.DataSetRow, 0),
 	}
-	// sort by sr-gained
+	// sort by races
 	sort.Slice(summaries, func(i, j int) bool {
-		return summaries[i].TotalSafetyRatingGain > summaries[j].TotalSafetyRatingGain
+		return summaries[i].NumberOfRaces > summaries[j].NumberOfRaces
 	})
 	for i := 0; i < 25 && i < len(summaries); i++ {
-		sr.Rows = append(sr.Rows, top.DataSetRow{
+		races.Rows = append(races.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
-			Value:  fmt.Sprintf("%d", summaries[i].TotalSafetyRatingGain),
+			Value:  fmt.Sprintf("%d", summaries[i].NumberOfRaces),
 		})
 	}
-	data = append(data, sr)
+	data = append(data, races)
 
 	hm := top.New(image, season, raceweek, track, data)
 	if err := hm.Draw(); err != nil {
@@ -355,41 +356,61 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 		h.failure(rw, req, err)
 		return
 	}
+	timeRankings, err := h.getRaceWeekTimeRankings(seasonID, week-1)
+	if err != nil {
+		log.Errorf("could not get raceweek timerankings: %v", err)
+		h.failure(rw, req, err)
+		return
+	}
 
 	data := make([]top.DataSet, 0)
-	// champ points
-	champ := top.DataSet{
-		Title: "TODO: RACE LAPS",
-		Rows:  make([]top.DataSetRow, 0),
-	}
-	// sort by champ points
-	sort.Slice(summaries, func(i, j int) bool {
-		return summaries[i].HighestChampPoints > summaries[j].HighestChampPoints
-	})
-	for i := 0; i < 25 && i < len(summaries); i++ {
-		champ.Rows = append(champ.Rows, top.DataSetRow{
-			Driver: summaries[i].Driver.Name,
-			Value:  fmt.Sprintf("%d", summaries[i].HighestChampPoints),
-		})
-	}
-	data = append(data, champ)
-
-	// club points
+	// tt lap
 	club := top.DataSet{
-		Title: "TODO: TT LAPS",
+		Title: "Fastest TimeTrial Lap",
 		Rows:  make([]top.DataSetRow, 0),
 	}
-	// sort by club points
-	sort.Slice(summaries, func(i, j int) bool {
-		return summaries[i].TotalClubPoints > summaries[j].TotalClubPoints
+	// filter by > 100
+	filteredTT := timeRankings[:0]
+	for _, ranking := range timeRankings {
+		if ranking.TimeTrial > 100 {
+			filteredTT = append(filteredTT, ranking)
+		}
+	}
+	// sort by tt lap
+	sort.Slice(filteredTT, func(i, j int) bool {
+		return filteredTT[i].TimeTrial < filteredTT[j].TimeTrial
 	})
-	for i := 0; i < 25 && i < len(summaries); i++ {
+	for i := 0; i < 25 && i < len(filteredTT); i++ {
 		club.Rows = append(club.Rows, top.DataSetRow{
-			Driver: summaries[i].Driver.Name,
-			Value:  fmt.Sprintf("%d", summaries[i].TotalClubPoints),
+			Driver: filteredTT[i].Driver.Name,
+			Value:  util.ConvertLaptime(filteredTT[i].TimeTrial),
 		})
 	}
 	data = append(data, club)
+
+	// race lap
+	race := top.DataSet{
+		Title: "Fastest Race Lap",
+		Rows:  make([]top.DataSetRow, 0),
+	}
+	// filter by > 100
+	filteredR := timeRankings[:0]
+	for _, ranking := range timeRankings {
+		if ranking.Race > 100 {
+			filteredR = append(filteredR, ranking)
+		}
+	}
+	// sort by race lap
+	sort.Slice(filteredR, func(i, j int) bool {
+		return filteredR[i].Race < filteredR[j].Race
+	})
+	for i := 0; i < 25 && i < len(filteredR); i++ {
+		race.Rows = append(race.Rows, top.DataSetRow{
+			Driver: filteredR[i].Driver.Name,
+			Value:  util.ConvertLaptime(filteredR[i].Race),
+		})
+	}
+	data = append(data, race)
 
 	// laps
 	laps := top.DataSet{
