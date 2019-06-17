@@ -222,7 +222,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	data := make([]top.DataSet, 0)
 	// top5 positions
 	top5 := top.DataSet{
-		Title: "Top-5 Hype!",
+		Title: "Top5 Hype",
 		Rows:  make([]top.DataSetRow, 0),
 	}
 	// sort by top5

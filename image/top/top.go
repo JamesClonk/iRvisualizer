@@ -139,6 +139,7 @@ func (t *Top) Draw() error {
 		xPos := t.PaddingSize + float64(column)*t.ColumnWidth
 
 		// rows
+		var previousValue string
 		for row, entry := range data.Rows {
 			yPos := yPosColumnStart + float64(row)*t.DriverHeight
 
@@ -152,10 +153,15 @@ func (t *Top) Draw() error {
 			dc.Fill()
 
 			dc.SetRGB255(0, 0, 0) // black
+			// position
 			if err := dc.LoadFontFace("public/fonts/Roboto-Light.ttf", 11); err != nil {
 				return fmt.Errorf("could not load font: %v", err)
 			}
-			dc.DrawStringAnchored(fmt.Sprintf("%d.", row+1), xPos+t.PaddingSize*2, yPos+t.DriverHeight/2, 0, 0.5)
+			if entry.Value != previousValue {
+				previousValue = entry.Value
+				dc.DrawStringAnchored(fmt.Sprintf("%d.", row+1), xPos+t.PaddingSize*2, yPos+t.DriverHeight/2, 0, 0.5)
+			}
+			// name + value
 			if err := dc.LoadFontFace("public/fonts/Roboto-Regular.ttf", 11); err != nil {
 				return fmt.Errorf("could not load font: %v", err)
 			}
