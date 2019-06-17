@@ -123,7 +123,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 
 	// podiums
 	podiums := top.DataSet{
-		Title: "Podium positions",
+		Title: "Podium Positions",
 		Rows:  make([]top.DataSetRow, 0),
 	}
 	// sort by podiums
@@ -222,7 +222,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	data := make([]top.DataSet, 0)
 	// top5 positions
 	top5 := top.DataSet{
-		Title: "Top5 Hype",
+		Title: "Top5 Hype (Finishing Positions)",
 		Rows:  make([]top.DataSetRow, 0),
 	}
 	// sort by top5
@@ -514,16 +514,16 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	data := make([]top.DataSet, 0)
 	// irating-gained
 	irating := top.DataSet{
-		Title: "Highest iRating gained",
+		Title: "Total iRating gained",
 		Rows:  make([]top.DataSetRow, 0),
 	}
 	// sort by irating-gained
 	sort.Slice(summaries, func(i, j int) bool {
-		return summaries[i].HighestIRatingGain > summaries[j].HighestIRatingGain
+		return summaries[i].TotalIRatingGain > summaries[j].TotalIRatingGain
 	})
 	for i := 0; i < 25 && i < len(summaries); i++ {
-		value := fmt.Sprintf("%d", summaries[i].HighestIRatingGain)
-		if summaries[i].HighestIRatingGain > 0 {
+		value := fmt.Sprintf("%d", summaries[i].TotalIRatingGain)
+		if summaries[i].TotalIRatingGain > 0 {
 			value = "+" + value
 		} else {
 			value = "-" + value
@@ -537,7 +537,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 
 	// sr-gained
 	sr := top.DataSet{
-		Title: "Total Safety Rating",
+		Title: "Total Safety Rating gained",
 		Rows:  make([]top.DataSetRow, 0),
 	}
 	// sort by sr-gained
