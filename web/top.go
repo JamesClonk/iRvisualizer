@@ -250,8 +250,6 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 		value := fmt.Sprintf("%d", summaries[i].TotalPositionsGained)
 		if summaries[i].TotalPositionsGained > 0 {
 			value = "+" + value
-		} else {
-			value = "-" + value
 		}
 		positions.Rows = append(positions.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
@@ -525,8 +523,6 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 		value := fmt.Sprintf("%d", summaries[i].TotalIRatingGain)
 		if summaries[i].TotalIRatingGain > 0 {
 			value = "+" + value
-		} else {
-			value = "-" + value
 		}
 		irating.Rows = append(irating.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
@@ -548,8 +544,6 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 		value := fmt.Sprintf("%.2f", float64(summaries[i].TotalSafetyRatingGain)/float64(100))
 		if summaries[i].TotalSafetyRatingGain > 0 {
 			value = "+" + value
-		} else {
-			value = "-" + value
 		}
 		sr.Rows = append(sr.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
