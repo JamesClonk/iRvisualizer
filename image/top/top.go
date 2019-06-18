@@ -50,7 +50,14 @@ func New(name string, season database.Season, week database.RaceWeek, track data
 		Columns:      float64(len(data)),
 	}
 	top.ColumnWidth = top.ImageWidth / top.Columns
-	top.ImageHeight = float64(len(data[0].Rows))*top.DriverHeight + top.DriverHeight + top.HeaderHeight + top.PaddingSize*3
+	
+	maxRows := 0
+	for _, d := range data {
+		if len(d.Rows) > maxRows {
+			maxRows = len(d.Rows)
+		}
+	}
+	top.ImageHeight = float64(maxRows)*top.DriverHeight + top.DriverHeight + top.HeaderHeight + top.PaddingSize*3
 	return top
 }
 
