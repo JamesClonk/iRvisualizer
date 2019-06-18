@@ -5,7 +5,7 @@
 applications:
 - name: iRvisualizer
   memory: 64M
-  disk_quota: 256M
+  disk_quota: 512M
   instances: 2
 
   routes:
