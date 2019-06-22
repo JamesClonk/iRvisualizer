@@ -365,7 +365,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	data := make([]top.DataSet, 0)
 	// tt lap
 	tt := top.DataSet{
-		Title: "Fastest TimeTrial Lap",
+		Title: "Fastest TimeTrial Session",
 		Rows:  make([]top.DataSetRow, 0),
 	}
 	// filter by > 100
