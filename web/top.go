@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/JamesClonk/iRcollector/database"
 	"github.com/JamesClonk/iRvisualizer/image/top"
@@ -79,6 +80,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 		//h.failure(rw, req, err)
 		//return
 		raceweek.RaceWeek = week - 1
+		raceweek.LastUpdate = time.Now()
 		track.Name = "starting soon..."
 	}
 	summaries, err := h.getRaceWeekSummaries(seasonID, week-1)
@@ -214,6 +216,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 		//h.failure(rw, req, err)
 		//return
 		raceweek.RaceWeek = week - 1
+		raceweek.LastUpdate = time.Now()
 		track.Name = "starting soon..."
 	}
 	summaries, err := h.getRaceWeekSummaries(seasonID, week-1)
@@ -353,6 +356,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 		//h.failure(rw, req, err)
 		//return
 		raceweek.RaceWeek = week - 1
+		raceweek.LastUpdate = time.Now()
 		track.Name = "starting soon..."
 	}
 	summaries, err := h.getRaceWeekSummaries(seasonID, week-1)
@@ -508,6 +512,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 		//h.failure(rw, req, err)
 		//return
 		raceweek.RaceWeek = week - 1
+		raceweek.LastUpdate = time.Now()
 		track.Name = "starting soon..."
 	}
 	summaries, err := h.getRaceWeekSummaries(seasonID, week-1)

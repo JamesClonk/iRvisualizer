@@ -244,7 +244,7 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 	if err := fdc.LoadFontFace("public/fonts/roboto-mono_light.ttf", 12); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	fdc.DrawStringAnchored(fmt.Sprintf("Last Update: %s", h.Week.LastUpdate), float64(bdc.Width())-h.FooterHeight/2, float64(bdc.Height())+h.FooterHeight/2, 1, 0.5)
+	fdc.DrawStringAnchored(fmt.Sprintf("Last Update: %s", h.Week.LastUpdate.UTC()), float64(bdc.Width())-h.FooterHeight/2, float64(bdc.Height())+h.FooterHeight/2, 1, 0.5)
 
 	if err := h.WriteMetadata(); err != nil {
 		return err

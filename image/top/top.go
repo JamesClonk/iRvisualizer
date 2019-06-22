@@ -209,7 +209,7 @@ func (t *Top) Draw() error {
 	if err := fdc.LoadFontFace("public/fonts/roboto-mono_light.ttf", 10); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	fdc.DrawStringAnchored(fmt.Sprintf("Last Update: %s", t.Week.LastUpdate), float64(bdc.Width())-t.FooterHeight/2, float64(bdc.Height())+t.FooterHeight/2, 1, 0.5)
+	fdc.DrawStringAnchored(fmt.Sprintf("Last Update: %s", t.Week.LastUpdate.UTC()), float64(bdc.Width())-t.FooterHeight/2, float64(bdc.Height())+t.FooterHeight/2, 1, 0.5)
 
 	if err := t.WriteMetadata(); err != nil {
 		return err

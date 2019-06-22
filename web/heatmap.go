@@ -288,7 +288,7 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 		return finalResults[i].StartTime.Before(finalResults[j].StartTime)
 	})
 
-	hm := heatmap.New(season, database.RaceWeek{RaceWeek: -1}, database.Track{}, finalResults)
+	hm := heatmap.New(season, database.RaceWeek{RaceWeek: -1, LastUpdate: time.Now()}, database.Track{}, finalResults)
 	if err := hm.Draw(minSOF, maxSOF, false); err != nil {
 		log.Errorf("could not create seasonal heatmap: %v", err)
 		h.failure(rw, req, err)
