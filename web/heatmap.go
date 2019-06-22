@@ -131,7 +131,7 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// was there a minSOF given?
-	minSOF := 1000
+	minSOF := 900
 	value := req.URL.Query().Get("minSOF")
 	if len(value) > 0 {
 		minSOF, err = strconv.Atoi(value)
@@ -199,9 +199,8 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// sum/avg all weeks together
-	sessionIdx := 0
-	results := make([]database.RaceWeekResult, 0)
-	var weeksNotFound int
+	var weeksFound int
+	allResults := make([][]database.RaceWeekResult, 0)
 	for week := 0; week < 12; week++ {
 		rs, err := h.getRaceWeekResults(seasonID, week)
 		if err != nil {
@@ -209,11 +208,11 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 			// h.failure(rw, req, err)
 			// return
 		}
-		if len(rs) == 0 {
-			weeksNotFound++
+		if len(rs) > 0 {
+			weeksFound++
 		}
 
-		// sum/avg splits first
+		// sum splits
 		sessions := make(map[int]database.RaceWeekResult, 0)
 		for _, r := range rs {
 			if session, found := sessions[r.SessionID]; found {
@@ -227,70 +226,67 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		// collect all needed timeslots per week
-		// and make sure all timeslots are present, even if they were a 0-show
-		start := database.WeekStart(season.StartDate.UTC().AddDate(0, 0, (week+1)*7)).Add(-1 * time.Minute)
-		timeslots := make([]time.Time, 0)
-		next := schedule.Next(start)                             // get first timeslot
-		for next.Before(schedule.Next(start.AddDate(0, 0, 7))) { // collect all timeslots of 1 week
-			timeslots = append(timeslots, next)
-			next = schedule.Next(next)
+		// add to allResults collection
+		weekResults := make([]database.RaceWeekResult, 0)
+		for _, session := range sessions {
+			weekResults = append(weekResults, session)
 		}
-		for _, timeslot := range timeslots {
-			var found bool
-			for _, session := range sessions {
-				if timeslot.UTC().Weekday() == session.StartTime.UTC().Weekday() &&
-					timeslot.UTC().Hour() == session.StartTime.UTC().Hour() &&
-					timeslot.UTC().Minute() == session.StartTime.UTC().Minute() {
+		allResults = append(allResults, weekResults)
+	}
+
+	// go through all timeslots and calculate final result
+	finalResults := make([]database.RaceWeekResult, 0)
+	start := database.WeekStart(season.StartDate.UTC().AddDate(0, 0, 7)).Add(-1 * time.Minute)
+	timeslots := make([]time.Time, 0)
+	next := schedule.Next(start)                             // get first timeslot
+	for next.Before(schedule.Next(start.AddDate(0, 0, 7))) { // collect all timeslots of 1 week
+		timeslots = append(timeslots, next)
+		next = schedule.Next(next)
+	}
+	sessionIdx := 0
+	for _, timeslot := range timeslots {
+		sessionIdx++
+		finalResult := database.RaceWeekResult{
+			SessionID:       sessionIdx,
+			StartTime:       timeslot,
+			Official:        false,
+			SizeOfField:     0,
+			StrengthOfField: 0,
+		}
+
+		// see how many results exist for that timeslot
+		var found bool
+		for _, results := range allResults {
+			for _, result := range results {
+				if timeslot.UTC().Weekday() == result.StartTime.UTC().Weekday() &&
+					timeslot.UTC().Hour() == result.StartTime.UTC().Hour() &&
+					timeslot.UTC().Minute() == result.StartTime.UTC().Minute() {
 					found = true
-					break
-				}
-			}
-			if !found {
-				log.Debugf("timeslot [%s] was missing for week [%d], adding it ...", timeslot, week+1)
-				sessionIdx++
-				sessions[sessionIdx] = database.RaceWeekResult{
-					SessionID:       sessionIdx,
-					StartTime:       timeslot,
-					Official:        false,
-					SizeOfField:     0,
-					StrengthOfField: 0,
+					if result.Official {
+						finalResult.Official = true
+					}
+
+					finalResult.SizeOfField += result.SizeOfField
+					finalResult.StrengthOfField += result.StrengthOfField
 				}
 			}
 		}
 
-		// merge weekly results into main results list
-		for _, session := range sessions {
-			var found bool
-			for i, result := range results {
-				if session.StartTime.UTC().Weekday() == result.StartTime.UTC().Weekday() &&
-					session.StartTime.UTC().Hour() == result.StartTime.UTC().Hour() &&
-					session.StartTime.UTC().Minute() == result.StartTime.UTC().Minute() {
-					found = true
-					if session.Official {
-						results[i].Official = true
-					}
-					results[i].SizeOfField = result.SizeOfField + session.SizeOfField
-					results[i].StrengthOfField = result.StrengthOfField + session.StrengthOfField
-					break
-				}
-			}
-			if !found {
-				results = append(results, session)
-			}
+		// average size and sof
+		if found {
+			finalResult.SizeOfField = finalResult.SizeOfField / weeksFound
+			finalResult.StrengthOfField = finalResult.StrengthOfField / weeksFound
 		}
+
+		finalResults = append(finalResults, finalResult)
 	}
-	// divide by 12 weeks (minus weeksNotFound)
-	for i := range results {
-		results[i].StrengthOfField = results[i].StrengthOfField / (12 - weeksNotFound)
-		results[i].SizeOfField = results[i].SizeOfField / (12 - weeksNotFound)
-	}
+
 	// sort again to be on the safe side..
-	sort.Slice(results, func(i, j int) bool {
-		return results[i].StartTime.Before(results[j].StartTime)
+	sort.Slice(finalResults, func(i, j int) bool {
+		return finalResults[i].StartTime.Before(finalResults[j].StartTime)
 	})
 
-	hm := heatmap.New(season, database.RaceWeek{RaceWeek: -1}, database.Track{}, results)
+	hm := heatmap.New(season, database.RaceWeek{RaceWeek: -1}, database.Track{}, finalResults)
 	if err := hm.Draw(minSOF, maxSOF, false); err != nil {
 		log.Errorf("could not create seasonal heatmap: %v", err)
 		h.failure(rw, req, err)

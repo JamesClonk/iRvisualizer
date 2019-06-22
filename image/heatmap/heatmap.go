@@ -199,7 +199,7 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 					sof := 0
 					if result.Official {
 						sof = result.StrengthOfField
-						if result.StrengthOfField > minSOF {
+						if result.StrengthOfField >= minSOF {
 							// draw background color
 							dc.DrawRectangle(slotX, slotY, eventWidth, eventHeight)
 							dc.SetRGBA255(0, 0, 240-image.MapValueIntoRange(0, 120, minSOF, maxSOF, sof), image.MapValueIntoRange(10, 200, minSOF, maxSOF, sof)) // sof color
