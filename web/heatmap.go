@@ -205,10 +205,12 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 	for week := 0; week < 12; week++ {
 		rs, err := h.getRaceWeekResults(seasonID, week)
 		if err != nil {
-			weeksNotFound++
 			log.Warnf("could not get raceweek results: %v", err)
 			// h.failure(rw, req, err)
 			// return
+		}
+		if len(rs) == 0 {
+			weeksNotFound++
 		}
 
 		// sum/avg splits first
