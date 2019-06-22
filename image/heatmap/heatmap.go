@@ -17,6 +17,7 @@ type Heatmap struct {
 	Track          database.Track
 	Results        []database.RaceWeekResult
 	BorderSize     float64
+	FooterHeight   float64
 	ImageHeight    float64
 	ImageWidth     float64
 	HeaderHeight   float64
@@ -32,6 +33,7 @@ func New(season database.Season, week database.RaceWeek, track database.Track, r
 		Track:          track,
 		Results:        results,
 		BorderSize:     float64(3),
+		FooterHeight:   float64(18),
 		ImageHeight:    float64(480),
 		ImageWidth:     float64(1024),
 		HeaderHeight:   float64(45),
@@ -227,10 +229,22 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 	}
 
 	// add border to image
-	fdc := gg.NewContext(int(h.ImageWidth+h.BorderSize*2), int(h.ImageHeight+h.BorderSize*2))
-	fdc.SetRGB255(39, 39, 39) // dark gray 1
+	bdc := gg.NewContext(int(h.ImageWidth+h.BorderSize*2), int(h.ImageHeight+h.BorderSize*2))
+	bdc.SetRGB255(39, 39, 39) // dark gray 1
+	bdc.Clear()
+	bdc.DrawImage(dc.Image(), int(h.BorderSize), int(h.BorderSize))
+
+	// add footer to image
+	fdc := gg.NewContext(bdc.Width(), bdc.Height()+int(h.FooterHeight))
+	fdc.SetRGBA255(0, 0, 0, 0) // white
 	fdc.Clear()
-	fdc.DrawImage(dc.Image(), int(h.BorderSize), int(h.BorderSize))
+	fdc.DrawImage(bdc.Image(), 0, 0)
+	// add last-update text
+	fdc.SetRGB255(0, 0, 0) // black
+	if err := fdc.LoadFontFace("public/fonts/roboto-mono_light.ttf", 12); err != nil {
+		return fmt.Errorf("could not load font: %v", err)
+	}
+	fdc.DrawStringAnchored(fmt.Sprintf("Last Update: %s", h.Week.LastUpdate), float64(bdc.Width())-h.FooterHeight/2, float64(bdc.Height())+h.FooterHeight/2, 1, 0.5)
 
 	if err := h.WriteMetadata(); err != nil {
 		return err

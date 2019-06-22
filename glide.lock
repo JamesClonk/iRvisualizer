@@ -1,5 +1,5 @@
 hash: e6c6d394da47b049066f938c4d286377c318f4767a368f1e36a08149f9ba520c
-updated: 2019-06-17T20:41:06.989839861+02:00
+updated: 2019-06-22T12:26:52.714536005+02:00
 imports:
 - name: github.com/cloudfoundry-community/go-cfenv
   version: f920e9562d5f951cbf11785728f67258c38a10d0
@@ -20,7 +20,7 @@ imports:
 - name: github.com/gorilla/mux
   version: ed099d42384823742bba0bf9a72b53b55c9e2e38
 - name: github.com/JamesClonk/iRcollector
-  version: 61dcea43db1cdd5b694509585a4428cf273666b4
+  version: aef6c8db83f60533ea3bec4433c95919c4e0246e
   subpackages:
   - database
   - env

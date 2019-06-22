@@ -26,6 +26,7 @@ type Top struct {
 	Track        database.Track
 	Data         []DataSet
 	BorderSize   float64
+	FooterHeight float64
 	ImageHeight  float64
 	ImageWidth   float64
 	HeaderHeight float64
@@ -43,6 +44,7 @@ func New(name string, season database.Season, week database.RaceWeek, track data
 		Track:        track,
 		Data:         data,
 		BorderSize:   float64(2),
+		FooterHeight: float64(14),
 		ImageWidth:   float64(740),
 		HeaderHeight: float64(30),
 		DriverHeight: float64(18),
@@ -50,7 +52,7 @@ func New(name string, season database.Season, week database.RaceWeek, track data
 		Columns:      float64(len(data)),
 	}
 	top.ColumnWidth = top.ImageWidth / top.Columns
-	
+
 	maxRows := 0
 	for _, d := range data {
 		if len(d.Rows) > maxRows {
@@ -192,10 +194,22 @@ func (t *Top) Draw() error {
 	}
 
 	// add border to image
-	fdc := gg.NewContext(int(t.ImageWidth+t.BorderSize*2), int(t.ImageHeight+t.BorderSize*2))
-	fdc.SetRGB255(39, 39, 39) // dark gray 1
+	bdc := gg.NewContext(int(t.ImageWidth+t.BorderSize*2), int(t.ImageHeight+t.BorderSize*2))
+	bdc.SetRGB255(39, 39, 39) // dark gray 1
+	bdc.Clear()
+	bdc.DrawImage(dc.Image(), int(t.BorderSize), int(t.BorderSize))
+
+	// add footer to image
+	fdc := gg.NewContext(bdc.Width(), bdc.Height()+int(t.FooterHeight))
+	fdc.SetRGBA255(0, 0, 0, 0) // white
 	fdc.Clear()
-	fdc.DrawImage(dc.Image(), int(t.BorderSize), int(t.BorderSize))
+	fdc.DrawImage(bdc.Image(), 0, 0)
+	// add last-update text
+	fdc.SetRGB255(0, 0, 0) // black
+	if err := fdc.LoadFontFace("public/fonts/roboto-mono_light.ttf", 10); err != nil {
+		return fmt.Errorf("could not load font: %v", err)
+	}
+	fdc.DrawStringAnchored(fmt.Sprintf("Last Update: %s", t.Week.LastUpdate), float64(bdc.Width())-t.FooterHeight/2, float64(bdc.Height())+t.FooterHeight/2, 1, 0.5)
 
 	if err := t.WriteMetadata(); err != nil {
 		return err
