@@ -3,6 +3,7 @@ package web
 import (
 	"crypto/subtle"
 	"fmt"
+	"html/template"
 	"net/http"
 	"sync"
 
@@ -36,9 +37,19 @@ func router(h *Handler) *mux.Router {
 	r := mux.NewRouter()
 	r.PathPrefix("/health").HandlerFunc(h.health)
 
+	// fake index html
+	r.HandleFunc("/", h.index).Methods("GET")
+	r.HandleFunc("/season/", h.index).Methods("GET")
+	r.HandleFunc("/season/{seasonID}/", h.indexHeatmap).Methods("GET")
+	r.HandleFunc("/season/{seasonID}/week/", h.index).Methods("GET")
+	r.HandleFunc("/season/{seasonID}/week/{week}/", h.indexHeatmap).Methods("GET")
+	r.HandleFunc("/season/{seasonID}/week/{week}/top/", h.indexTop).Methods("GET")
+
+	// dynamic heatmap
 	r.HandleFunc("/season/{seasonID}/week/{week}/heatmap.png", h.weeklyHeatmap).Methods("GET")
 	r.HandleFunc("/season/{seasonID}/heatmap.png", h.seasonalHeatmap).Methods("GET")
 
+	// dynamic scores
 	r.HandleFunc("/season/{seasonID}/week/{week}/top/scores.png", h.weeklyTopScores).Methods("GET")
 	r.HandleFunc("/season/{seasonID}/week/{week}/top/racers.png", h.weeklyTopRacers).Methods("GET")
 	r.HandleFunc("/season/{seasonID}/week/{week}/top/laps.png", h.weeklyTopLaps).Methods("GET")
@@ -68,4 +79,52 @@ func (h *Handler) verifyBasicAuth(rw http.ResponseWriter, req *http.Request) boo
 		return false
 	}
 	return true
+}
+
+func (h *Handler) index(rw http.ResponseWriter, req *http.Request) {
+	index, _ := template.New("index").Parse(`
+<html>
+<head>
+<title>Statistics</title>
+<body>
+nothing here...
+</body>
+</html>
+	`)
+	if err := index.ExecuteTemplate(rw, "index", nil); err != nil {
+		h.failure(rw, req, err)
+	}
+}
+
+func (h *Handler) indexHeatmap(rw http.ResponseWriter, req *http.Request) {
+	index, _ := template.New("index").Parse(`
+<html>
+<head>
+<title>Heatmap</title>
+<body>
+<img src="heatmap.png"/><br/>
+</body>
+</html>
+	`)
+	if err := index.ExecuteTemplate(rw, "index", nil); err != nil {
+		h.failure(rw, req, err)
+	}
+}
+
+func (h *Handler) indexTop(rw http.ResponseWriter, req *http.Request) {
+	index, _ := template.New("index").Parse(`
+<html>
+<head>
+<title>Top Racers</title>
+<body>
+<img src="scores.png"/><br/>
+<img src="racers.png"/><br/>
+<img src="safety.png"/><br/>
+<img src="laps.png"/><br/>
+</body>
+</html>
+	`)
+	if err := index.ExecuteTemplate(rw, "index", nil); err != nil {
+		h.failure(rw, req, err)
+	}
 }
