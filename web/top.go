@@ -52,6 +52,18 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	// was there a headerless given?
+	headerless := false
+	value = req.URL.Query().Get("headerless")
+	if len(value) > 0 {
+		headerless, err = strconv.ParseBool(value)
+		if err != nil {
+			log.Errorf("could not convert headerless [%s] to bool: %v", value, err)
+			h.failure(rw, req, err)
+			return
+		}
+	}
+
 	// was there a forceOverwrite given?
 	forceOverwrite := false
 	value = req.URL.Query().Get("forceOverwrite")
@@ -155,7 +167,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 	data = append(data, podiums)
 
 	hm := top.New(image, season, raceweek, track, data)
-	if err := hm.Draw(req.URL.Query().Get("colorScheme")); err != nil {
+	if err := hm.Draw(req.URL.Query().Get("colorScheme"), headerless); err != nil {
 		log.Errorf("could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
 		return
@@ -195,6 +207,18 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 		topN, err = strconv.Atoi(value)
 		if err != nil {
 			log.Errorf("could not convert topN [%s] to int: %v", value, err)
+			h.failure(rw, req, err)
+			return
+		}
+	}
+
+	// was there a headerless given?
+	headerless := false
+	value = req.URL.Query().Get("headerless")
+	if len(value) > 0 {
+		headerless, err = strconv.ParseBool(value)
+		if err != nil {
+			log.Errorf("could not convert headerless [%s] to bool: %v", value, err)
 			h.failure(rw, req, err)
 			return
 		}
@@ -291,7 +315,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 
 	// races driven
 	races := top.DataSet{
-		Title: "Most Races",
+		Title: "Most Races (min. 1 Lap)",
 		Rows:  make([]top.DataSetRow, 0),
 	}
 	// sort by races
@@ -307,7 +331,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	data = append(data, races)
 
 	hm := top.New(image, season, raceweek, track, data)
-	if err := hm.Draw(req.URL.Query().Get("colorScheme")); err != nil {
+	if err := hm.Draw(req.URL.Query().Get("colorScheme"), headerless); err != nil {
 		log.Errorf("could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
 		return
@@ -347,6 +371,18 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 		topN, err = strconv.Atoi(value)
 		if err != nil {
 			log.Errorf("could not convert topN [%s] to int: %v", value, err)
+			h.failure(rw, req, err)
+			return
+		}
+	}
+
+	// was there a headerless given?
+	headerless := false
+	value = req.URL.Query().Get("headerless")
+	if len(value) > 0 {
+		headerless, err = strconv.ParseBool(value)
+		if err != nil {
+			log.Errorf("could not convert headerless [%s] to bool: %v", value, err)
 			h.failure(rw, req, err)
 			return
 		}
@@ -475,7 +511,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	data = append(data, laps)
 
 	hm := top.New(image, season, raceweek, track, data)
-	if err := hm.Draw(req.URL.Query().Get("colorScheme")); err != nil {
+	if err := hm.Draw(req.URL.Query().Get("colorScheme"), headerless); err != nil {
 		log.Errorf("could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
 		return
@@ -515,6 +551,18 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 		topN, err = strconv.Atoi(value)
 		if err != nil {
 			log.Errorf("could not convert topN [%s] to int: %v", value, err)
+			h.failure(rw, req, err)
+			return
+		}
+	}
+
+	// was there a headerless given?
+	headerless := false
+	value = req.URL.Query().Get("headerless")
+	if len(value) > 0 {
+		headerless, err = strconv.ParseBool(value)
+		if err != nil {
+			log.Errorf("could not convert headerless [%s] to bool: %v", value, err)
 			h.failure(rw, req, err)
 			return
 		}
@@ -638,7 +686,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	data = append(data, inc)
 
 	hm := top.New(image, season, raceweek, track, data)
-	if err := hm.Draw(req.URL.Query().Get("colorScheme")); err != nil {
+	if err := hm.Draw(req.URL.Query().Get("colorScheme"), headerless); err != nil {
 		log.Errorf("could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
 		return

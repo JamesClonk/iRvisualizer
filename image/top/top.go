@@ -76,7 +76,7 @@ func (t *Top) Filename() string {
 	return Filename(t.Name, t.Season.SeasonID, t.Week.RaceWeek+1)
 }
 
-func (t *Top) Draw(colorScheme string) error {
+func (t *Top) Draw(colorScheme string, headerless bool) error {
 	// top titles, season + track
 	topTitle := fmt.Sprintf("%s - Statistics", t.Season.SeasonName)
 	if len(t.Season.SeasonName) > 38 {
@@ -100,6 +100,11 @@ func (t *Top) Draw(colorScheme string) error {
 		color = scheme.NewBlueScheme()
 	}
 
+	// strip header?
+	if headerless {
+		t.ImageHeight = t.ImageHeight - t.HeaderHeight
+	}
+
 	// create canvas
 	dc := gg.NewContext(int(t.ImageWidth), int(t.ImageHeight))
 
@@ -107,29 +112,34 @@ func (t *Top) Draw(colorScheme string) error {
 	color.Background(dc)
 	dc.Clear()
 
-	// header
-	dc.DrawRectangle(0, 0, t.ImageWidth, t.HeaderHeight)
-	color.HeaderLeftBG(dc)
-	dc.Fill()
-	dc.DrawRectangle(t.ImageWidth/2, 0, t.ImageWidth/2, t.HeaderHeight)
-	color.HeaderRightBG(dc)
-	dc.Fill()
+	yPosColumnHeaderStart := t.PaddingSize
+	if !headerless {
+		// header
+		dc.DrawRectangle(0, 0, t.ImageWidth, t.HeaderHeight)
+		color.HeaderLeftBG(dc)
+		dc.Fill()
+		dc.DrawRectangle(t.ImageWidth/2, 0, t.ImageWidth/2, t.HeaderHeight)
+		color.HeaderRightBG(dc)
+		dc.Fill()
 
-	// draw season name
-	if err := dc.LoadFontFace("public/fonts/Roboto-BoldItalic.ttf", 14); err != nil {
-		return fmt.Errorf("could not load font: %v", err)
+		// draw season name
+		if err := dc.LoadFontFace("public/fonts/Roboto-BoldItalic.ttf", 14); err != nil {
+			return fmt.Errorf("could not load font: %v", err)
+		}
+		color.HeaderFG(dc)
+		dc.DrawStringAnchored(topTitle, t.ImageWidth/4, t.HeaderHeight/2, 0.5, 0.5)
+		// draw track title
+		if err := dc.LoadFontFace("public/fonts/Roboto-BoldItalic.ttf", 14); err != nil {
+			return fmt.Errorf("could not load font: %v", err)
+		}
+		color.HeaderFG(dc)
+		dc.DrawStringAnchored(topTrackTitle, t.ImageWidth/2+t.ImageWidth/4, t.HeaderHeight/2, 0.5, 0.5)
+
+		// adjust to header height
+		yPosColumnHeaderStart = t.HeaderHeight + t.PaddingSize
 	}
-	color.HeaderFG(dc)
-	dc.DrawStringAnchored(topTitle, t.ImageWidth/4, t.HeaderHeight/2, 0.5, 0.5)
-	// draw track title
-	if err := dc.LoadFontFace("public/fonts/Roboto-BoldItalic.ttf", 14); err != nil {
-		return fmt.Errorf("could not load font: %v", err)
-	}
-	color.HeaderFG(dc)
-	dc.DrawStringAnchored(topTrackTitle, t.ImageWidth/2+t.ImageWidth/4, t.HeaderHeight/2, 0.5, 0.5)
 
 	// draw the column headers
-	yPosColumnHeaderStart := t.HeaderHeight + t.PaddingSize
 	xLength := t.ColumnWidth - t.PaddingSize*2
 	for column, data := range t.Data {
 		xPos := t.PaddingSize + float64(column)*t.ColumnWidth
