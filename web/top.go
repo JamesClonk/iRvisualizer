@@ -40,9 +40,21 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 		week = 0
 	}
 
+	// was there a topN given?
+	topN := 20
+	value := req.URL.Query().Get("topN")
+	if len(value) > 0 {
+		topN, err = strconv.Atoi(value)
+		if err != nil {
+			log.Errorf("could not convert topN [%s] to int: %v", value, err)
+			h.failure(rw, req, err)
+			return
+		}
+	}
+
 	// was there a forceOverwrite given?
 	forceOverwrite := false
-	value := req.URL.Query().Get("forceOverwrite")
+	value = req.URL.Query().Get("forceOverwrite")
 	if len(value) > 0 {
 		forceOverwrite, err = strconv.ParseBool(value)
 		if err != nil {
@@ -100,7 +112,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 	sort.Slice(summaries, func(i, j int) bool {
 		return summaries[i].HighestChampPoints > summaries[j].HighestChampPoints
 	})
-	for i := 0; i < 25 && i < len(summaries); i++ {
+	for i := 0; i < topN && i < len(summaries); i++ {
 		champ.Rows = append(champ.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
 			Value:  fmt.Sprintf("%d", summaries[i].HighestChampPoints),
@@ -117,7 +129,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 	sort.Slice(summaries, func(i, j int) bool {
 		return summaries[i].TotalClubPoints > summaries[j].TotalClubPoints
 	})
-	for i := 0; i < 25 && i < len(summaries); i++ {
+	for i := 0; i < topN && i < len(summaries); i++ {
 		club.Rows = append(club.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
 			Value:  fmt.Sprintf("%d", summaries[i].TotalClubPoints),
@@ -134,7 +146,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 	sort.Slice(summaries, func(i, j int) bool {
 		return summaries[i].Podiums > summaries[j].Podiums
 	})
-	for i := 0; i < 25 && i < len(summaries); i++ {
+	for i := 0; i < topN && i < len(summaries); i++ {
 		podiums.Rows = append(podiums.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
 			Value:  fmt.Sprintf("%d", summaries[i].Podiums),
@@ -176,9 +188,21 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 		week = 0
 	}
 
+	// was there a topN given?
+	topN := 20
+	value := req.URL.Query().Get("topN")
+	if len(value) > 0 {
+		topN, err = strconv.Atoi(value)
+		if err != nil {
+			log.Errorf("could not convert topN [%s] to int: %v", value, err)
+			h.failure(rw, req, err)
+			return
+		}
+	}
+
 	// was there a forceOverwrite given?
 	forceOverwrite := false
-	value := req.URL.Query().Get("forceOverwrite")
+	value = req.URL.Query().Get("forceOverwrite")
 	if len(value) > 0 {
 		forceOverwrite, err = strconv.ParseBool(value)
 		if err != nil {
@@ -236,7 +260,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	sort.Slice(summaries, func(i, j int) bool {
 		return summaries[i].Top5 > summaries[j].Top5
 	})
-	for i := 0; i < 25 && i < len(summaries); i++ {
+	for i := 0; i < topN && i < len(summaries); i++ {
 		top5.Rows = append(top5.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
 			Value:  fmt.Sprintf("%d", summaries[i].Top5),
@@ -253,7 +277,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	sort.Slice(summaries, func(i, j int) bool {
 		return summaries[i].TotalPositionsGained > summaries[j].TotalPositionsGained
 	})
-	for i := 0; i < 25 && i < len(summaries); i++ {
+	for i := 0; i < topN && i < len(summaries); i++ {
 		value := fmt.Sprintf("%d", summaries[i].TotalPositionsGained)
 		if summaries[i].TotalPositionsGained > 0 {
 			value = "+" + value
@@ -274,7 +298,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	sort.Slice(summaries, func(i, j int) bool {
 		return summaries[i].NumberOfRaces > summaries[j].NumberOfRaces
 	})
-	for i := 0; i < 25 && i < len(summaries); i++ {
+	for i := 0; i < topN && i < len(summaries); i++ {
 		races.Rows = append(races.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
 			Value:  fmt.Sprintf("%d", summaries[i].NumberOfRaces),
@@ -316,9 +340,21 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 		week = 0
 	}
 
+	// was there a topN given?
+	topN := 20
+	value := req.URL.Query().Get("topN")
+	if len(value) > 0 {
+		topN, err = strconv.Atoi(value)
+		if err != nil {
+			log.Errorf("could not convert topN [%s] to int: %v", value, err)
+			h.failure(rw, req, err)
+			return
+		}
+	}
+
 	// was there a forceOverwrite given?
 	forceOverwrite := false
-	value := req.URL.Query().Get("forceOverwrite")
+	value = req.URL.Query().Get("forceOverwrite")
 	if len(value) > 0 {
 		forceOverwrite, err = strconv.ParseBool(value)
 		if err != nil {
@@ -389,7 +425,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	sort.Slice(filtered, func(i, j int) bool {
 		return filtered[i].TimeTrial < filtered[j].TimeTrial
 	})
-	for i := 0; i < 25 && i < len(filtered); i++ {
+	for i := 0; i < topN && i < len(filtered); i++ {
 		tt.Rows = append(tt.Rows, top.DataSetRow{
 			Driver: filtered[i].Driver.Name,
 			Value:  util.ConvertLaptime(filtered[i].TimeTrial),
@@ -413,7 +449,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	sort.Slice(filtered, func(i, j int) bool {
 		return filtered[i].Race < filtered[j].Race
 	})
-	for i := 0; i < 25 && i < len(filtered); i++ {
+	for i := 0; i < topN && i < len(filtered); i++ {
 		race.Rows = append(race.Rows, top.DataSetRow{
 			Driver: filtered[i].Driver.Name,
 			Value:  util.ConvertLaptime(filtered[i].Race),
@@ -430,7 +466,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	sort.Slice(summaries, func(i, j int) bool {
 		return summaries[i].LapsCompleted > summaries[j].LapsCompleted
 	})
-	for i := 0; i < 25 && i < len(summaries); i++ {
+	for i := 0; i < topN && i < len(summaries); i++ {
 		laps.Rows = append(laps.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
 			Value:  fmt.Sprintf("%d", summaries[i].LapsCompleted),
@@ -472,9 +508,21 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 		week = 0
 	}
 
+	// was there a topN given?
+	topN := 20
+	value := req.URL.Query().Get("topN")
+	if len(value) > 0 {
+		topN, err = strconv.Atoi(value)
+		if err != nil {
+			log.Errorf("could not convert topN [%s] to int: %v", value, err)
+			h.failure(rw, req, err)
+			return
+		}
+	}
+
 	// was there a forceOverwrite given?
 	forceOverwrite := false
-	value := req.URL.Query().Get("forceOverwrite")
+	value = req.URL.Query().Get("forceOverwrite")
 	if len(value) > 0 {
 		forceOverwrite, err = strconv.ParseBool(value)
 		if err != nil {
@@ -532,7 +580,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	sort.Slice(summaries, func(i, j int) bool {
 		return summaries[i].TotalIRatingGain > summaries[j].TotalIRatingGain
 	})
-	for i := 0; i < 25 && i < len(summaries); i++ {
+	for i := 0; i < topN && i < len(summaries); i++ {
 		value := fmt.Sprintf("%d", summaries[i].TotalIRatingGain)
 		if summaries[i].TotalIRatingGain > 0 {
 			value = "+" + value
@@ -553,7 +601,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	sort.Slice(summaries, func(i, j int) bool {
 		return summaries[i].TotalSafetyRatingGain > summaries[j].TotalSafetyRatingGain
 	})
-	for i := 0; i < 25 && i < len(summaries); i++ {
+	for i := 0; i < topN && i < len(summaries); i++ {
 		value := fmt.Sprintf("%.2f", float64(summaries[i].TotalSafetyRatingGain)/float64(100))
 		if summaries[i].TotalSafetyRatingGain > 0 {
 			value = "+" + value
@@ -581,7 +629,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	sort.Slice(filtered, func(i, j int) bool {
 		return filtered[i].AverageIncidentsPerLap < filtered[j].AverageIncidentsPerLap
 	})
-	for i := 0; i < 25 && i < len(filtered); i++ {
+	for i := 0; i < topN && i < len(filtered); i++ {
 		inc.Rows = append(inc.Rows, top.DataSetRow{
 			Driver: filtered[i].Driver.Name,
 			Value:  fmt.Sprintf("%.3f", filtered[i].AverageIncidentsPerLap),

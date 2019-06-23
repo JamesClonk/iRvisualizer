@@ -36,7 +36,7 @@ func New(season database.Season, week database.RaceWeek, track database.Track, r
 		FooterHeight:   float64(18),
 		ImageHeight:    float64(480),
 		ImageWidth:     float64(1024),
-		HeaderHeight:   float64(45),
+		HeaderHeight:   float64(40),
 		TimeslotHeight: float64(50),
 		DayWidth:       float64(160),
 		Days:           7, // pretty sure that's never gonna change..
@@ -244,7 +244,8 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 	if err := fdc.LoadFontFace("public/fonts/roboto-mono_light.ttf", 12); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	fdc.DrawStringAnchored(fmt.Sprintf("Last Update: %s", h.Week.LastUpdate.UTC()), float64(bdc.Width())-h.FooterHeight/2, float64(bdc.Height())+h.FooterHeight/2, 1, 0.5)
+	lastUpdate := h.Week.LastUpdate.UTC().Format("2006-01-02 15:04:05 -07 MST")
+	fdc.DrawStringAnchored(fmt.Sprintf("Last Update: %s", lastUpdate), float64(bdc.Width())-h.FooterHeight/2, float64(bdc.Height())+h.FooterHeight/2, 1, 0.5)
 
 	if err := h.WriteMetadata(); err != nil {
 		return err

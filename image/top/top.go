@@ -46,7 +46,7 @@ func New(name string, season database.Season, week database.RaceWeek, track data
 		BorderSize:   float64(2),
 		FooterHeight: float64(14),
 		ImageWidth:   float64(740),
-		HeaderHeight: float64(30),
+		HeaderHeight: float64(24),
 		DriverHeight: float64(18),
 		PaddingSize:  float64(3),
 		Columns:      float64(len(data)),
@@ -209,7 +209,8 @@ func (t *Top) Draw() error {
 	if err := fdc.LoadFontFace("public/fonts/roboto-mono_light.ttf", 10); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	fdc.DrawStringAnchored(fmt.Sprintf("Last Update: %s", t.Week.LastUpdate.UTC()), float64(bdc.Width())-t.FooterHeight/2, float64(bdc.Height())+t.FooterHeight/2, 1, 0.5)
+	lastUpdate := t.Week.LastUpdate.UTC().Format("2006-01-02 15:04:05 -07 MST")
+	fdc.DrawStringAnchored(fmt.Sprintf("Last Update: %s", lastUpdate), float64(bdc.Width())-t.FooterHeight/2, float64(bdc.Height())+t.FooterHeight/2, 1, 0.5)
 
 	if err := t.WriteMetadata(); err != nil {
 		return err
