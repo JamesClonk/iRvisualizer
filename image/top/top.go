@@ -5,7 +5,7 @@ import (
 
 	"github.com/JamesClonk/iRcollector/database"
 	"github.com/JamesClonk/iRvisualizer/image"
-	"github.com/JamesClonk/iRvisualizer/image/color"
+	scheme "github.com/JamesClonk/iRvisualizer/image/color"
 	"github.com/JamesClonk/iRvisualizer/log"
 	"github.com/fogleman/gg"
 )
@@ -88,12 +88,13 @@ func (t *Top) Draw(colorScheme string) error {
 
 	// create canvas
 	dc := gg.NewContext(int(t.ImageWidth), int(t.ImageHeight))
+
 	// colorizer
-	color := color.NewBlueScheme() // default to blue color scheme
-	// switch colorScheme {
-	// case "yellow":
-	// 	color = color.YellowScheme(dc)
-	// }
+	color := scheme.NewBlueScheme() // default to blue color scheme
+	switch colorScheme {
+	case "yellow":
+		color = scheme.NewYellowScheme()
+	}
 
 	// background
 	color.Background(dc)
@@ -111,13 +112,13 @@ func (t *Top) Draw(colorScheme string) error {
 	if err := dc.LoadFontFace("public/fonts/Roboto-BoldItalic.ttf", 14); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	dc.SetRGB255(255, 255, 255) // white
+	color.HeaderFG(dc)
 	dc.DrawStringAnchored(topTitle, t.ImageWidth/4, t.HeaderHeight/2, 0.5, 0.5)
 	// draw track title
 	if err := dc.LoadFontFace("public/fonts/Roboto-BoldItalic.ttf", 14); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	dc.SetRGB255(255, 255, 255) // white
+	color.HeaderFG(dc)
 	dc.DrawStringAnchored(topTrackTitle, t.ImageWidth/2+t.ImageWidth/4, t.HeaderHeight/2, 0.5, 0.5)
 
 	// draw the column headers
@@ -129,17 +130,17 @@ func (t *Top) Draw(colorScheme string) error {
 
 		// add column header
 		dc.DrawRectangle(xPos, yPos, xLength, t.DriverHeight)
-		dc.SetRGB255(133, 133, 133) // gray 1
+		color.TopNHeaderBG(dc)
 		dc.Fill()
 
-		dc.SetRGB255(255, 255, 255) // white
+		color.TopNHeaderFG(dc)
 		if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 12); err != nil {
 			return fmt.Errorf("could not load font: %v", err)
 		}
 		dc.DrawStringAnchored(data.Title, xPos+xLength/2, yPos+t.DriverHeight/2, 0.5, 0.5)
 
-		// draw box
-		dc.SetRGB255(55, 55, 55) // dark gray 2
+		// draw outline
+		color.TopNHeaderOutline(dc)
 		dc.MoveTo(xPos, yPos)
 		dc.LineTo(xPos+xLength, yPos)
 		dc.LineTo(xPos+xLength, yPos+t.DriverHeight)
@@ -162,14 +163,14 @@ func (t *Top) Draw(colorScheme string) error {
 			// zebra pattern
 			dc.DrawRectangle(xPos, yPos, xLength, t.DriverHeight)
 			if row%2 == 0 {
-				dc.SetRGB255(225, 225, 225) // light gray 1.5
+				color.TopNCellDarkerBG(dc)
 			} else {
-				dc.SetRGB255(241, 241, 241) // light gray 2.5
+				color.TopNCellLighterBG(dc)
 			}
 			dc.Fill()
 
-			dc.SetRGB255(0, 0, 0) // black
 			// position
+			color.TopNCellPosition(dc)
 			if err := dc.LoadFontFace("public/fonts/Roboto-Light.ttf", 11); err != nil {
 				return fmt.Errorf("could not load font: %v", err)
 			}
@@ -177,19 +178,21 @@ func (t *Top) Draw(colorScheme string) error {
 				previousValue = entry.Value
 				dc.DrawStringAnchored(fmt.Sprintf("%d.", row+1), xPos+t.PaddingSize*2, yPos+t.DriverHeight/2, 0, 0.5)
 			}
-			// name + value
+			// name
+			color.TopNCellDriver(dc)
 			if err := dc.LoadFontFace("public/fonts/Roboto-Regular.ttf", 11); err != nil {
 				return fmt.Errorf("could not load font: %v", err)
 			}
 			dc.DrawStringAnchored(entry.Driver, xPos+20+t.PaddingSize*2, yPos+t.DriverHeight/2, 0, 0.5)
-			dc.SetRGB255(7, 55, 99) // dark blue 3
+			// value
+			color.TopNCellValue(dc)
 			if err := dc.LoadFontFace("public/fonts/roboto-mono_regular.ttf", 12); err != nil {
 				return fmt.Errorf("could not load font: %v", err)
 			}
 			dc.DrawStringAnchored(entry.Value, xPos+xLength-t.PaddingSize*2, yPos+t.DriverHeight/2, 1, 0.5)
 
-			// draw box
-			dc.SetRGB255(155, 155, 155) // gray 2
+			// draw outline
+			color.TopNCellOutline(dc)
 			dc.MoveTo(xPos, yPos)
 			dc.LineTo(xPos+xLength, yPos)
 			dc.LineTo(xPos+xLength, yPos+t.DriverHeight)
@@ -224,22 +227,3 @@ func (t *Top) Draw(colorScheme string) error {
 	}
 	return fdc.SavePNG(t.Filename()) // finally write to file
 }
-
-/*
-	Colors:
-	dc.SetRGB255(0, 0, 0) // black
-	dc.SetRGB255(39, 39, 39) // dark gray 1
-	dc.SetRGB255(55, 55, 55) // dark gray 2
-	dc.SetRGB255(255, 255, 255) // white
-	dc.SetRGB255(133, 133, 133) // gray 1
-	dc.SetRGB255(155, 155, 155) // gray 2
-	dc.SetRGB255(177, 177, 177) // gray 3
-	dc.SetRGB255(217, 217, 217) // light gray 1
-	dc.SetRGB255(225, 225, 225) // light gray 1.5
-	dc.SetRGB255(239, 239, 239) // light gray 2
-	dc.SetRGB255(241, 241, 241) // light gray 2.5
-	dc.SetRGB255(243, 243, 243) // light gray 3
-	dc.SetRGB255(61, 133, 198) // dark blue 1
-	dc.SetRGB255(11, 83, 148) // dark blue 2
-	dc.SetRGB255(7, 55, 99) // dark blue 3
-*/
