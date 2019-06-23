@@ -79,6 +79,9 @@ func (t *Top) Filename() string {
 func (t *Top) Draw(colorScheme string) error {
 	// top titles, season + track
 	topTitle := fmt.Sprintf("%s - Statistics", t.Season.SeasonName)
+	if len(t.Season.SeasonName) > 38 {
+		topTitle = t.Season.SeasonName
+	}
 	topTrackTitle := fmt.Sprintf("Week %d - %s", t.Week.RaceWeek+1, t.Track.Name)
 	if t.Week.RaceWeek == -1 { // seasonal avg. top
 		topTrackTitle = "Seasonal Average"
