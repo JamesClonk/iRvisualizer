@@ -110,7 +110,7 @@ func (h *Handler) weeklyHeatmap(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	hm := heatmap.New(season, raceweek, track, results)
-	if err := hm.Draw(minSOF, maxSOF, true); err != nil {
+	if err := hm.Draw(req.URL.Query().Get("colorScheme"), minSOF, maxSOF, true); err != nil {
 		log.Errorf("could not create heatmap: %v", err)
 		h.failure(rw, req, err)
 		return
@@ -289,7 +289,7 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 	})
 
 	hm := heatmap.New(season, database.RaceWeek{RaceWeek: -1, LastUpdate: time.Now()}, database.Track{}, finalResults)
-	if err := hm.Draw(minSOF, maxSOF, false); err != nil {
+	if err := hm.Draw(req.URL.Query().Get("colorScheme"), minSOF, maxSOF, false); err != nil {
 		log.Errorf("could not create seasonal heatmap: %v", err)
 		h.failure(rw, req, err)
 		return

@@ -6,6 +6,7 @@ import (
 
 	"github.com/JamesClonk/iRcollector/database"
 	"github.com/JamesClonk/iRvisualizer/image"
+	scheme "github.com/JamesClonk/iRvisualizer/image/color"
 	"github.com/JamesClonk/iRvisualizer/log"
 	"github.com/fogleman/gg"
 	"github.com/robfig/cron"
@@ -36,7 +37,7 @@ func New(season database.Season, week database.RaceWeek, track database.Track, r
 		FooterHeight:   float64(18),
 		ImageHeight:    float64(480),
 		ImageWidth:     float64(1024),
-		HeaderHeight:   float64(40),
+		HeaderHeight:   float64(38),
 		TimeslotHeight: float64(50),
 		DayWidth:       float64(160),
 		Days:           7, // pretty sure that's never gonna change..
@@ -55,7 +56,7 @@ func (h *Heatmap) Filename() string {
 	return Filename(h.Season.SeasonID, h.Week.RaceWeek+1)
 }
 
-func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
+func (h *Heatmap) Draw(colorScheme string, minSOF, maxSOF int, drawEmptySlots bool) error {
 	// heatmap titles, season + track
 	heatmapTitle := fmt.Sprintf("%s - Week %d", h.Season.SeasonName, h.Week.RaceWeek+1)
 	heatmap2ndTitle := h.Track.Name
@@ -98,42 +99,53 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 		}
 	}
 
+	// colorizer
+	var color scheme.Colorizer
+	switch colorScheme {
+	case "yellow":
+		color = scheme.NewYellowScheme()
+	case "red":
+		color = scheme.NewRedScheme()
+	default:
+		color = scheme.NewBlueScheme()
+	}
+
 	// create canvas
 	dc := gg.NewContext(int(h.ImageWidth), int(h.ImageHeight))
 
 	// background
-	dc.SetRGB255(241, 241, 241) // light gray 2.5
+	color.Background(dc)
 	dc.Clear()
 
 	// header
 	dc.DrawRectangle(0, 0, h.ImageWidth, h.HeaderHeight)
-	dc.SetRGB255(7, 55, 99) // dark blue 3
+	color.HeaderLeftBG(dc)
 	dc.Fill()
 	dc.DrawRectangle(h.ImageWidth/2+h.DayWidth/2, 0, h.ImageWidth/2, h.HeaderHeight)
-	dc.SetRGB255(11, 83, 148) // dark blue 2
+	color.HeaderRightBG(dc)
 	dc.Fill()
 
 	// draw season name
 	if err := dc.LoadFontFace("public/fonts/Roboto-Italic.ttf", 19); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	dc.SetRGB255(255, 255, 255) // white
+	color.HeaderFG(dc)
 	dc.DrawStringAnchored(heatmapTitle, h.DayWidth/7, h.HeaderHeight/2, 0, 0.5)
 	// draw track config
 	if err := dc.LoadFontFace("public/fonts/Roboto-Italic.ttf", 19); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	dc.SetRGB255(255, 255, 255) // white
+	color.HeaderFG(dc)
 	dc.DrawStringAnchored(heatmap2ndTitle, h.ImageWidth-h.DayWidth/7, h.HeaderHeight/2, 1, 0.5)
 
 	// timeslots
 	dc.DrawRectangle(0, h.HeaderHeight, h.DayWidth, h.TimeslotHeight)
-	dc.SetRGB255(239, 239, 239) // light gray 2
+	color.HeatmapHeaderDarkerBG(dc)
 	dc.Fill()
 	if err := dc.LoadFontFace("public/fonts/roboto-mono_thin.ttf", 14); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	dc.SetRGB255(0, 0, 0) // black
+	color.HeatmapHeaderFG(dc)
 	dc.DrawStringAnchored("UTC / GMT+0", h.DayWidth/2, h.HeaderHeight+h.TimeslotHeight/2, 0.5, 0.5)
 	if err := dc.LoadFontFace("public/fonts/roboto-mono_medium.ttf", 16); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
@@ -142,13 +154,13 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 	for slot := 0; slot < len(timeslots); slot++ {
 		dc.DrawRectangle((float64(slot)*(timeslotWidth+1))+(h.DayWidth+1), h.HeaderHeight, timeslotWidth, h.TimeslotHeight)
 		if slot%2 == 0 {
-			dc.SetRGB255(243, 243, 243) // light gray 3
+			color.HeatmapHeaderLighterBG(dc)
 		} else {
-			dc.SetRGB255(239, 239, 239) // light gray 2
+			color.HeatmapHeaderDarkerBG(dc)
 		}
 		dc.Fill()
 		// draw timeslot starting time
-		dc.SetRGB255(0, 0, 0) // black
+		color.HeatmapHeaderFG(dc)
 		dc.DrawStringAnchored(
 			timeslots[slot].Format("15:04"),
 			(float64(slot)*(timeslotWidth+1))+(h.DayWidth+1)+(timeslotWidth/2),
@@ -164,13 +176,13 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 	for day := 0; day < h.Days; day++ {
 		dc.DrawRectangle(0, (float64(day)*(dayHeight+1))+(h.HeaderHeight+h.TimeslotHeight+1), h.DayWidth, dayHeight)
 		if day%2 == 0 {
-			dc.SetRGB255(243, 243, 243) // light gray 3
+			color.HeatmapHeaderLighterBG(dc)
 		} else {
-			dc.SetRGB255(239, 239, 239) // light gray 2
+			color.HeatmapHeaderDarkerBG(dc)
 		}
 		dc.Fill()
 		// draw weekday name
-		dc.SetRGB255(0, 0, 0) // black
+		color.HeatmapHeaderFG(dc)
 		dc.DrawStringAnchored(
 			weekStart.AddDate(0, 0, day).Weekday().String(),
 			h.DayWidth/2,
@@ -187,7 +199,7 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 			slotY := (float64(day) * (eventHeight + 1)) + (h.HeaderHeight + h.TimeslotHeight + 1)
 
 			dc.DrawRectangle(slotX, slotY, eventWidth, eventHeight)
-			dc.SetRGB255(255, 255, 255) // white
+			color.HeatmapTimeslotBG(dc)
 			dc.Fill()
 
 			// draw event values
@@ -204,17 +216,17 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 						if result.StrengthOfField >= minSOF {
 							// draw background color
 							dc.DrawRectangle(slotX, slotY, eventWidth, eventHeight)
-							dc.SetRGBA255(0, 0, 240-image.MapValueIntoRange(0, 120, minSOF, maxSOF, sof), image.MapValueIntoRange(10, 200, minSOF, maxSOF, sof)) // sof color
+							color.HeatmapTimeslotMapping(dc, minSOF, maxSOF, sof) // sof color
 							dc.Fill()
 						}
 					}
 
-					dc.SetRGB255(39, 39, 39) // dark gray 1
+					color.HeatmapTimeslotFG(dc)
 					dc.SetLineWidth(1)
 					dc.DrawLine(slotX+eventWidth/3, slotY+eventHeight/2, slotX+eventWidth/1.5, slotY+eventHeight/2)
 					dc.Stroke()
 
-					dc.SetRGB255(0, 0, 0) // black
+					color.HeatmapTimeslotFG(dc)
 					if err := dc.LoadFontFace("public/fonts/roboto-mono_regular.ttf", 15); err != nil {
 						return fmt.Errorf("could not load font: %v", err)
 					}
@@ -230,17 +242,17 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 
 	// add border to image
 	bdc := gg.NewContext(int(h.ImageWidth+h.BorderSize*2), int(h.ImageHeight+h.BorderSize*2))
-	bdc.SetRGB255(39, 39, 39) // dark gray 1
+	color.Border(bdc)
 	bdc.Clear()
 	bdc.DrawImage(dc.Image(), int(h.BorderSize), int(h.BorderSize))
 
 	// add footer to image
 	fdc := gg.NewContext(bdc.Width(), bdc.Height()+int(h.FooterHeight))
-	fdc.SetRGBA255(0, 0, 0, 0) // white
+	color.Transparent(fdc)
 	fdc.Clear()
 	fdc.DrawImage(bdc.Image(), 0, 0)
 	// add last-update text
-	fdc.SetRGB255(0, 0, 0) // black
+	color.LastUpdate(fdc)
 	if err := fdc.LoadFontFace("public/fonts/roboto-mono_light.ttf", 12); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
@@ -252,18 +264,3 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 	}
 	return fdc.SavePNG(h.Filename()) // finally write to file
 }
-
-/*
-	Colors:
-	dc.SetRGB255(0, 0, 0) // black
-	dc.SetRGB255(39, 39, 39) // dark gray 1
-	dc.SetRGB255(55, 55, 55) // dark gray 2
-	dc.SetRGB255(255, 255, 255) // white
-	dc.SetRGB255(217, 217, 217) // light gray 1
-	dc.SetRGB255(239, 239, 239) // light gray 2
-	dc.SetRGB255(241, 241, 241) // light gray 2.5
-	dc.SetRGB255(243, 243, 243) // light gray 3
-	dc.SetRGB255(61, 133, 198) // dark blue 1
-	dc.SetRGB255(11, 83, 148) // dark blue 2
-	dc.SetRGB255(7, 55, 99) // dark blue 3
-*/

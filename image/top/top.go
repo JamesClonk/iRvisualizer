@@ -86,15 +86,19 @@ func (t *Top) Draw(colorScheme string) error {
 
 	log.Infof("draw top for [%s] - [%s]", topTitle, topTrackTitle)
 
-	// create canvas
-	dc := gg.NewContext(int(t.ImageWidth), int(t.ImageHeight))
-
 	// colorizer
-	color := scheme.NewBlueScheme() // default to blue color scheme
+	var color scheme.Colorizer
 	switch colorScheme {
 	case "yellow":
 		color = scheme.NewYellowScheme()
+	case "red":
+		color = scheme.NewRedScheme()
+	default:
+		color = scheme.NewBlueScheme()
 	}
+
+	// create canvas
+	dc := gg.NewContext(int(t.ImageWidth), int(t.ImageHeight))
 
 	// background
 	color.Background(dc)

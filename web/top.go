@@ -155,7 +155,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 	data = append(data, podiums)
 
 	hm := top.New(image, season, raceweek, track, data)
-	if err := hm.Draw("blue"); err != nil {
+	if err := hm.Draw(req.URL.Query().Get("colorScheme")); err != nil {
 		log.Errorf("could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
 		return
@@ -307,7 +307,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	data = append(data, races)
 
 	hm := top.New(image, season, raceweek, track, data)
-	if err := hm.Draw("blue"); err != nil {
+	if err := hm.Draw(req.URL.Query().Get("colorScheme")); err != nil {
 		log.Errorf("could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
 		return
@@ -475,7 +475,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	data = append(data, laps)
 
 	hm := top.New(image, season, raceweek, track, data)
-	if err := hm.Draw("blue"); err != nil {
+	if err := hm.Draw(req.URL.Query().Get("colorScheme")); err != nil {
 		log.Errorf("could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
 		return
@@ -638,7 +638,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	data = append(data, inc)
 
 	hm := top.New(image, season, raceweek, track, data)
-	if err := hm.Draw("blue"); err != nil {
+	if err := hm.Draw(req.URL.Query().Get("colorScheme")); err != nil {
 		log.Errorf("could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
 		return

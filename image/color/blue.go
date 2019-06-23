@@ -1,6 +1,9 @@
 package color
 
-import "github.com/fogleman/gg"
+import (
+	"github.com/JamesClonk/iRvisualizer/image"
+	"github.com/fogleman/gg"
+)
 
 type blue struct{}
 
@@ -70,6 +73,24 @@ func (c *blue) TopNCellDriver(dc *gg.Context) {
 }
 func (c *blue) TopNCellValue(dc *gg.Context) {
 	dc.SetRGB255(7, 55, 99) // dark blue 3
+}
+func (c *blue) HeatmapHeaderFG(dc *gg.Context) {
+	dc.SetRGB255(0, 0, 0) // black
+}
+func (c *blue) HeatmapHeaderDarkerBG(dc *gg.Context) {
+	dc.SetRGB255(239, 239, 239) // light gray 2
+}
+func (c *blue) HeatmapHeaderLighterBG(dc *gg.Context) {
+	dc.SetRGB255(243, 243, 243) // light gray 3
+}
+func (c *blue) HeatmapTimeslotFG(dc *gg.Context) {
+	dc.SetRGB255(0, 0, 0) // black
+}
+func (c *blue) HeatmapTimeslotBG(dc *gg.Context) {
+	dc.SetRGB255(255, 255, 255) // white
+}
+func (c *blue) HeatmapTimeslotMapping(dc *gg.Context, min, max, value int) {
+	dc.SetRGBA255(0, 0, 240-image.MapValueIntoRange(0, 120, min, max, value), image.MapValueIntoRange(10, 225, min, max, value)) // sof color
 }
 func (c *blue) LastUpdate(dc *gg.Context) {
 	dc.SetRGB255(0, 0, 0) // black

@@ -18,5 +18,11 @@ type Colorizer interface {
 	TopNCellPosition(*gg.Context)
 	TopNCellDriver(*gg.Context)
 	TopNCellValue(*gg.Context)
+	HeatmapHeaderFG(*gg.Context)
+	HeatmapHeaderDarkerBG(*gg.Context)
+	HeatmapHeaderLighterBG(*gg.Context)
+	HeatmapTimeslotFG(*gg.Context)
+	HeatmapTimeslotBG(*gg.Context)
+	HeatmapTimeslotMapping(*gg.Context, int, int, int)
 	LastUpdate(*gg.Context)
 }
