@@ -5,6 +5,7 @@ import (
 
 	"github.com/JamesClonk/iRcollector/database"
 	"github.com/JamesClonk/iRvisualizer/image"
+	"github.com/JamesClonk/iRvisualizer/image/color"
 	"github.com/JamesClonk/iRvisualizer/log"
 	"github.com/fogleman/gg"
 )
@@ -75,7 +76,7 @@ func (t *Top) Filename() string {
 	return Filename(t.Name, t.Season.SeasonID, t.Week.RaceWeek+1)
 }
 
-func (t *Top) Draw() error {
+func (t *Top) Draw(colorScheme string) error {
 	// top titles, season + track
 	topTitle := fmt.Sprintf("%s - Statistics", t.Season.SeasonName)
 	topTrackTitle := fmt.Sprintf("Week %d - %s", t.Week.RaceWeek+1, t.Track.Name)
@@ -87,17 +88,23 @@ func (t *Top) Draw() error {
 
 	// create canvas
 	dc := gg.NewContext(int(t.ImageWidth), int(t.ImageHeight))
+	// colorizer
+	color := color.NewBlueScheme() // default to blue color scheme
+	// switch colorScheme {
+	// case "yellow":
+	// 	color = color.YellowScheme(dc)
+	// }
 
 	// background
-	dc.SetRGB255(243, 243, 243) // light gray 3
+	color.Background(dc)
 	dc.Clear()
 
 	// header
 	dc.DrawRectangle(0, 0, t.ImageWidth, t.HeaderHeight)
-	dc.SetRGB255(7, 55, 99) // dark blue 3
+	color.HeaderLeftBG(dc)
 	dc.Fill()
 	dc.DrawRectangle(t.ImageWidth/2, 0, t.ImageWidth/2, t.HeaderHeight)
-	dc.SetRGB255(11, 83, 148) // dark blue 2
+	color.HeaderRightBG(dc)
 	dc.Fill()
 
 	// draw season name
@@ -195,17 +202,17 @@ func (t *Top) Draw() error {
 
 	// add border to image
 	bdc := gg.NewContext(int(t.ImageWidth+t.BorderSize*2), int(t.ImageHeight+t.BorderSize*2))
-	bdc.SetRGB255(39, 39, 39) // dark gray 1
+	color.Border(bdc)
 	bdc.Clear()
 	bdc.DrawImage(dc.Image(), int(t.BorderSize), int(t.BorderSize))
 
 	// add footer to image
 	fdc := gg.NewContext(bdc.Width(), bdc.Height()+int(t.FooterHeight))
-	fdc.SetRGBA255(0, 0, 0, 0) // white
+	color.Transparent(fdc)
 	fdc.Clear()
 	fdc.DrawImage(bdc.Image(), 0, 0)
 	// add last-update text
-	fdc.SetRGB255(0, 0, 0) // black
+	color.LastUpdate(fdc)
 	if err := fdc.LoadFontFace("public/fonts/roboto-mono_light.ttf", 10); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
