@@ -106,6 +106,8 @@ func (h *Heatmap) Draw(colorScheme string, minSOF, maxSOF int, drawEmptySlots bo
 		color = scheme.NewYellowScheme()
 	case "red":
 		color = scheme.NewRedScheme()
+	case "simucube":
+		color = scheme.NewSimuCubeScheme()
 	default:
 		color = scheme.NewBlueScheme()
 	}

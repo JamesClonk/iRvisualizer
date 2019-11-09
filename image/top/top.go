@@ -96,6 +96,8 @@ func (t *Top) Draw(colorScheme string, headerless bool) error {
 		color = scheme.NewYellowScheme()
 	case "red":
 		color = scheme.NewRedScheme()
+	case "simucube":
+		color = scheme.NewSimuCubeScheme()
 	default:
 		color = scheme.NewBlueScheme()
 	}
