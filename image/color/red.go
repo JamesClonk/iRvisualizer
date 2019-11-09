@@ -49,7 +49,7 @@ func (c *red) HeaderRightBG(dc *gg.Context) {
 	dc.SetRGB255(165, 0, 0) // dark red 3
 }
 func (c *red) TopNHeaderFG(dc *gg.Context) {
-	dc.SetRGB255(39, 39, 39) // dark gray 1
+	dc.SetRGB255(255, 255, 255) // white
 }
 func (c *red) TopNHeaderBG(dc *gg.Context) {
 	dc.SetRGB255(240, 50, 50) // light red 1
