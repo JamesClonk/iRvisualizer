@@ -61,7 +61,7 @@ func (h *Heatmap) Draw(colorScheme string, minSOF, maxSOF int, drawEmptySlots bo
 	heatmapTitle := fmt.Sprintf("%s - Week %d", h.Season.SeasonName, h.Week.RaceWeek+1)
 	heatmap2ndTitle := h.Track.Name
 	if h.Week.RaceWeek == -1 { // seasonal avg. map
-		heatmapTitle = fmt.Sprintf("%s", h.Season.SeasonName)
+		heatmapTitle = h.Season.SeasonName
 		heatmap2ndTitle = "Seasonal Average"
 	}
 	// if len(track.Config) > 0 {
@@ -77,7 +77,7 @@ func (h *Heatmap) Draw(colorScheme string, minSOF, maxSOF int, drawEmptySlots bo
 		return fmt.Errorf("could not parse timeslot [%s] to crontab format: %v", h.Season.Timeslots, err)
 	}
 	// start -1 minute to previous day, to make sure schedule.Next will catch a midnight start (00:00)
-	weekStart := database.WeekStart(h.Season.StartDate.UTC().AddDate(0, 0, (h.Week.RaceWeek+1)*h.Days))
+	weekStart := database.WeekStart(h.Season.StartDate.UTC().AddDate(0, 0, (h.Week.RaceWeek)*h.Days))
 	start := weekStart.Add(-1 * time.Minute)
 	timeslots := make([]time.Time, 0)
 	next := schedule.Next(start)                             // get first timeslot
