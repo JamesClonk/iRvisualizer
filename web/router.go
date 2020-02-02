@@ -45,6 +45,9 @@ func router(h *Handler) *mux.Router {
 	r.HandleFunc("/season/{seasonID}/week/{week}/", h.indexHeatmap).Methods("GET")
 	r.HandleFunc("/season/{seasonID}/week/{week}/top/", h.indexTop).Methods("GET")
 
+	// dynamic ranking
+	r.HandleFunc("/season/{seasonID}/ranking.png", h.ranking).Methods("GET")
+
 	// dynamic heatmap
 	r.HandleFunc("/season/{seasonID}/week/{week}/heatmap.png", h.weeklyHeatmap).Methods("GET")
 	r.HandleFunc("/season/{seasonID}/heatmap.png", h.seasonalHeatmap).Methods("GET")

@@ -29,3 +29,5 @@ public/top/*.png
 public/top/*.json
 public/top/*/*.png
 public/top/*/*.json
+public/ranking/*.png
+public/ranking/*.json

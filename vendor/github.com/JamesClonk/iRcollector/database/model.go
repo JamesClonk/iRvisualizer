@@ -147,6 +147,17 @@ func (rr RaceResult) String() string {
 		rr.IRatingAfter, rr.Incidents, rr.ChampPoints, rr.ClubPoints, rr.ReasonOut)
 }
 
+type Points struct {
+	SubsessionID int `db:"subsession_id"`
+	Driver       Driver
+	ChampPoints  int `db:"champ_points"`
+}
+
+func (p Points) String() string {
+	return fmt.Sprintf("[ Racer: %s, Club: %s, SubsessionID: %d, ChampPoints: %d ]",
+		p.Driver.Name, p.Driver.Club.Name, p.SubsessionID, p.ChampPoints)
+}
+
 type Summary struct {
 	Driver                 Driver
 	Division               int
@@ -157,6 +168,7 @@ type Summary struct {
 	LapsCompleted          int
 	LapsLead               int
 	Poles                  int
+	Wins                   int
 	Podiums                int
 	Top5                   int
 	TotalPositionsGained   int

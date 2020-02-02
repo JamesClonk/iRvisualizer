@@ -29,7 +29,7 @@ func GetMetadata(filename string) (meta Metadata) {
 
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
-		log.Errorf("could not read metadata file [%s]: %v", filename)
+		log.Errorf("could not read metadata file [%s]: %v", filename, err)
 		return meta
 	}
 	if err = json.Unmarshal(data, &meta); err != nil {
