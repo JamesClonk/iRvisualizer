@@ -63,13 +63,17 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// collect all weeks
-	points := make(map[database.Driver]int)
+	var weeks int
+	points := make(map[database.Driver][]int)
 	for week := 0; week < 12; week++ {
 		weeklyPoints, err := h.getPoints(seasonID, week)
 		if err != nil {
 			log.Errorf("could not get points for week [%d]: %v", week+1, err)
 			h.failure(rw, req, err)
 			return
+		}
+		if len(weeklyPoints) > 0 {
+			weeks++
 		}
 
 		// // collect points for all drivers
@@ -90,20 +94,29 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 
 			// final result / average
 			if _, ok := points[driver]; !ok {
-				points[driver] = 0
+				points[driver] = make([]int, 0)
 			}
-			points[driver] = points[driver] + int(math.RoundToEven(float64(result)/float64(resultCount)))
+			points[driver] = append(points[driver], int(math.RoundToEven(float64(result)/float64(resultCount))))
 		}
 	}
+	bestN := weeks - int(math.Floor(float64(weeks)/3)) // how many weeks to count so far? (removes dropweeks)
 
-	// sort by values
+	// total bestN values
 	data := make([]ranking.DataRow, 0)
-	for driver, value := range points {
+	for driver, values := range points {
+		sort.Slice(values, func(i, j int) bool {
+			return values[i] > values[j]
+		})
+		var total int
+		for n := 0; n < bestN && n < len(values); n++ {
+			total += values[n]
+		}
 		data = append(data, ranking.DataRow{
 			Driver: driver.Name,
-			Value:  fmt.Sprintf("%d", value),
+			Value:  fmt.Sprintf("%d", total),
 		})
 	}
+	// sort by values
 	sort.Slice(data, func(i, j int) bool {
 		return data[i].Driver < data[j].Driver
 	})
@@ -114,7 +127,7 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 	})
 
 	hm := ranking.New(season, data)
-	if err := hm.Draw(req.URL.Query().Get("colorScheme"), 0, 99); err != nil {
+	if err := hm.Draw(req.URL.Query().Get("colorScheme"), bestN, weeks); err != nil {
 		log.Errorf("could not create season ranking: %v", err)
 		h.failure(rw, req, err)
 		return
