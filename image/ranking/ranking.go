@@ -64,11 +64,14 @@ func (r *Ranking) Filename() string {
 
 func (r *Ranking) Draw(colorScheme string, num, ofTotal int) error {
 	// raking title
-	rankingTitle := fmt.Sprintf("%s - Ranking", r.Season.SeasonName)
-	if len(r.Season.SeasonName) > 38 {
+	rankingTitle := fmt.Sprintf("%s - Standings", r.Season.SeasonName)
+	if len(r.Season.SeasonName) > 64 {
 		rankingTitle = r.Season.SeasonName
 	}
-	rankingBestOfTitle := fmt.Sprintf("Best %d of %d", num, ofTotal)
+	rankingBestOfTitle := fmt.Sprintf("Best %d out of %d week", num, ofTotal)
+	if ofTotal > 1 {
+		rankingBestOfTitle += "s" // plural
+	}
 
 	log.Infof("draw ranking for [%s] - [%s]", rankingTitle, rankingBestOfTitle)
 
@@ -96,7 +99,7 @@ func (r *Ranking) Draw(colorScheme string, num, ofTotal int) error {
 	dc.DrawRectangle(0, 0, r.ImageWidth, r.HeaderHeight)
 	color.HeaderLeftBG(dc)
 	dc.Fill()
-	dc.DrawRectangle(r.ImageWidth/2, 0, r.ImageWidth/2, r.HeaderHeight)
+	dc.DrawRectangle(r.ImageWidth/1.5, 0, r.ImageWidth/3, r.HeaderHeight)
 	color.HeaderRightBG(dc)
 	dc.Fill()
 
@@ -105,13 +108,13 @@ func (r *Ranking) Draw(colorScheme string, num, ofTotal int) error {
 		return fmt.Errorf("could not load font: %v", err)
 	}
 	color.HeaderFG(dc)
-	dc.DrawStringAnchored(rankingTitle, r.ImageWidth/4, r.HeaderHeight/2, 0.5, 0.5)
+	dc.DrawStringAnchored(rankingTitle, r.ImageWidth/3, r.HeaderHeight/2, 0.5, 0.5)
 	// draw best-of title
 	if err := dc.LoadFontFace("public/fonts/Roboto-BoldItalic.ttf", 14); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
 	color.HeaderFG(dc)
-	dc.DrawStringAnchored(rankingBestOfTitle, r.ImageWidth/2+r.ImageWidth/4, r.HeaderHeight/2, 0.5, 0.5)
+	dc.DrawStringAnchored(rankingBestOfTitle, r.ImageWidth/2+r.ImageWidth/3, r.HeaderHeight/2, 0.5, 0.5)
 
 	// adjust to header height
 	yPosColumnStart := r.HeaderHeight + r.PaddingSize
