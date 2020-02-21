@@ -9,6 +9,7 @@ applications:
   instances: 2
 
   routes:
+  - route: irvisualizer.jamesclonk.io
   - route: irvisualizer.scapp.io
   - route: irvisualizer.applicationcloud.io
   services:
