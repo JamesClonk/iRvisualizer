@@ -65,18 +65,20 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 	// collect all weeks
 	var weeks int
 	points := make(map[database.Driver][]int)
-	for week := 0; week < 12; week++ {
+	for week := 0; week < 13; week++ { // allow for leap seasons with 13 official weeks, like 2020S3
 		weeklyPoints, err := h.getPoints(seasonID, week)
 		if err != nil {
 			log.Errorf("could not get points for week [%d]: %v", week+1, err)
 			h.failure(rw, req, err)
 			return
 		}
-		if len(weeklyPoints) > 0 {
-			weeks++
+		// do we have data for this week?
+		if len(weeklyPoints) == 0 {
+			continue
 		}
+		weeks++
 
-		// // collect points for all drivers
+		// collect points for all drivers
 		drivers := make(map[database.Driver][]int)
 		for _, p := range weeklyPoints {
 			if _, ok := drivers[p.Driver]; !ok {
@@ -126,8 +128,8 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 		return a > b
 	})
 
-	hm := ranking.New(season, data)
-	if err := hm.Draw(req.URL.Query().Get("colorScheme"), bestN, weeks); err != nil {
+	r := ranking.New(season, data)
+	if err := r.Draw(req.URL.Query().Get("colorScheme"), bestN, weeks); err != nil {
 		log.Errorf("could not create season ranking: %v", err)
 		h.failure(rw, req, err)
 		return

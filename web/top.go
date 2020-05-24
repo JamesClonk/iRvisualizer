@@ -36,7 +36,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 		h.failure(rw, req, err)
 		return
 	}
-	if week < 1 || week > 12 {
+	if week < 1 || week > 13 {
 		week = 1
 	}
 
@@ -196,7 +196,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 		h.failure(rw, req, err)
 		return
 	}
-	if week < 1 || week > 12 {
+	if week < 1 || week > 13 {
 		week = 1
 	}
 
@@ -360,7 +360,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 		h.failure(rw, req, err)
 		return
 	}
-	if week < 1 || week > 12 {
+	if week < 1 || week > 13 {
 		week = 1
 	}
 
@@ -540,7 +540,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 		h.failure(rw, req, err)
 		return
 	}
-	if week < 1 || week > 12 {
+	if week < 1 || week > 13 {
 		week = 1
 	}
 

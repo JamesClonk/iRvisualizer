@@ -33,7 +33,7 @@ func (h *Handler) weeklyHeatmap(rw http.ResponseWriter, req *http.Request) {
 		h.failure(rw, req, err)
 		return
 	}
-	if week < 1 || week > 12 {
+	if week < 1 || week > 13 { // allow leap weeks
 		week = 1
 	}
 
