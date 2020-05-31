@@ -269,6 +269,11 @@ func (t *Top) Draw(colorScheme string, headerless bool) error {
 	lastUpdate := t.Week.LastUpdate.UTC().Format("2006-01-02 15:04:05 -07 MST")
 	fdc.DrawStringAnchored(fmt.Sprintf("Last Update: %s", lastUpdate), float64(bdc.Width())-t.FooterHeight/2, float64(bdc.Height())+t.FooterHeight/2, 1, 0.5)
 
+	if err := fdc.LoadFontFace("public/fonts/Roboto-Light.ttf", 9); err != nil {
+		return fmt.Errorf("could not load font: %v", err)
+	}
+	fdc.DrawStringAnchored("created by Fabio Berchtold", t.FooterHeight/2, float64(bdc.Height())+t.FooterHeight/2, 0, 0.5)
+
 	if err := t.WriteMetadata(); err != nil {
 		return err
 	}
