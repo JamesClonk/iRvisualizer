@@ -466,7 +466,9 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	})
 	for i := 0; i < topN && i < len(filtered); i++ {
 		icon := ""
-		if (((filtered[i].TimeTrial) - (filtered[i].TimeTrialFastestLap)) / 10) < 150 { // if smaller than 150ms
+		//if (((filtered[i].TimeTrial) - (filtered[i].TimeTrialFastestLap)) / 10) < 150 { // if smaller than 150ms
+		if ((filtered[i].TimeTrial-filtered[i].TimeTrialFastestLap)/10) < (filtered[i].TimeTrial/5555) &&
+			(filtered[i].TimeTrial-filtered[i].TimeTrialFastestLap) > 0 {
 			icon = "fire"
 		}
 		tt.Rows = append(tt.Rows, top.DataSetRow{

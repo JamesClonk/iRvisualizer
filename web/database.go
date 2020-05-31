@@ -59,12 +59,22 @@ func (h *Handler) getRaceWeekTimeRankings(seasonID, week int) ([]database.TimeRa
 	return timeRankings, nil
 }
 
-func (h *Handler) getPoints(seasonID, week int) ([]database.Points, error) {
-	log.Infof("collect points for season [%d], week [%d]", seasonID, week)
+func (h *Handler) getChampPoints(seasonID, week int) ([]database.Points, error) {
+	log.Infof("collect championship points for season [%d], week [%d]", seasonID, week)
 
 	points, err := h.DB.GetPointsBySeasonIDAndWeek(seasonID, week)
 	if err != nil {
 		return nil, err
 	}
 	return points, nil
+}
+
+func (h *Handler) getTTStandings(seasonID, week int) ([]database.TimeTrialResult, error) {
+	log.Infof("collect time trial results for season [%d], week [%d]", seasonID, week)
+
+	results, err := h.DB.GetTimeTrialResultsBySeasonIDAndWeek(seasonID, week)
+	if err != nil {
+		return nil, err
+	}
+	return results, nil
 }
