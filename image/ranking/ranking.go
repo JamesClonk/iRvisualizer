@@ -146,7 +146,24 @@ func (r *Ranking) Draw(colorScheme string, num, ofTotal int) error {
 		}
 		if data.Value != previousValue {
 			previousValue = data.Value
-			dc.DrawStringAnchored(fmt.Sprintf("%d.", int(row+1)+int(r.Rows*(column))), xPos+r.PaddingSize*2, yPos+r.DriverHeight/2, 0, 0.5)
+			// draw trophies
+			if d <= 2 {
+				// load icon
+				iconColor := "gold"
+				if d == 1 {
+					iconColor = "silver"
+				}
+				if d == 2 {
+					iconColor = "bronze"
+				}
+				icon, err := gg.LoadPNG(fmt.Sprintf("public/icons/trophy_%s.png", iconColor))
+				if err != nil {
+					return fmt.Errorf("could not load icon: %v", err)
+				}
+				dc.DrawImage(icon, int(xPos+r.PaddingSize), int(yPos))
+			} else {
+				dc.DrawStringAnchored(fmt.Sprintf("%d.", int(row+1)+int(r.Rows*(column))), xPos+r.PaddingSize*2, yPos+r.DriverHeight/2, 0, 0.5)
+			}
 		}
 		// name
 		color.TopNCellDriver(dc)

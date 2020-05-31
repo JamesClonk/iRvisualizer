@@ -1,5 +1,5 @@
 hash: e6c6d394da47b049066f938c4d286377c318f4767a368f1e36a08149f9ba520c
-updated: 2020-02-02T20:47:58.542579374+01:00
+updated: 2020-05-31T22:00:56.244574855+02:00
 imports:
 - name: github.com/cloudfoundry-community/go-cfenv
   version: f920e9562d5f951cbf11785728f67258c38a10d0
@@ -18,9 +18,9 @@ imports:
   - raster
   - truetype
 - name: github.com/gorilla/mux
-  version: 00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15
+  version: 75dcda0896e109a2a22c9315bca3bb21b87b2ba5
 - name: github.com/JamesClonk/iRcollector
-  version: ebc0e29d41f7339f9ddec48623948230c49498bf
+  version: 5e614b03a6eb2e070a0d78bd3f076d24a59b093c
   subpackages:
   - database
   - env
@@ -37,7 +37,7 @@ imports:
   - oid
   - scram
 - name: github.com/mitchellh/mapstructure
-  version: 3536a929edddb9a5b34bd6861dc4a9647cb459fe
+  version: 20e21c67c4d0e1b4244f83449b7cdd10435ee998
 - name: github.com/robfig/cron
   version: b41be1df696709bb6395fe435af20370037c0b4c
 - name: github.com/sirupsen/logrus

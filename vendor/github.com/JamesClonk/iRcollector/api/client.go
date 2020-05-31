@@ -68,10 +68,10 @@ func (c *Client) Login() error {
 		return err
 	}
 
+	//log.Debugf("%v", string(data))
 	if strings.Contains(strings.ToLower(string(data)), "email address or password was invalid") ||
 		strings.Contains(strings.ToLower(string(data)), "invalid email address or password") ||
-		resp.Header.Get("Location") == "https://members.iracing.com/membersite/failedlogin.jsp" ||
-		resp.Header.Get("Location") == "http://members.iracing.com/membersite/failedlogin.jsp" {
+		strings.Contains(strings.ToLower(resp.Header.Get("Location")), "failedlogin") {
 		return fmt.Errorf("login failed")
 	}
 	c.lastLogin = time.Now()
@@ -109,7 +109,7 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	req.Header.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36")
 	req.Header.Add("Referer", "https://members.iracing.com/membersite/login.jsp")
 	req.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-	req.Header.Add("Accept-Charset", "ISO-8859-1,utf-8;q=0.7,*;q=0.3")
+	req.Header.Add("Accept-Charset", "UTF-8,utf-8;q=0.7,*;q=0.3")
 	req.Header.Add("Cache-Control", "max-age=0")
 	req.Header.Add("Cache-Control", "max-age=0")
 	req.Header.Add("Origin", "members.iracing.com")

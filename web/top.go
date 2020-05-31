@@ -118,6 +118,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 	// champ points
 	champ := top.DataSet{
 		Title: "Highest Championship Points",
+		Icons: "star",
 		Rows:  make([]top.DataSetRow, 0),
 	}
 	// sort by champ points
@@ -316,6 +317,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	// races driven
 	races := top.DataSet{
 		Title: "Most Races (min. 1 Lap)",
+		Icons: "flag",
 		Rows:  make([]top.DataSetRow, 0),
 	}
 	// sort by races
@@ -448,6 +450,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	// tt lap
 	tt := top.DataSet{
 		Title: "Fastest TimeTrial Session",
+		Icons: "clock",
 		Rows:  make([]top.DataSetRow, 0),
 	}
 	// filter by > 100
@@ -462,8 +465,13 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 		return filtered[i].TimeTrial < filtered[j].TimeTrial
 	})
 	for i := 0; i < topN && i < len(filtered); i++ {
+		icon := ""
+		if (((filtered[i].TimeTrial) - (filtered[i].TimeTrialFastestLap)) / 10) < 150 { // if smaller than 150ms
+			icon = "fire"
+		}
 		tt.Rows = append(tt.Rows, top.DataSetRow{
 			Driver: filtered[i].Driver.Name,
+			Icon:   icon,
 			Value:  util.ConvertLaptime(filtered[i].TimeTrial),
 		})
 	}
@@ -664,6 +672,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	// inc/lap
 	inc := top.DataSet{
 		Title: "Avg. Incidents per Lap (min. 3 races)",
+		Icons: "safety",
 		Rows:  make([]top.DataSetRow, 0),
 	}
 	// filter by min. 3 races

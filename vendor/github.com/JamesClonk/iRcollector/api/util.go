@@ -8,6 +8,36 @@ import (
 	"time"
 )
 
+func toUTF8(iso8859 []byte) []byte {
+	buf := make([]rune, len(iso8859))
+	for i, b := range iso8859 {
+		buf[i] = rune(b)
+	}
+	return []byte(string(buf))
+}
+
+type floatToInt struct {
+	value int
+}
+
+func (f *floatToInt) UnmarshalJSON(data []byte) error {
+	value, err := strconv.Atoi(string(data))
+	if err != nil {
+		fv, err := strconv.ParseFloat(string(data), 64)
+		if err != nil {
+			return err
+		}
+		value = int(fv)
+	}
+
+	*f = floatToInt{int(value)}
+	return nil
+}
+
+func (f floatToInt) IntValue() int {
+	return f.value
+}
+
 type unixTime struct {
 	time.Time
 }
@@ -78,4 +108,11 @@ func (l laptime) String() string {
 		return ""
 	}
 	return fmt.Sprintf("%s", time.Duration(l*100)*time.Microsecond)
+}
+
+func (l laptime) Seconds() int {
+	if l == 0 {
+		return 0
+	}
+	return int((time.Duration(l*100) * time.Microsecond).Seconds())
 }
