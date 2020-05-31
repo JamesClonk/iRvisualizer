@@ -36,6 +36,8 @@ func (c *Collector) Database() database.Database {
 func (c *Collector) Run() {
 	seasonrx := regexp.MustCompile(`20[1-5][0-9] Season [1-4]`) // "2019 Season 2"
 
+	forceUpdate := false
+	forceUpdateCounter := 0
 	for {
 		series, err := c.db.GetSeries()
 		if err != nil {
@@ -88,10 +90,10 @@ func (c *Collector) Run() {
 						// if we couldn't figure out the season from SeasonNameShort, then we'll try to calculate it based on 2018S1 which started on 2017-12-12
 						if year < 2010 || quarter < 1 {
 							iracingEpoch := time.Date(2017, 12, 12, 0, 0, 0, 0, time.UTC)
-							daysSince := int(time.Now().Sub(iracingEpoch).Hours() / 24)
+							daysSince := int(time.Since(iracingEpoch).Hours() / 24)
 							weeksSince := daysSince / 7
-							seasonsSince := weeksSince / 13
-							yearsSince := seasonsSince / 4
+							seasonsSince := int(weeksSince / 13)
+							yearsSince := int(seasonsSince / 4)
 							year = 2018 + yearsSince
 							quarter = (seasonsSince % 4) + 1
 						}
@@ -110,7 +112,6 @@ func (c *Collector) Run() {
 						s.BannerImage = season.BannerImage
 						s.PanelImage = season.PanelImage
 						s.LogoImage = season.LogoImage
-						s.Timeslots = s.Timeslots
 						s.StartDate = startDate
 						if err := c.db.UpsertSeason(s); err != nil {
 							log.Errorf("could not store season [%s] in database: %v", season.SeasonName, err)
@@ -118,11 +119,11 @@ func (c *Collector) Run() {
 					}
 
 					// insert current raceweek
-					c.CollectRaceWeek(season.SeasonID, season.RaceWeek)
+					c.CollectRaceWeek(season.SeasonID, season.RaceWeek, forceUpdate)
 
 					// update previous week too
 					if season.RaceWeek > 0 {
-						c.CollectRaceWeek(season.SeasonID, season.RaceWeek-1)
+						c.CollectRaceWeek(season.SeasonID, season.RaceWeek-1, forceUpdate)
 					} else {
 						// find previous season
 						ss, err := c.db.GetSeasonsBySeriesID(series.SeriesID)
@@ -137,7 +138,7 @@ func (c *Collector) Run() {
 								quarterToFind = 4
 							}
 							if s.Year == yearToFind && s.Quarter == quarterToFind { // previous season found
-								c.CollectRaceWeek(s.SeasonID, 11)
+								c.CollectRaceWeek(s.SeasonID, 11, forceUpdate)
 								break
 							}
 						}
@@ -149,6 +150,16 @@ func (c *Collector) Run() {
 			}
 		}
 
+		// check if we should forcibly update the whole raceweek / do a full snapshot
+		if forceUpdate {
+			forceUpdate = false
+			forceUpdateCounter = 0
+		}
+		forceUpdateCounter++
+		if forceUpdateCounter > 33 {
+			forceUpdate = true
+			forceUpdateCounter = 0
+		}
 		time.Sleep(99 * time.Minute)
 	}
 }
@@ -157,6 +168,6 @@ func (c *Collector) CollectSeason(seasonID int) {
 	log.Infof("collecting whole season [%d], all 12 weeks ...", seasonID)
 
 	for w := 0; w < 12; w++ {
-		c.CollectRaceWeek(seasonID, w)
+		c.CollectRaceWeek(seasonID, w, true)
 	}
 }

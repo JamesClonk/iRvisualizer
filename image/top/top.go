@@ -12,12 +12,14 @@ import (
 
 type DataSet struct {
 	Title string
+	Icons string
 	Rows  []DataSetRow
 }
 
 type DataSetRow struct {
 	Driver string
 	Value  string
+	Icon   string
 }
 
 type Top struct {
@@ -195,7 +197,25 @@ func (t *Top) Draw(colorScheme string, headerless bool) error {
 			}
 			if entry.Value != previousValue {
 				previousValue = entry.Value
-				dc.DrawStringAnchored(fmt.Sprintf("%d.", row+1), xPos+t.PaddingSize*2, yPos+t.DriverHeight/2, 0, 0.5)
+
+				// draw icons if specified
+				if len(data.Icons) > 0 && row <= 2 {
+					// load icon
+					iconColor := "gold"
+					if row == 1 {
+						iconColor = "silver"
+					}
+					if row == 2 {
+						iconColor = "bronze"
+					}
+					icon, err := gg.LoadPNG(fmt.Sprintf("public/icons/%s_%s.png", data.Icons, iconColor))
+					if err != nil {
+						return fmt.Errorf("could not load icon: %v", err)
+					}
+					dc.DrawImage(icon, int(xPos+t.PaddingSize), int(yPos))
+				} else {
+					dc.DrawStringAnchored(fmt.Sprintf("%d.", row+1), xPos+t.PaddingSize*2, yPos+t.DriverHeight/2, 0, 0.5)
+				}
 			}
 			// name
 			color.TopNCellDriver(dc)
@@ -209,6 +229,14 @@ func (t *Top) Draw(colorScheme string, headerless bool) error {
 				return fmt.Errorf("could not load font: %v", err)
 			}
 			dc.DrawStringAnchored(entry.Value, xPos+xLength-t.PaddingSize*2, yPos+t.DriverHeight/2, 1, 0.5)
+			// draw an icon if specified
+			if len(entry.Icon) > 0 {
+				icon, err := gg.LoadPNG(fmt.Sprintf("public/icons/%s.png", entry.Icon))
+				if err != nil {
+					return fmt.Errorf("could not load icon: %v", err)
+				}
+				dc.DrawImageAnchored(icon, int(xPos+xLength-t.PaddingSize*2)-54, int(yPos), 1, 0)
+			}
 
 			// draw outline
 			color.TopNCellOutline(dc)
