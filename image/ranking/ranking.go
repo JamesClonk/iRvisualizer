@@ -19,7 +19,8 @@ type DataRow struct {
 
 type Ranking struct {
 	Season       database.Season
-	Data         []DataRow
+	ChampData    []DataRow
+	TTData       []DataRow
 	BorderSize   float64
 	FooterHeight float64
 	ImageHeight  float64
@@ -27,26 +28,29 @@ type Ranking struct {
 	HeaderHeight float64
 	DriverHeight float64
 	PaddingSize  float64
-	Columns      float64
+	ChampColumns float64
+	TTColumns    float64
 	ColumnWidth  float64
 	Rows         float64
 }
 
-func New(season database.Season, data []DataRow) Ranking {
+func New(season database.Season, champdata, ttdata []DataRow) Ranking {
 	ranking := Ranking{
 		Season:       season,
-		Data:         data,
+		ChampData:    champdata,
+		TTData:       ttdata,
 		BorderSize:   float64(2),
 		FooterHeight: float64(14),
 		ImageWidth:   float64(740),
 		HeaderHeight: float64(24),
 		DriverHeight: float64(16),
 		PaddingSize:  float64(3),
-		Columns:      float64(3),
-		Rows:         float64(10),
+		ChampColumns: float64(2),
+		TTColumns:    float64(1),
+		Rows:         float64(15),
 	}
-	ranking.ColumnWidth = ranking.ImageWidth / ranking.Columns
-	ranking.ImageHeight = float64(ranking.Rows)*ranking.DriverHeight + ranking.HeaderHeight + ranking.PaddingSize*2
+	ranking.ColumnWidth = ranking.ImageWidth / (ranking.ChampColumns + ranking.TTColumns)
+	ranking.ImageHeight = float64(ranking.Rows)*ranking.DriverHeight + ranking.DriverHeight + ranking.HeaderHeight + ranking.PaddingSize*3
 	return ranking
 }
 
@@ -117,12 +121,65 @@ func (r *Ranking) Draw(colorScheme string, num, ofTotal int) error {
 	dc.DrawStringAnchored(rankingBestOfTitle, r.ImageWidth/2+r.ImageWidth/3, r.HeaderHeight/2, 0.5, 0.5)
 
 	// adjust to header height
-	yPosColumnStart := r.HeaderHeight + r.PaddingSize
-	// draw the columns & rows
-	var previousValue string
+	yPosColumnHeaderStart := r.HeaderHeight + r.PaddingSize
+
+	// draw the champ column headers
+	xChampLength := r.ColumnWidth*r.ChampColumns - r.PaddingSize*2
+	xPos := r.PaddingSize
+	yPos := yPosColumnHeaderStart
+
+	// add column header
+	dc.DrawRectangle(xPos, yPos, xChampLength, r.DriverHeight)
+	color.TopNHeaderBG(dc)
+	dc.Fill()
+
+	color.TopNHeaderFG(dc)
+	if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 12); err != nil {
+		return fmt.Errorf("could not load font: %v", err)
+	}
+	dc.DrawStringAnchored("Series Championship", xPos+xChampLength/2, yPos+r.DriverHeight/2, 0.5, 0.5)
+
+	// draw outline
+	color.TopNHeaderOutline(dc)
+	dc.MoveTo(xPos, yPos)
+	dc.LineTo(xPos+xChampLength, yPos)
+	dc.LineTo(xPos+xChampLength, yPos+r.DriverHeight)
+	dc.LineTo(xPos, yPos+r.DriverHeight)
+	dc.LineTo(xPos, yPos)
+	dc.SetLineWidth(1)
+	dc.Stroke()
+
+	// draw the TT column headers
+	xTTLength := r.ColumnWidth*r.TTColumns - r.PaddingSize*2
+	xPos = r.PaddingSize + float64(r.ChampColumns)*r.ColumnWidth
+
+	// add column header
+	dc.DrawRectangle(xPos, yPos, xTTLength, r.DriverHeight)
+	color.TopNHeaderBG(dc)
+	dc.Fill()
+
+	color.TopNHeaderFG(dc)
+	if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 12); err != nil {
+		return fmt.Errorf("could not load font: %v", err)
+	}
+	dc.DrawStringAnchored("Time Trial", xPos+xTTLength/2, yPos+r.DriverHeight/2, 0.5, 0.5)
+
+	// draw outline
+	color.TopNHeaderOutline(dc)
+	dc.MoveTo(xPos, yPos)
+	dc.LineTo(xPos+xTTLength, yPos)
+	dc.LineTo(xPos+xTTLength, yPos+r.DriverHeight)
+	dc.LineTo(xPos, yPos+r.DriverHeight)
+	dc.LineTo(xPos, yPos)
+	dc.SetLineWidth(1)
+	dc.Stroke()
+
+	// draw the champ columns & rows
 	xLength := r.ColumnWidth - r.PaddingSize*2
-	for d, data := range r.Data {
-		if float64(d) >= r.Rows*r.Columns {
+	yPosColumnStart := yPosColumnHeaderStart + r.DriverHeight + r.PaddingSize
+	var previousValue string
+	for d, data := range r.ChampData {
+		if float64(d) >= r.Rows*r.ChampColumns {
 			break // abort if too many data rows supplied
 		}
 		column := math.Floor(float64(d) / r.Rows) // calculate current column based on row index / how many rows per column
@@ -157,6 +214,76 @@ func (r *Ranking) Draw(colorScheme string, num, ofTotal int) error {
 					iconColor = "bronze"
 				}
 				icon, err := gg.LoadPNG(fmt.Sprintf("public/icons/trophy_%s.png", iconColor))
+				if err != nil {
+					return fmt.Errorf("could not load icon: %v", err)
+				}
+				dc.DrawImage(icon, int(xPos+r.PaddingSize), int(yPos))
+			} else {
+				dc.DrawStringAnchored(fmt.Sprintf("%d.", int(row+1)+int(r.Rows*(column))), xPos+r.PaddingSize*2, yPos+r.DriverHeight/2, 0, 0.5)
+			}
+		}
+		// name
+		color.TopNCellDriver(dc)
+		if err := dc.LoadFontFace("public/fonts/Roboto-Regular.ttf", 11); err != nil {
+			return fmt.Errorf("could not load font: %v", err)
+		}
+		dc.DrawStringAnchored(data.Driver, xPos+20+r.PaddingSize*2, yPos+r.DriverHeight/2, 0, 0.5)
+		// value
+		color.TopNCellValue(dc)
+		if err := dc.LoadFontFace("public/fonts/roboto-mono_regular.ttf", 12); err != nil {
+			return fmt.Errorf("could not load font: %v", err)
+		}
+		dc.DrawStringAnchored(data.Value, xPos+xLength-r.PaddingSize*2, yPos+r.DriverHeight/2, 1, 0.5)
+
+		// draw outline
+		color.TopNCellOutline(dc)
+		dc.MoveTo(xPos, yPos)
+		dc.LineTo(xPos+xLength, yPos)
+		dc.LineTo(xPos+xLength, yPos+r.DriverHeight)
+		dc.LineTo(xPos, yPos+r.DriverHeight)
+		dc.LineTo(xPos, yPos)
+		dc.SetLineWidth(0.5)
+		dc.Stroke()
+	}
+
+	// draw the TT columns & rows
+	previousValue = ""
+	for d, data := range r.TTData {
+		if float64(d) >= r.Rows*r.TTColumns {
+			break // abort if too many data rows supplied
+		}
+		column := math.Floor(float64(d) / r.Rows) // calculate current column based on row index / how many rows per column
+		row := float64(d) - (column * r.Rows)     // calculate on which row index of current column
+		xPos := r.PaddingSize + (column+r.ChampColumns)*r.ColumnWidth
+		yPos := yPosColumnStart + float64(row)*r.DriverHeight
+
+		// zebra pattern
+		dc.DrawRectangle(xPos, yPos, xLength, r.DriverHeight)
+		if int(row)%2 == 0 {
+			color.TopNCellDarkerBG(dc)
+		} else {
+			color.TopNCellLighterBG(dc)
+		}
+		dc.Fill()
+
+		// position
+		color.TopNCellPosition(dc)
+		if err := dc.LoadFontFace("public/fonts/Roboto-Light.ttf", 11); err != nil {
+			return fmt.Errorf("could not load font: %v", err)
+		}
+		if data.Value != previousValue {
+			previousValue = data.Value
+			// draw trophies
+			if d <= 2 {
+				// load icon
+				iconColor := "gold"
+				if d == 1 {
+					iconColor = "silver"
+				}
+				if d == 2 {
+					iconColor = "bronze"
+				}
+				icon, err := gg.LoadPNG(fmt.Sprintf("public/icons/crown_%s.png", iconColor))
 				if err != nil {
 					return fmt.Errorf("could not load icon: %v", err)
 				}
