@@ -235,7 +235,7 @@ func (t *Top) Draw(colorScheme string, headerless bool) error {
 				if err != nil {
 					return fmt.Errorf("could not load icon: %v", err)
 				}
-				dc.DrawImageAnchored(icon, int(xPos+xLength-t.PaddingSize*2)-54, int(yPos), 1, 0)
+				dc.DrawImageAnchored(icon, int(xPos+xLength-t.PaddingSize*2)-55, int(yPos), 1, 0)
 			}
 
 			// draw outline
