@@ -64,7 +64,7 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 	}
 	// collect champ & TT points for all weeks
 	var weeks int
-	ccPoints := make(map[database.Driver][]int)
+	ccPoints := make(map[database.Driver][]float64)
 	ttPoints := make(map[database.Driver][]int)
 	for week := 0; week < 13; week++ { // allow for leap seasons with 13 official weeks, like 2020S3
 		weeklyCcPoints, err := h.getChampPoints(seasonID, week)
@@ -97,15 +97,15 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 			// figure out points for each driver this week
 			for driver, values := range drivers {
 				resultCount := int(math.Ceil(float64(len(values)) / 4))
-				var result int
+				var result float64
 				for i := 0; i < resultCount; i++ {
-					result += values[i]
+					result += float64(values[i])
 				}
 				// final result / average
 				if _, ok := ccPoints[driver]; !ok {
-					ccPoints[driver] = make([]int, 0)
+					ccPoints[driver] = make([]float64, 0)
 				}
-				ccPoints[driver] = append(ccPoints[driver], int(math.RoundToEven(float64(result)/float64(resultCount))))
+				ccPoints[driver] = append(ccPoints[driver], (result / float64(resultCount)))
 			}
 		}
 
@@ -127,13 +127,13 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 		sort.Slice(values, func(i, j int) bool {
 			return values[i] > values[j]
 		})
-		var total int
+		var total float64
 		for n := 0; n < bestN && n < len(values); n++ {
 			total += values[n]
 		}
 		champData = append(champData, ranking.DataRow{
 			Driver: driver.Name,
-			Value:  fmt.Sprintf("%d", total),
+			Value:  fmt.Sprintf("%d", int(math.Floor(total))),
 		})
 	}
 	// sort by values
