@@ -335,6 +335,7 @@ func (r *Ranking) Draw(colorScheme string, num, ofTotal int) error {
 	lastUpdate := time.Now().Add(-2 * time.Hour).UTC().Format("2006-01-02 15:04:05 -07 MST")
 	fdc.DrawStringAnchored(fmt.Sprintf("Last Update: %s", lastUpdate), float64(bdc.Width())-r.FooterHeight/2, float64(bdc.Height())+r.FooterHeight/2, 1, 0.5)
 
+	color.CreatedBy(fdc)
 	if err := fdc.LoadFontFace("public/fonts/Roboto-Light.ttf", 9); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}

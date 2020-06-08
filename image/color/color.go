@@ -25,4 +25,5 @@ type Colorizer interface {
 	HeatmapTimeslotBG(*gg.Context)
 	HeatmapTimeslotMapping(*gg.Context, int, int, int)
 	LastUpdate(*gg.Context)
+	CreatedBy(*gg.Context)
 }

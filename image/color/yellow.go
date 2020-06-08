@@ -96,3 +96,6 @@ func (c *yellow) HeatmapTimeslotMapping(dc *gg.Context, min, max, value int) {
 func (c *yellow) LastUpdate(dc *gg.Context) {
 	dc.SetRGB255(0, 0, 0) // black
 }
+func (c *yellow) CreatedBy(dc *gg.Context) {
+	dc.SetRGB255(133, 133, 133) // gray 1
+}
