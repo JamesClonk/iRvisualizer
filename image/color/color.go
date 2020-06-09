@@ -23,6 +23,7 @@ type Colorizer interface {
 	HeatmapHeaderLighterBG(*gg.Context)
 	HeatmapTimeslotFG(*gg.Context)
 	HeatmapTimeslotBG(*gg.Context)
+	HeatmapTimeslotZero(*gg.Context)
 	HeatmapTimeslotMapping(*gg.Context, int, int, int)
 	LastUpdate(*gg.Context)
 	CreatedBy(*gg.Context)
