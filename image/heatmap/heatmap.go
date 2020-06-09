@@ -274,15 +274,19 @@ func (h *Heatmap) Draw(colorScheme string, minSOF, maxSOF int, drawEmptySlots bo
 }
 
 func textWithBorder(dc *gg.Context, color scheme.Colorizer, text string, X, Y float64) {
-	color.Border(dc)
-	n := 1
-	for dy := -n; dy <= n; dy++ {
-		for dx := -n; dx <= n; dx++ {
-			x := X + float64(dx)
-			y := Y + float64(dy)
-			dc.DrawStringAnchored(text, x, y, 0.5, 0.5)
+	if text != "0" {
+		color.Border(dc)
+		n := 1
+		for dy := -n; dy <= n; dy++ {
+			for dx := -n; dx <= n; dx++ {
+				x := X + float64(dx)
+				y := Y + float64(dy)
+				dc.DrawStringAnchored(text, x, y, 0.5, 0.5)
+			}
 		}
+		color.HeatmapTimeslotBG(dc)
+	} else {
+		color.HeatmapTimeslotZero(dc)
 	}
-	color.HeatmapTimeslotBG(dc)
 	dc.DrawStringAnchored(text, X, Y, 0.5, 0.5)
 }

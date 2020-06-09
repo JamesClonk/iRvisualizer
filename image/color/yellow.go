@@ -90,6 +90,9 @@ func (c *yellow) HeatmapTimeslotFG(dc *gg.Context) {
 func (c *yellow) HeatmapTimeslotBG(dc *gg.Context) {
 	dc.SetRGB255(255, 255, 255) // white
 }
+func (c *yellow) HeatmapTimeslotZero(dc *gg.Context) {
+	dc.SetRGB255(133, 133, 133) // gray 1
+}
 func (c *yellow) HeatmapTimeslotMapping(dc *gg.Context, min, max, value int) {
 	dc.SetRGBA255(255-image.MapValueIntoRange(15, 0, min, max, value), 190-image.MapValueIntoRange(0, 50, min, max, value), 0, image.MapValueIntoRange(5, 255, min, max, value)) // sof color
 }
