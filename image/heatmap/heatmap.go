@@ -228,15 +228,15 @@ func (h *Heatmap) Draw(colorScheme string, minSOF, maxSOF int, drawEmptySlots bo
 					dc.DrawLine(slotX+eventWidth/3, slotY+eventHeight/2, slotX+eventWidth/1.5, slotY+eventHeight/2)
 					dc.Stroke()
 
-					color.HeatmapTimeslotFG(dc)
 					if err := dc.LoadFontFace("public/fonts/roboto-mono_regular.ttf", 15); err != nil {
 						return fmt.Errorf("could not load font: %v", err)
 					}
-					dc.DrawStringAnchored(fmt.Sprintf("%d", sof), slotX+eventWidth/2, slotY+eventHeight/3-1, 0.5, 0.5)
+					textWithBorder(dc, color, fmt.Sprintf("%d", sof), slotX+eventWidth/2, slotY+eventHeight/3-1)
+
 					if err := dc.LoadFontFace("public/fonts/roboto-mono_light.ttf", 13); err != nil {
 						return fmt.Errorf("could not load font: %v", err)
 					}
-					dc.DrawStringAnchored(fmt.Sprintf("%d", result.SizeOfField), slotX+eventWidth/2, slotY+eventHeight/1.5+1, 0.5, 0.5)
+					textWithBorder(dc, color, fmt.Sprintf("%d", result.SizeOfField), slotX+eventWidth/2, slotY+eventHeight/1.5+1)
 				}
 			}
 		}
@@ -271,4 +271,18 @@ func (h *Heatmap) Draw(colorScheme string, minSOF, maxSOF int, drawEmptySlots bo
 		return err
 	}
 	return fdc.SavePNG(h.Filename()) // finally write to file
+}
+
+func textWithBorder(dc *gg.Context, color scheme.Colorizer, text string, X, Y float64) {
+	color.Border(dc)
+	n := 1
+	for dy := -n; dy <= n; dy++ {
+		for dx := -n; dx <= n; dx++ {
+			x := X + float64(dx)
+			y := Y + float64(dy)
+			dc.DrawStringAnchored(text, x, y, 0.5, 0.5)
+		}
+	}
+	color.HeatmapTimeslotBG(dc)
+	dc.DrawStringAnchored(text, X, Y, 0.5, 0.5)
 }

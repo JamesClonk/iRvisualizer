@@ -50,7 +50,7 @@ func (h *Handler) weeklyHeatmap(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// was there a maxSOF given?
-	maxSOF := 2500
+	maxSOF := 2700
 	value = req.URL.Query().Get("maxSOF")
 	if len(value) > 0 {
 		maxSOF, err = strconv.Atoi(value)
@@ -145,7 +145,7 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// was there a maxSOF given?
-	maxSOF := 2500
+	maxSOF := 2700
 	value = req.URL.Query().Get("maxSOF")
 	if len(value) > 0 {
 		maxSOF, err = strconv.Atoi(value)
