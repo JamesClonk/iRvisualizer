@@ -18,11 +18,14 @@ RUN useradd -u 2000 -mU -s /bin/bash vcap && \
   mkdir /home/vcap/app && \
   chown vcap:vcap /home/vcap/app && \
   ln -s /home/vcap/app /app
-USER vcap
 
 WORKDIR /app
 COPY irvisualizer ./
 COPY public ./public/
+RUN chown vcap:vcap -R /home/vcap/app && \
+  chmod 750 -R /home/vcap/app/public
+
+USER vcap
 
 EXPOSE 8080
 
