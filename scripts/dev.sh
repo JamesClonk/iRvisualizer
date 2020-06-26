@@ -22,4 +22,4 @@ rm -f gin-bin || true
 
 rm -f iRvisualizer || true
 GOARCH=amd64 GOOS=linux go build -i -o iRvisualizer
-./iRvisualizer
+./irvisualizer
