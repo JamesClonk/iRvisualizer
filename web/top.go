@@ -40,6 +40,9 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 		week = 1
 	}
 
+	// was there a colorScheme given?
+	colorScheme := req.URL.Query().Get("colorScheme")
+
 	// was there a topN given?
 	topN := 20
 	value := req.URL.Query().Get("topN")
@@ -78,7 +81,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 
 	// do we need to update the image file?
 	// check if file already exists and is up-to-date, serve it immediately if yes
-	if !forceOverwrite && top.IsAvailable(image, seasonID, week) {
+	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week) {
 		http.ServeFile(rw, req, top.Filename(image, seasonID, week))
 		return
 	}
@@ -86,7 +89,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 	topMutex.Lock()
 	defer topMutex.Unlock()
 	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
-	if !forceOverwrite && top.IsAvailable(image, seasonID, week) {
+	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week) {
 		http.ServeFile(rw, req, top.Filename(image, seasonID, week))
 		return
 	}
@@ -167,8 +170,8 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 	}
 	data = append(data, podiums)
 
-	hm := top.New(image, season, raceweek, track, data)
-	if err := hm.Draw(req.URL.Query().Get("colorScheme"), headerless); err != nil {
+	hm := top.New(colorScheme, image, season, raceweek, track, data)
+	if err := hm.Draw(headerless); err != nil {
 		log.Errorf("could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
 		return
@@ -200,6 +203,9 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	if week < 1 || week > 13 {
 		week = 1
 	}
+
+	// was there a colorScheme given?
+	colorScheme := req.URL.Query().Get("colorScheme")
 
 	// was there a topN given?
 	topN := 20
@@ -239,7 +245,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 
 	// do we need to update the image file?
 	// check if file already exists and is up-to-date, serve it immediately if yes
-	if !forceOverwrite && top.IsAvailable(image, seasonID, week) {
+	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week) {
 		http.ServeFile(rw, req, top.Filename(image, seasonID, week))
 		return
 	}
@@ -247,7 +253,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	topMutex.Lock()
 	defer topMutex.Unlock()
 	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
-	if !forceOverwrite && top.IsAvailable(image, seasonID, week) {
+	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week) {
 		http.ServeFile(rw, req, top.Filename(image, seasonID, week))
 		return
 	}
@@ -332,8 +338,8 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	}
 	data = append(data, races)
 
-	hm := top.New(image, season, raceweek, track, data)
-	if err := hm.Draw(req.URL.Query().Get("colorScheme"), headerless); err != nil {
+	hm := top.New(colorScheme, image, season, raceweek, track, data)
+	if err := hm.Draw(headerless); err != nil {
 		log.Errorf("could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
 		return
@@ -365,6 +371,9 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	if week < 1 || week > 13 {
 		week = 1
 	}
+
+	// was there a colorScheme given?
+	colorScheme := req.URL.Query().Get("colorScheme")
 
 	// was there a topN given?
 	topN := 20
@@ -404,7 +413,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 
 	// do we need to update the image file?
 	// check if file already exists and is up-to-date, serve it immediately if yes
-	if !forceOverwrite && top.IsAvailable(image, seasonID, week) {
+	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week) {
 		http.ServeFile(rw, req, top.Filename(image, seasonID, week))
 		return
 	}
@@ -412,7 +421,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	topMutex.Lock()
 	defer topMutex.Unlock()
 	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
-	if !forceOverwrite && top.IsAvailable(image, seasonID, week) {
+	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week) {
 		http.ServeFile(rw, req, top.Filename(image, seasonID, week))
 		return
 	}
@@ -520,8 +529,8 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	}
 	data = append(data, laps)
 
-	hm := top.New(image, season, raceweek, track, data)
-	if err := hm.Draw(req.URL.Query().Get("colorScheme"), headerless); err != nil {
+	hm := top.New(colorScheme, image, season, raceweek, track, data)
+	if err := hm.Draw(headerless); err != nil {
 		log.Errorf("could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
 		return
@@ -553,6 +562,9 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	if week < 1 || week > 13 {
 		week = 1
 	}
+
+	// was there a colorScheme given?
+	colorScheme := req.URL.Query().Get("colorScheme")
 
 	// was there a topN given?
 	topN := 20
@@ -592,7 +604,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 
 	// do we need to update the image file?
 	// check if file already exists and is up-to-date, serve it immediately if yes
-	if !forceOverwrite && top.IsAvailable(image, seasonID, week) {
+	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week) {
 		http.ServeFile(rw, req, top.Filename(image, seasonID, week))
 		return
 	}
@@ -600,7 +612,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	topMutex.Lock()
 	defer topMutex.Unlock()
 	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
-	if !forceOverwrite && top.IsAvailable(image, seasonID, week) {
+	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week) {
 		http.ServeFile(rw, req, top.Filename(image, seasonID, week))
 		return
 	}
@@ -696,8 +708,8 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	}
 	data = append(data, inc)
 
-	hm := top.New(image, season, raceweek, track, data)
-	if err := hm.Draw(req.URL.Query().Get("colorScheme"), headerless); err != nil {
+	hm := top.New(colorScheme, image, season, raceweek, track, data)
+	if err := hm.Draw(headerless); err != nil {
 		log.Errorf("could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
 		return

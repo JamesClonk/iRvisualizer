@@ -14,5 +14,5 @@ source .env
 source ~/.config/ircollector_db.conf || true
 
 # =============================================================================================
-echo "running iRvisualizer ..."
+echo "running irvisualizer ..."
 ./irvisualizer

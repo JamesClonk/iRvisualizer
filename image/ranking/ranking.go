@@ -18,6 +18,7 @@ type DataRow struct {
 }
 
 type Ranking struct {
+	ColorScheme  string
 	Season       database.Season
 	ChampData    []DataRow
 	TTData       []DataRow
@@ -34,8 +35,9 @@ type Ranking struct {
 	Rows         float64
 }
 
-func New(season database.Season, champdata, ttdata []DataRow) Ranking {
+func New(colorScheme string, season database.Season, champdata, ttdata []DataRow) Ranking {
 	ranking := Ranking{
+		ColorScheme:  colorScheme,
 		Season:       season,
 		ChampData:    champdata,
 		TTData:       ttdata,
@@ -54,8 +56,8 @@ func New(season database.Season, champdata, ttdata []DataRow) Ranking {
 	return ranking
 }
 
-func IsAvailable(seasonID int) bool {
-	return image.IsAvailable("ranking", seasonID, -1)
+func IsAvailable(colorScheme string, seasonID int) bool {
+	return image.IsAvailable(colorScheme, "ranking", seasonID, -1)
 }
 
 func Filename(seasonID int) string {
@@ -66,7 +68,7 @@ func (r *Ranking) Filename() string {
 	return Filename(r.Season.SeasonID)
 }
 
-func (r *Ranking) Draw(colorScheme string, num, ofTotal int) error {
+func (r *Ranking) Draw(num, ofTotal int) error {
 	// raking title
 	rankingTitle := fmt.Sprintf("%s - Standings", r.Season.SeasonName)
 	if len(r.Season.SeasonName) > 64 {
@@ -81,7 +83,7 @@ func (r *Ranking) Draw(colorScheme string, num, ofTotal int) error {
 
 	// colorizer
 	var color scheme.Colorizer
-	switch colorScheme {
+	switch r.ColorScheme {
 	case "yellow":
 		color = scheme.NewYellowScheme()
 	case "red":

@@ -13,6 +13,7 @@ import (
 )
 
 type Heatmap struct {
+	ColorScheme    string
 	Season         database.Season
 	Week           database.RaceWeek
 	Track          database.Track
@@ -27,8 +28,9 @@ type Heatmap struct {
 	Days           int
 }
 
-func New(season database.Season, week database.RaceWeek, track database.Track, results []database.RaceWeekResult) Heatmap {
+func New(colorScheme string, season database.Season, week database.RaceWeek, track database.Track, results []database.RaceWeekResult) Heatmap {
 	return Heatmap{
+		ColorScheme:    colorScheme,
 		Season:         season,
 		Week:           week,
 		Track:          track,
@@ -44,8 +46,8 @@ func New(season database.Season, week database.RaceWeek, track database.Track, r
 	}
 }
 
-func IsAvailable(seasonID, week int) bool {
-	return image.IsAvailable("heatmap", seasonID, week)
+func IsAvailable(colorScheme string, seasonID, week int) bool {
+	return image.IsAvailable(colorScheme, "heatmap", seasonID, week)
 }
 
 func Filename(seasonID, week int) string {
@@ -56,7 +58,7 @@ func (h *Heatmap) Filename() string {
 	return Filename(h.Season.SeasonID, h.Week.RaceWeek+1)
 }
 
-func (h *Heatmap) Draw(colorScheme string, minSOF, maxSOF int, drawEmptySlots bool) error {
+func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 	// heatmap titles, season + track
 	heatmapTitle := fmt.Sprintf("%s - Week %d", h.Season.SeasonName, h.Week.RaceWeek+1)
 	heatmap2ndTitle := h.Track.Name
@@ -101,7 +103,7 @@ func (h *Heatmap) Draw(colorScheme string, minSOF, maxSOF int, drawEmptySlots bo
 
 	// colorizer
 	var color scheme.Colorizer
-	switch colorScheme {
+	switch h.ColorScheme {
 	case "yellow":
 		color = scheme.NewYellowScheme()
 	case "red":

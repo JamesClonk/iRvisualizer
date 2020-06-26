@@ -16,6 +16,7 @@ type Metadata struct {
 	Quarter       int
 	Week          int
 	Track         string
+	ColorScheme   string    `json:"ColorScheme"`
 	StartDate     time.Time `json:"StartDate"`
 	LastUpdated   time.Time `json:"LastUpdated"`
 }
@@ -40,7 +41,7 @@ func GetMetadata(filename string) (meta Metadata) {
 	return meta
 }
 
-func WriteMetadata(image string, seasonID, week int, season string, year, quarter int, track string, startDate time.Time) error {
+func WriteMetadata(colorScheme, image string, seasonID, week int, season string, year, quarter int, track string, startDate time.Time) error {
 	filename := MetadataFilename(image, seasonID, week)
 	log.Debugf("write metadata to [%s]", filename)
 
@@ -51,6 +52,7 @@ func WriteMetadata(image string, seasonID, week int, season string, year, quarte
 		Quarter:       quarter,
 		Week:          week,
 		Track:         track,
+		ColorScheme:   colorScheme,
 		StartDate:     startDate,
 		LastUpdated:   time.Now().UTC(),
 	}

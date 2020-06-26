@@ -14,7 +14,7 @@ func (r *Ranking) ReadMetadata() (meta image.Metadata) {
 
 func (r *Ranking) WriteMetadata() error {
 	// image string, seasonID, week int, season string, year, quarter int, track string, startDate time.Time
-	return image.WriteMetadata("ranking",
+	return image.WriteMetadata(r.ColorScheme, "ranking",
 		r.Season.SeasonID, -1,
 		r.Season.SeasonName, r.Season.Year, r.Season.Quarter,
 		"ranking", r.Season.StartDate,

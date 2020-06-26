@@ -8,12 +8,16 @@ import (
 	"github.com/JamesClonk/iRvisualizer/util"
 )
 
-func IsAvailable(image string, seasonID, week int) bool {
+func IsAvailable(colorScheme, image string, seasonID, week int) bool {
 	// check if file already exists
 	imageFilename := ImageFilename(image, seasonID, week)
 	metaFilename := MetadataFilename(image, seasonID, week)
 	if util.FileExists(metaFilename) && util.FileExists(imageFilename) {
 		metadata := GetMetadata(metaFilename)
+		if metadata.ColorScheme != colorScheme {
+			return false // cached image has a different colorscheme, needs to be regenerated
+		}
+
 		if week <= 0 {
 			metadata.Week = 12 // set to 12 if we want to calculate a seasonal image file from last season ago
 		}

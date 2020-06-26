@@ -37,6 +37,9 @@ func (h *Handler) weeklyHeatmap(rw http.ResponseWriter, req *http.Request) {
 		week = 1
 	}
 
+	// was there a colorScheme given?
+	colorScheme := req.URL.Query().Get("colorScheme")
+
 	// was there a minSOF given?
 	minSOF := 1000
 	value := req.URL.Query().Get("minSOF")
@@ -75,7 +78,7 @@ func (h *Handler) weeklyHeatmap(rw http.ResponseWriter, req *http.Request) {
 
 	// do we need to update the image file?
 	// check if file already exists and is up-to-date, serve it immediately if yes
-	if !forceOverwrite && heatmap.IsAvailable(seasonID, week) {
+	if !forceOverwrite && heatmap.IsAvailable(colorScheme, seasonID, week) {
 		http.ServeFile(rw, req, heatmap.Filename(seasonID, week))
 		return
 	}
@@ -83,7 +86,7 @@ func (h *Handler) weeklyHeatmap(rw http.ResponseWriter, req *http.Request) {
 	heatmapMutex.Lock()
 	defer heatmapMutex.Unlock()
 	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
-	if !forceOverwrite && heatmap.IsAvailable(seasonID, week) {
+	if !forceOverwrite && heatmap.IsAvailable(colorScheme, seasonID, week) {
 		http.ServeFile(rw, req, heatmap.Filename(seasonID, week))
 		return
 	}
@@ -109,8 +112,8 @@ func (h *Handler) weeklyHeatmap(rw http.ResponseWriter, req *http.Request) {
 		h.failure(rw, req, err)
 		return
 	}
-	hm := heatmap.New(season, raceweek, track, results)
-	if err := hm.Draw(req.URL.Query().Get("colorScheme"), minSOF, maxSOF, true); err != nil {
+	hm := heatmap.New(colorScheme, season, raceweek, track, results)
+	if err := hm.Draw(minSOF, maxSOF, true); err != nil {
 		log.Errorf("could not create heatmap: %v", err)
 		h.failure(rw, req, err)
 		return
@@ -131,6 +134,9 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 	if seasonID < 2000 || seasonID > 9999 {
 		seasonID = 2377
 	}
+
+	// was there a colorScheme given?
+	colorScheme := req.URL.Query().Get("colorScheme")
 
 	// was there a minSOF given?
 	minSOF := 900
@@ -170,7 +176,7 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 
 	// do we need to update the image file?
 	// check if file already exists and is up-to-date, serve it immediately if yes
-	if !forceOverwrite && heatmap.IsAvailable(seasonID, -1) {
+	if !forceOverwrite && heatmap.IsAvailable(colorScheme, seasonID, -1) {
 		http.ServeFile(rw, req, heatmap.Filename(seasonID, -1))
 		return
 	}
@@ -178,7 +184,7 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 	heatmapMutex.Lock()
 	defer heatmapMutex.Unlock()
 	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
-	if !forceOverwrite && heatmap.IsAvailable(seasonID, -1) {
+	if !forceOverwrite && heatmap.IsAvailable(colorScheme, seasonID, -1) {
 		http.ServeFile(rw, req, heatmap.Filename(seasonID, -1))
 		return
 	}
@@ -288,8 +294,8 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 		return finalResults[i].StartTime.Before(finalResults[j].StartTime)
 	})
 
-	hm := heatmap.New(season, database.RaceWeek{RaceWeek: -1, LastUpdate: time.Now()}, database.Track{}, finalResults)
-	if err := hm.Draw(req.URL.Query().Get("colorScheme"), minSOF, maxSOF, false); err != nil {
+	hm := heatmap.New(colorScheme, season, database.RaceWeek{RaceWeek: -1, LastUpdate: time.Now()}, database.Track{}, finalResults)
+	if err := hm.Draw(minSOF, maxSOF, false); err != nil {
 		log.Errorf("could not create seasonal heatmap: %v", err)
 		h.failure(rw, req, err)
 		return

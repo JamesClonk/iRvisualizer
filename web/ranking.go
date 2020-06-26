@@ -28,6 +28,9 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 		seasonID = 2377
 	}
 
+	// was there a colorScheme given?
+	colorScheme := req.URL.Query().Get("colorScheme")
+
 	// was there a forceOverwrite given?
 	forceOverwrite := false
 	value := req.URL.Query().Get("forceOverwrite")
@@ -42,7 +45,7 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 
 	// do we need to update the image file?
 	// check if file already exists and is up-to-date, serve it immediately if yes
-	if !forceOverwrite && ranking.IsAvailable(seasonID) {
+	if !forceOverwrite && ranking.IsAvailable(colorScheme, seasonID) {
 		http.ServeFile(rw, req, ranking.Filename(seasonID))
 		return
 	}
@@ -50,7 +53,7 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 	rankingMutex.Lock()
 	defer rankingMutex.Unlock()
 	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
-	if !forceOverwrite && ranking.IsAvailable(seasonID) {
+	if !forceOverwrite && ranking.IsAvailable(colorScheme, seasonID) {
 		http.ServeFile(rw, req, ranking.Filename(seasonID))
 		return
 	}
@@ -169,8 +172,8 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 		return a > b
 	})
 
-	r := ranking.New(season, champData, ttData)
-	if err := r.Draw(req.URL.Query().Get("colorScheme"), bestN, weeks); err != nil {
+	r := ranking.New(colorScheme, season, champData, ttData)
+	if err := r.Draw(bestN, weeks); err != nil {
 		log.Errorf("could not create season ranking: %v", err)
 		h.failure(rw, req, err)
 		return

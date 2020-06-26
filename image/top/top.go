@@ -23,6 +23,7 @@ type DataSetRow struct {
 }
 
 type Top struct {
+	ColorScheme  string
 	Name         string
 	Season       database.Season
 	Week         database.RaceWeek
@@ -39,8 +40,9 @@ type Top struct {
 	ColumnWidth  float64
 }
 
-func New(name string, season database.Season, week database.RaceWeek, track database.Track, data []DataSet) Top {
+func New(colorScheme, name string, season database.Season, week database.RaceWeek, track database.Track, data []DataSet) Top {
 	top := Top{
+		ColorScheme:  colorScheme,
 		Name:         name,
 		Season:       season,
 		Week:         week,
@@ -66,8 +68,8 @@ func New(name string, season database.Season, week database.RaceWeek, track data
 	return top
 }
 
-func IsAvailable(name string, seasonID, week int) bool {
-	return image.IsAvailable("top/"+name, seasonID, week)
+func IsAvailable(colorScheme string, name string, seasonID, week int) bool {
+	return image.IsAvailable(colorScheme, "top/"+name, seasonID, week)
 }
 
 func Filename(name string, seasonID, week int) string {
@@ -78,7 +80,7 @@ func (t *Top) Filename() string {
 	return Filename(t.Name, t.Season.SeasonID, t.Week.RaceWeek+1)
 }
 
-func (t *Top) Draw(colorScheme string, headerless bool) error {
+func (t *Top) Draw(headerless bool) error {
 	// top titles, season + track
 	topTitle := fmt.Sprintf("%s - Statistics", t.Season.SeasonName)
 	if len(t.Season.SeasonName) > 38 {
@@ -93,7 +95,7 @@ func (t *Top) Draw(colorScheme string, headerless bool) error {
 
 	// colorizer
 	var color scheme.Colorizer
-	switch colorScheme {
+	switch t.ColorScheme {
 	case "yellow":
 		color = scheme.NewYellowScheme()
 	case "red":

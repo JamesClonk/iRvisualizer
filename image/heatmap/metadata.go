@@ -14,7 +14,7 @@ func (h *Heatmap) ReadMetadata() (meta image.Metadata) {
 
 func (h *Heatmap) WriteMetadata() error {
 	// image string, seasonID, week int, season string, year, quarter int, track string, startDate time.Time
-	return image.WriteMetadata("heatmap",
+	return image.WriteMetadata(h.ColorScheme, "heatmap",
 		h.Season.SeasonID, h.Week.RaceWeek+1,
 		h.Season.SeasonName, h.Season.Year, h.Season.Quarter,
 		h.Track.Name, h.Season.StartDate,
