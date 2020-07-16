@@ -19,6 +19,7 @@ func NewSimuCubeScheme() Colorizer {
 	dc.SetRGB255(255, 255, 255) // white
 	dc.SetRGB255(133, 133, 133) // gray 1
 	dc.SetRGB255(155, 155, 155) // gray 2
+	dc.SetRGB255(166, 166, 166) // gray 2.5
 	dc.SetRGB255(177, 177, 177) // gray 3
 	dc.SetRGB255(217, 217, 217) // light gray 1
 	dc.SetRGB255(225, 225, 225) // light gray 1.5
@@ -101,5 +102,5 @@ func (c *sc) LastUpdate(dc *gg.Context) {
 	dc.SetRGB255(0, 0, 0) // black
 }
 func (c *sc) CreatedBy(dc *gg.Context) {
-	dc.SetRGB255(133, 133, 133) // gray 1
+	dc.SetRGB255(166, 166, 166) // gray 2.5
 }
