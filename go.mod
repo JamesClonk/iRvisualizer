@@ -1,6 +1,6 @@
 module github.com/JamesClonk/iRvisualizer
 
-go 1.13
+go 1.14
 
 require (
 	github.com/JamesClonk/iRcollector v0.0.0-20200626183531-95854aa63ab6
