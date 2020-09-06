@@ -10,6 +10,15 @@ import (
 	scheme "github.com/JamesClonk/iRvisualizer/image/color"
 	"github.com/JamesClonk/iRvisualizer/log"
 	"github.com/fogleman/gg"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+)
+
+var (
+	rankingDraws = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "irvisualizer_rankings_drawn_total",
+		Help: "Total rankings drawn by iRvisualizer.",
+	})
 )
 
 type DataRow struct {
@@ -69,6 +78,8 @@ func (r *Ranking) Filename() string {
 }
 
 func (r *Ranking) Draw(num, ofTotal int) error {
+	rankingDraws.Inc()
+
 	// raking title
 	rankingTitle := fmt.Sprintf("%s - Standings", r.Season.SeasonName)
 	if len(r.Season.SeasonName) > 64 {

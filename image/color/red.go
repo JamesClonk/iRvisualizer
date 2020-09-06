@@ -101,5 +101,5 @@ func (c *red) LastUpdate(dc *gg.Context) {
 	dc.SetRGB255(0, 0, 0) // black
 }
 func (c *red) CreatedBy(dc *gg.Context) {
-	dc.SetRGB255(166, 166, 166) // gray 2.5
+	dc.SetRGB255(155, 155, 155) // gray 2
 }
