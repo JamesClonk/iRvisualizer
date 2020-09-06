@@ -9,7 +9,16 @@ import (
 	scheme "github.com/JamesClonk/iRvisualizer/image/color"
 	"github.com/JamesClonk/iRvisualizer/log"
 	"github.com/fogleman/gg"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/robfig/cron"
+)
+
+var (
+	heatmapDraws = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "irvisualizer_heatmaps_drawn_total",
+		Help: "Total heatmaps drawn by iRvisualizer.",
+	})
 )
 
 type Heatmap struct {
@@ -59,6 +68,8 @@ func (h *Heatmap) Filename() string {
 }
 
 func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
+	heatmapDraws.Inc()
+
 	// heatmap titles, season + track
 	heatmapTitle := fmt.Sprintf("%s - Week %d", h.Season.SeasonName, h.Week.RaceWeek+1)
 	heatmap2ndTitle := h.Track.Name

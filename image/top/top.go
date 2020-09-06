@@ -8,6 +8,15 @@ import (
 	scheme "github.com/JamesClonk/iRvisualizer/image/color"
 	"github.com/JamesClonk/iRvisualizer/log"
 	"github.com/fogleman/gg"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+)
+
+var (
+	topNDraws = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "irvisualizer_topn_drawn_total",
+		Help: "Total topN drawn by iRvisualizer.",
+	})
 )
 
 type DataSet struct {
@@ -81,6 +90,8 @@ func (t *Top) Filename() string {
 }
 
 func (t *Top) Draw(headerless bool) error {
+	topNDraws.Inc()
+
 	// top titles, season + track
 	topTitle := fmt.Sprintf("%s - Statistics", t.Season.SeasonName)
 	if len(t.Season.SeasonName) > 38 {

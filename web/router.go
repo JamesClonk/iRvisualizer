@@ -9,6 +9,16 @@ import (
 
 	"github.com/JamesClonk/iRcollector/database"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+)
+
+var (
+	visualizerErrors = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "irvisualizer_errors_total",
+		Help: "Total errors from iRvisualizer, should be a rate of 0.",
+	})
 )
 
 type Handler struct {
@@ -36,6 +46,7 @@ func router(h *Handler) *mux.Router {
 	// mux router
 	r := mux.NewRouter()
 	r.PathPrefix("/health").HandlerFunc(h.health)
+	r.PathPrefix("/metrics").Handler(promhttp.Handler())
 
 	// fake index html
 	r.HandleFunc("/", h.index).Methods("GET")
@@ -67,13 +78,14 @@ func router(h *Handler) *mux.Router {
 func (h *Handler) failure(rw http.ResponseWriter, req *http.Request, err error) {
 	rw.WriteHeader(500)
 	rw.Header().Set("Content-Type", "application/json")
-	rw.Write([]byte(fmt.Sprintf(`{ "error": "%v" }`, err.Error())))
+	_, _ = rw.Write([]byte(fmt.Sprintf(`{ "error": "%v" }`, err.Error())))
+	visualizerErrors.Inc()
 }
 
 func (h *Handler) health(rw http.ResponseWriter, req *http.Request) {
 	rw.WriteHeader(200)
 	rw.Header().Set("Content-Type", "application/json")
-	rw.Write([]byte(`{ "status": "ok" }`))
+	_, _ = rw.Write([]byte(`{ "status": "ok" }`))
 }
 
 func (h *Handler) verifyBasicAuth(rw http.ResponseWriter, req *http.Request) bool {
@@ -81,7 +93,7 @@ func (h *Handler) verifyBasicAuth(rw http.ResponseWriter, req *http.Request) boo
 	if !ok || subtle.ConstantTimeCompare([]byte(user), []byte(h.Username)) != 1 || subtle.ConstantTimeCompare([]byte(pw), []byte(h.Password)) != 1 {
 		rw.Header().Set("WWW-Authenticate", `Basic realm="iRcollector"`)
 		rw.WriteHeader(401)
-		rw.Write([]byte("Unauthorized"))
+		_, _ = rw.Write([]byte("Unauthorized"))
 		return false
 	}
 	return true
