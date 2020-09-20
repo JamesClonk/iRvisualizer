@@ -100,21 +100,19 @@ func (h *Handler) weeklyHeatmap(rw http.ResponseWriter, req *http.Request) {
 	}
 	raceweek, track, err := h.getRaceWeek(seasonID, week-1)
 	if err != nil {
-		log.Errorf("could not get raceweek: %v", err)
-		//h.failure(rw, req, err)
-		//return
+		log.Debugf("heatmap: could not get raceweek for season[%d], week[%d]: %v", seasonID, week-1, err)
 		raceweek.RaceWeek = week - 1
 		track.Name = "starting soon..."
 	}
 	results, err := h.getRaceWeekResults(seasonID, week-1)
 	if err != nil {
-		log.Errorf("could not get raceweek results: %v", err)
+		log.Errorf("heatmap: could not get raceweek for season[%d], week[%d]: %v", seasonID, week-1, err)
 		h.failure(rw, req, err)
 		return
 	}
 	hm := heatmap.New(colorScheme, season, raceweek, track, results)
 	if err := hm.Draw(minSOF, maxSOF, true); err != nil {
-		log.Errorf("could not create heatmap: %v", err)
+		log.Errorf("could not create heatmap season[%d], week[%d]: %v", seasonID, week-1, err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -212,9 +210,7 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 	for week := 0; week < 12; week++ {
 		rs, err := h.getRaceWeekResults(seasonID, week)
 		if err != nil {
-			log.Warnf("could not get raceweek results: %v", err)
-			// h.failure(rw, req, err)
-			// return
+			log.Debugf("seasonal heatmap: could not get raceweek results for season[%d], week[%d]: %v", seasonID, week, err)
 		}
 		if len(rs) > 0 {
 			weeksFound++

@@ -103,16 +103,14 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 	}
 	raceweek, track, err := h.getRaceWeek(seasonID, week-1)
 	if err != nil {
-		log.Errorf("could not get raceweek: %v", err)
-		//h.failure(rw, req, err)
-		//return
+		log.Debugf("top scores: could not get raceweek for season[%d], week[%d]: %v", seasonID, week-1, err)
 		raceweek.RaceWeek = week - 1
 		raceweek.LastUpdate = time.Now()
 		track.Name = "starting soon..."
 	}
 	summaries, err := h.getRaceWeekSummaries(seasonID, week-1)
 	if err != nil {
-		log.Errorf("could not get raceweek summaries: %v", err)
+		log.Errorf("top scores: could not get raceweek summaries for season[%d], week[%d]: %v", seasonID, week-1, err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -267,16 +265,14 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	}
 	raceweek, track, err := h.getRaceWeek(seasonID, week-1)
 	if err != nil {
-		log.Errorf("could not get raceweek: %v", err)
-		//h.failure(rw, req, err)
-		//return
+		log.Debugf("top racers: could not get raceweek for season[%d], week[%d]: %v", seasonID, week-1, err)
 		raceweek.RaceWeek = week - 1
 		raceweek.LastUpdate = time.Now()
 		track.Name = "starting soon..."
 	}
 	summaries, err := h.getRaceWeekSummaries(seasonID, week-1)
 	if err != nil {
-		log.Errorf("could not get raceweek summaries: %v", err)
+		log.Errorf("top racers: could not get raceweek summaries for season[%d], week[%d]: %v", seasonID, week-1, err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -435,16 +431,14 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	}
 	raceweek, track, err := h.getRaceWeek(seasonID, week-1)
 	if err != nil {
-		log.Errorf("could not get raceweek: %v", err)
-		//h.failure(rw, req, err)
-		//return
+		log.Debugf("top laps: could not get raceweek for season[%d], week[%d]: %v", seasonID, week-1, err)
 		raceweek.RaceWeek = week - 1
 		raceweek.LastUpdate = time.Now()
 		track.Name = "starting soon..."
 	}
 	summaries, err := h.getRaceWeekSummaries(seasonID, week-1)
 	if err != nil {
-		log.Errorf("could not get raceweek summaries: %v", err)
+		log.Errorf("top laps: could not get raceweek summaries for season[%d], week[%d]: %v", seasonID, week-1, err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -626,16 +620,14 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	}
 	raceweek, track, err := h.getRaceWeek(seasonID, week-1)
 	if err != nil {
-		log.Errorf("could not get raceweek: %v", err)
-		//h.failure(rw, req, err)
-		//return
+		log.Debugf("top safety: could not get raceweek for season[%d], week[%d]: %v", seasonID, week-1, err)
 		raceweek.RaceWeek = week - 1
 		raceweek.LastUpdate = time.Now()
 		track.Name = "starting soon..."
 	}
 	summaries, err := h.getRaceWeekSummaries(seasonID, week-1)
 	if err != nil {
-		log.Errorf("could not get raceweek summaries: %v", err)
+		log.Errorf("top safety: could not get raceweek summaries for season[%d], week[%d]: %v", seasonID, week-1, err)
 		h.failure(rw, req, err)
 		return
 	}
