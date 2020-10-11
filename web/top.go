@@ -318,7 +318,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 
 	// races driven
 	races := top.DataSet{
-		Title: "Most Races (+ Laps Completed)",
+		Title: "Most Races (min. 1 Lap)",
 		Icons: "flag",
 		Rows:  make([]top.DataSetRow, 0),
 	}
@@ -329,7 +329,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	for i := 0; i < topN && i < len(summaries); i++ {
 		races.Rows = append(races.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
-			Value:  fmt.Sprintf("%d (%d)", summaries[i].NumberOfRaces, summaries[i].LapsCompleted),
+			Value:  fmt.Sprintf("%d", summaries[i].NumberOfRaces),
 		})
 	}
 	data = append(data, races)
@@ -436,12 +436,12 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 		raceweek.LastUpdate = time.Now()
 		track.Name = "starting soon..."
 	}
-	// summaries, err := h.getRaceWeekSummaries(seasonID, week-1)
-	// if err != nil {
-	// 	log.Errorf("top laps: could not get raceweek summaries for season[%d], week[%d]: %v", seasonID, week-1, err)
-	// 	h.failure(rw, req, err)
-	// 	return
-	// }
+	summaries, err := h.getRaceWeekSummaries(seasonID, week-1)
+	if err != nil {
+		log.Errorf("top laps: could not get raceweek summaries for season[%d], week[%d]: %v", seasonID, week-1, err)
+		h.failure(rw, req, err)
+		return
+	}
 	timeRankings, err := h.getRaceWeekTimeRankings(seasonID, week-1)
 	if err != nil {
 		log.Errorf("could not get raceweek timerankings: %v", err)
@@ -475,35 +475,36 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 			icon = "fire"
 		}
 		tt.Rows = append(tt.Rows, top.DataSetRow{
-			Driver: filtered[i].Driver.Name,
-			Icon:   icon,
-			Value:  util.ConvertLaptime(filtered[i].TimeTrial),
+			Driver:       filtered[i].Driver.Name,
+			Icon:         icon,
+			IconPosition: 55,
+			Value:        util.ConvertLaptime(filtered[i].TimeTrial),
 		})
 	}
 	data = append(data, tt)
 
-	// tt fastest lap
-	ttf := top.DataSet{
-		Title: "Fastest Time Trial Lap",
-		Rows:  make([]top.DataSetRow, 0),
-	}
-	// sort by tt fastest lap
-	sort.Slice(filtered, func(i, j int) bool {
-		return filtered[i].TimeTrialFastestLap < filtered[j].TimeTrialFastestLap
-	})
-	for i := 0; i < topN && i < len(filtered); i++ {
-		icon := ""
-		if i+1 < len(filtered) &&
-			filtered[i+1].TimeTrialFastestLap-filtered[i].TimeTrialFastestLap > filtered[i].TimeTrialFastestLap/222 {
-			icon = "green_arrow"
-		}
-		ttf.Rows = append(ttf.Rows, top.DataSetRow{
-			Driver: filtered[i].Driver.Name,
-			Icon:   icon,
-			Value:  util.ConvertLaptime(filtered[i].TimeTrialFastestLap),
-		})
-	}
-	data = append(data, ttf)
+	// // tt fastest lap
+	// ttf := top.DataSet{
+	// 	Title: "Fastest Time Trial Lap",
+	// 	Rows:  make([]top.DataSetRow, 0),
+	// }
+	// // sort by tt fastest lap
+	// sort.Slice(filtered, func(i, j int) bool {
+	// 	return filtered[i].TimeTrialFastestLap < filtered[j].TimeTrialFastestLap
+	// })
+	// for i := 0; i < topN && i < len(filtered); i++ {
+	// 	icon := ""
+	// 	if i+1 < len(filtered) &&
+	// 		filtered[i+1].TimeTrialFastestLap-filtered[i].TimeTrialFastestLap > filtered[i].TimeTrialFastestLap/222 {
+	// 		icon = "green_arrow"
+	// 	}
+	// 	ttf.Rows = append(ttf.Rows, top.DataSetRow{
+	// 		Driver: filtered[i].Driver.Name,
+	// 		Icon:   icon,
+	// 		Value:  util.ConvertLaptime(filtered[i].TimeTrialFastestLap),
+	// 	})
+	// }
+	// data = append(data, ttf)
 
 	// race lap
 	race := top.DataSet{
@@ -525,32 +526,47 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 		icon := ""
 		if i+1 < len(filtered) &&
 			filtered[i+1].Race-filtered[i].Race > filtered[i].Race/333 {
-			icon = "blue_arrow"
+			icon = "green_arrow"
 		}
 		race.Rows = append(race.Rows, top.DataSetRow{
-			Driver: filtered[i].Driver.Name,
-			Icon:   icon,
-			Value:  util.ConvertLaptime(filtered[i].Race),
+			Driver:       filtered[i].Driver.Name,
+			Icon:         icon,
+			IconPosition: 55,
+			Value:        util.ConvertLaptime(filtered[i].Race),
 		})
 	}
 	data = append(data, race)
 
-	// // laps
-	// laps := top.DataSet{
-	// 	Title: "Laps completed",
-	// 	Rows:  make([]top.DataSetRow, 0),
-	// }
-	// // sort by laps
-	// sort.Slice(summaries, func(i, j int) bool {
-	// 	return summaries[i].LapsCompleted > summaries[j].LapsCompleted
-	// })
-	// for i := 0; i < topN && i < len(summaries); i++ {
-	// 	laps.Rows = append(laps.Rows, top.DataSetRow{
-	// 		Driver: summaries[i].Driver.Name,
-	// 		Value:  fmt.Sprintf("%d", summaries[i].LapsCompleted),
-	// 	})
-	// }
-	// data = append(data, laps)
+	// laps
+	laps := top.DataSet{
+		Title: "Laps completed",
+		Rows:  make([]top.DataSetRow, 0),
+	}
+	// sort by laps
+	sort.Slice(summaries, func(i, j int) bool {
+		return summaries[i].LapsCompleted > summaries[j].LapsCompleted
+	})
+	for i := 0; i < topN && i < len(summaries); i++ {
+		icon := ""
+		if i+1 < len(summaries) &&
+			summaries[i].LapsCompleted-summaries[i+1].LapsCompleted > summaries[i].LapsCompleted/5 {
+			icon = "blue_arrow"
+		}
+		iconPos := 14
+		if summaries[i].LapsCompleted > 99 {
+			iconPos += 7
+		}
+		if summaries[i].LapsCompleted > 999 {
+			iconPos += 7
+		}
+		laps.Rows = append(laps.Rows, top.DataSetRow{
+			Driver:       summaries[i].Driver.Name,
+			Icon:         icon,
+			IconPosition: iconPos,
+			Value:        fmt.Sprintf("%d", summaries[i].LapsCompleted),
+		})
+	}
+	data = append(data, laps)
 
 	hm := top.New(colorScheme, image, season, raceweek, track, data)
 	if err := hm.Draw(headerless); err != nil {

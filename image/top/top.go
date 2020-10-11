@@ -26,9 +26,10 @@ type DataSet struct {
 }
 
 type DataSetRow struct {
-	Driver string
-	Value  string
-	Icon   string
+	Driver       string
+	Value        string
+	Icon         string
+	IconPosition int
 }
 
 type Top struct {
@@ -248,7 +249,7 @@ func (t *Top) Draw(headerless bool) error {
 				if err != nil {
 					return fmt.Errorf("could not load icon: %v", err)
 				}
-				dc.DrawImageAnchored(icon, int(xPos+xLength-t.PaddingSize*2)-55, int(yPos), 1, 0)
+				dc.DrawImageAnchored(icon, int(xPos+xLength-t.PaddingSize*2)-entry.IconPosition, int(yPos), 1, 0)
 			}
 
 			// draw outline
