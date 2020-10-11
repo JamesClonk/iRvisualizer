@@ -147,7 +147,7 @@ func (r *Ranking) Draw(num, ofTotal int) error {
 	if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 12); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	dc.DrawStringAnchored("Overall Oval Track Championship", xPos+xChampLength/2, yPos+r.DriverHeight/2, 0.5, 0.5)
+	dc.DrawStringAnchored("Oval Track Championship", xPos+xChampLength/2, yPos+r.DriverHeight/2, 0.5, 0.5)
 
 	// draw outline
 	color.TopNHeaderOutline(dc)
