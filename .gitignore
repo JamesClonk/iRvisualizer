@@ -22,6 +22,8 @@ irvisualizer
 # Test output
 public/*.png
 public/*.json
+public/csv/*.csv
+public/csv/*.json
 public/heatmaps/*.png
 public/heatmaps/*.json
 public/heatmap/*.png

@@ -22,6 +22,11 @@ func (h *Handler) getSeason(seasonID int) (database.Season, error) {
 	return h.DB.GetSeasonByID(seasonID)
 }
 
+func (h *Handler) getRaceWeekMetrics(seasonID, week int) (database.RaceWeekMetrics, error) {
+	log.Infof("collect raceweek metrics for season [%d], week [%d]", seasonID, week)
+	return h.DB.GetRaceWeekMetricsBySeasonIDAndWeek(seasonID, week)
+}
+
 func (h *Handler) getRaceWeek(seasonID, week int) (database.RaceWeek, database.Track, error) {
 	log.Infof("collect raceweek for season [%d], week [%d]", seasonID, week)
 

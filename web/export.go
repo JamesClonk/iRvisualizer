@@ -1,13 +1,30 @@
 package web
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/JamesClonk/iRvisualizer/log"
+	"github.com/JamesClonk/iRvisualizer/web/csv"
 	"github.com/gorilla/mux"
 )
+
+func (h *Handler) series(rw http.ResponseWriter, req *http.Request) {
+	// get all active series
+	series, err := h.getSeries()
+	if err != nil {
+		log.Errorf("could not get series: %v", err)
+		h.failure(rw, req, err)
+		return
+	}
+
+	_, _ = rw.Write([]byte("SERIES_ID;SERIES_NAME\n"))
+	for _, series := range series {
+		_, _ = rw.Write([]byte(fmt.Sprintf("%d;%s\n", series.SeriesID, series.SeriesName)))
+	}
+}
 
 func (h *Handler) seriesWeeklyExport(rw http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
@@ -21,7 +38,27 @@ func (h *Handler) seriesWeeklyExport(rw http.ResponseWriter, req *http.Request) 
 		seriesID = 2
 	}
 
-	_, _ = rw.Write([]byte("SEASON;WEEK;TRACK;TYPE;LAPS;OFFICIAL_RACES;AVG_LAPTIME;FASTEST_LAPTIME;AVG_SOF;HIGHEST_SOF;NUM_OF_SPLITS;AVG_DRIVERS_PER_SPLIT;UNIQUE_DRIVERS;TOTAL_DRIVERS\n"))
+	// was there a forceOverwrite given?
+	forceOverwrite := false
+	value := req.URL.Query().Get("forceOverwrite")
+	if len(value) > 0 {
+		forceOverwrite, err = strconv.ParseBool(value)
+		if err != nil {
+			log.Errorf("could not convert forceOverwrite [%s] to bool: %v", value, err)
+			h.failure(rw, req, err)
+			return
+		}
+	}
+
+	// do we need to update the cached csv file?
+	// check if file already exists and is up-to-date, serve it immediately if yes
+	if !forceOverwrite && csv.IsAvailable(seriesID, 0) {
+		http.ServeFile(rw, req, csv.Filename(seriesID, 0))
+		return
+	}
+
+	var data bytes.Buffer
+	_, _ = data.WriteString("SEASON;WEEK;TRACK;TYPE;LAPS;TIME_OF_DAY;OFFICIAL_RACES;AVG_CAUTIONS;AVG_LAPTIME;FASTEST_LAPTIME;AVG_SOF;HIGHEST_SOF;NUM_OF_SPLITS;AVG_DRIVERS_PER_SPLIT;UNIQUE_DRIVERS;TOTAL_DRIVERS\n")
 
 	// get all seasons
 	seasons, err := h.getSeasons(seriesID)
@@ -49,19 +86,19 @@ func (h *Handler) seriesWeeklyExport(rw http.ResponseWriter, req *http.Request) 
 				log.Errorf("data export: could not get race results for season[%d], week[%d]: %v", season.SeasonID, week-1, err)
 				continue
 			}
+			weekMetrics, err := h.getRaceWeekMetrics(season.SeasonID, week-1)
+			if err != nil {
+				log.Errorf("data export: could not get raceweek metrics for season[%d], week[%d]: %v", season.SeasonID, week-1, err)
+				continue
+			}
 
-			var numOfSplits, averageDrivers, uniqueDrivers, totalDrivers, averageSOF, highestSOF, officialRaces int
+			var numOfSplits, uniqueDrivers, totalDrivers, officialRaces int
 			splitSubSessionIDs := make(map[int]bool)
 			driverIDs := make(map[int]bool)
 			for _, result := range weekResults {
 				if result.Official {
 					officialRaces++
-					averageDrivers += result.SizeOfField
 					totalDrivers += result.SizeOfField
-					averageSOF += result.StrengthOfField
-					if result.StrengthOfField > highestSOF {
-						highestSOF = result.StrengthOfField
-					}
 
 					// check if there was a split session
 					for _, r2 := range weekResults {
@@ -79,17 +116,30 @@ func (h *Handler) seriesWeeklyExport(rw http.ResponseWriter, req *http.Request) 
 				}
 			}
 			numOfSplits = len(splitSubSessionIDs)
-			averageDrivers = int(averageDrivers / officialRaces)
 			uniqueDrivers = len(driverIDs)
-			averageSOF = int(averageSOF / officialRaces)
 
-			_, _ = rw.Write([]byte(fmt.Sprintf("%dS%d;%d;%s;%s;%d;%d;%s;%s;%d;%d;%d;%d;%d;%d",
+			_, _ = data.WriteString(fmt.Sprintf("%dS%d;%d;%s;%s;%d;%s;%d;%d;%s;%s;%d;%d;%d;%d;%d;%d",
 				season.Year, season.Quarter, week, track.Name, track.Category,
-				0, officialRaces, "avg-laptime", "fastest-laptime",
-				averageSOF, highestSOF, numOfSplits, averageDrivers,
+				weekMetrics.Laps, weekMetrics.TimeOfDay.Format("2006-01-02 15:04"), officialRaces,
+				weekMetrics.AvgCautions, weekMetrics.AvgLaptime, weekMetrics.FastestLaptime,
+				weekMetrics.AvgSOF, weekMetrics.MaxSOF, numOfSplits, weekMetrics.AvgSize,
 				uniqueDrivers, totalDrivers,
-			)))
-			_, _ = rw.Write([]byte("\n"))
+			))
+			_, _ = data.WriteString("\n")
 		}
 	}
+
+	if err := csv.Write(seriesID, 0, data.Bytes()); err != nil {
+		log.Errorf("could not write csv file for seriesID [%d]: %v", seriesID, err)
+		h.failure(rw, req, err)
+		return
+	}
+	if err := csv.WriteMetadata(seriesID, 0, "", 0, 0); err != nil {
+		log.Errorf("could not write metadata file for seriesID [%d]: %v", seriesID, err)
+		h.failure(rw, req, err)
+		return
+	}
+
+	// serve new/updated csv file
+	http.ServeFile(rw, req, csv.Filename(seriesID, 0))
 }

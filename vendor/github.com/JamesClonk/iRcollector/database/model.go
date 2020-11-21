@@ -10,6 +10,7 @@ type Series struct {
 	SeriesName      string `db:"name"`
 	SeriesNameShort string `db:"short_name"`
 	SeriesRegex     string `db:"regex"`
+	Active          string `db:"active"`
 }
 
 type Track struct {
@@ -76,6 +77,19 @@ type RaceWeekResult struct {
 	Official        bool      `db:"official"`
 	SizeOfField     int       `db:"size"`
 	StrengthOfField int       `db:"sof"`
+}
+
+type RaceWeekMetrics struct {
+	SeasonID       int       `db:"season_id"` // foreign-key to Season.SeasonID
+	RaceWeek       int       `db:"raceweek"`
+	TimeOfDay      time.Time `db:"time_of_day"`
+	Laps           int       `db:"laps"`
+	AvgCautions    int       `db:"avg_cautions"`
+	AvgLaptime     Laptime   `db:"avg_laptime"`
+	FastestLaptime Laptime   `db:"fastest_laptime"`
+	MaxSOF         int       `db:"max_sof"`
+	AvgSOF         int       `db:"avg_sof"`
+	AvgSize        int       `db:"avg_size"`
 }
 
 type RaceStats struct {

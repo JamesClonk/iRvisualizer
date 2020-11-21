@@ -57,6 +57,7 @@ func router(h *Handler) *mux.Router {
 	r.HandleFunc("/season/{seasonID}/week/{week}/top/", h.indexTop).Methods("GET")
 
 	// data export
+	r.HandleFunc("/series", h.series).Methods("GET")
 	r.HandleFunc("/series/{seriesID}", h.seriesWeeklyExport).Methods("GET")
 
 	// dynamic ranking/standings
