@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 
 	"github.com/JamesClonk/iRvisualizer/log"
@@ -67,6 +68,10 @@ func (h *Handler) seriesWeeklyExport(rw http.ResponseWriter, req *http.Request) 
 		h.failure(rw, req, err)
 		return
 	}
+	// sort seasons ascending
+	sort.Slice(seasons, func(i, j int) bool {
+		return seasons[i].StartDate.Before(seasons[j].StartDate)
+	})
 
 	// get all 12 weeks for all seasons
 	for _, season := range seasons {
