@@ -7,9 +7,24 @@ import (
 	"github.com/JamesClonk/iRvisualizer/log"
 )
 
+func (h *Handler) getSeries() ([]database.Series, error) {
+	log.Infof("collect active series")
+	return h.DB.GetActiveSeries()
+}
+
+func (h *Handler) getSeasons(seriesID int) ([]database.Season, error) {
+	log.Infof("collect seasons by series ID [%d]", seriesID)
+	return h.DB.GetSeasonsBySeriesID(seriesID)
+}
+
 func (h *Handler) getSeason(seasonID int) (database.Season, error) {
 	log.Infof("collect season [%d]", seasonID)
 	return h.DB.GetSeasonByID(seasonID)
+}
+
+func (h *Handler) getRaceWeekMetrics(seasonID, week int) (database.RaceWeekMetrics, error) {
+	log.Infof("collect raceweek metrics for season [%d], week [%d]", seasonID, week)
+	return h.DB.GetRaceWeekMetricsBySeasonIDAndWeek(seasonID, week)
 }
 
 func (h *Handler) getRaceWeek(seasonID, week int) (database.RaceWeek, database.Track, error) {
@@ -35,6 +50,19 @@ func (h *Handler) getRaceWeekResults(seasonID, week int) ([]database.RaceWeekRes
 	}
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].StartTime.Before(results[j].StartTime)
+	})
+	return results, nil
+}
+
+func (h *Handler) getRaceResults(seasonID, week int) ([]database.RaceResult, error) {
+	log.Infof("collect race results for season [%d], week [%d]", seasonID, week)
+
+	results, err := h.DB.GetRaceResultsBySeasonIDAndWeek(seasonID, week)
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].SessionStartTime < results[j].SessionStartTime
 	})
 	return results, nil
 }

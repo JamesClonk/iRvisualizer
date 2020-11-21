@@ -56,6 +56,10 @@ func router(h *Handler) *mux.Router {
 	r.HandleFunc("/season/{seasonID}/week/{week}/", h.indexHeatmap).Methods("GET")
 	r.HandleFunc("/season/{seasonID}/week/{week}/top/", h.indexTop).Methods("GET")
 
+	// data export
+	r.HandleFunc("/series", h.series).Methods("GET")
+	r.HandleFunc("/series/{seriesID}", h.seriesWeeklyExport).Methods("GET")
+
 	// dynamic ranking/standings
 	r.HandleFunc("/season/{seasonID}/standings.png", h.ranking).Methods("GET")
 	r.HandleFunc("/season/{seasonID}/standing.png", h.ranking).Methods("GET")
@@ -95,7 +99,7 @@ func (h *Handler) health(rw http.ResponseWriter, req *http.Request) {
 func (h *Handler) verifyBasicAuth(rw http.ResponseWriter, req *http.Request) bool {
 	user, pw, ok := req.BasicAuth()
 	if !ok || subtle.ConstantTimeCompare([]byte(user), []byte(h.Username)) != 1 || subtle.ConstantTimeCompare([]byte(pw), []byte(h.Password)) != 1 {
-		rw.Header().Set("WWW-Authenticate", `Basic realm="iRcollector"`)
+		rw.Header().Set("WWW-Authenticate", `Basic realm="iRvisualizer"`)
 		rw.WriteHeader(401)
 		_, _ = rw.Write([]byte("Unauthorized"))
 		return false
