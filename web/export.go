@@ -58,7 +58,7 @@ func (h *Handler) seriesWeeklyExport(rw http.ResponseWriter, req *http.Request) 
 	}
 
 	var data bytes.Buffer
-	_, _ = data.WriteString("SEASON;WEEK;TRACK;TYPE;LAPS;TIME_OF_DAY;OFFICIAL_RACES;AVG_CAUTIONS;AVG_LAPTIME;FASTEST_LAPTIME;AVG_SOF;HIGHEST_SOF;NUM_OF_SPLITS;AVG_DRIVERS_PER_SPLIT;UNIQUE_DRIVERS;TOTAL_DRIVERS\n")
+	_, _ = data.WriteString("ID;SEASON;WEEK;TRACK;TYPE;LAPS;TIME_OF_DAY;OFFICIAL_RACES;AVG_CAUTIONS;AVG_LAPTIME;FASTEST_LAPTIME;AVG_SOF;HIGHEST_SOF;NUM_OF_SPLITS;AVG_DRIVERS_PER_SPLIT;UNIQUE_DRIVERS;TOTAL_DRIVERS\n")
 
 	// get all seasons
 	seasons, err := h.getSeasons(seriesID)
@@ -118,8 +118,8 @@ func (h *Handler) seriesWeeklyExport(rw http.ResponseWriter, req *http.Request) 
 			numOfSplits = len(splitSubSessionIDs)
 			uniqueDrivers = len(driverIDs)
 
-			_, _ = data.WriteString(fmt.Sprintf("%dS%d;%d;%s;%s;%d;%s;%d;%d;%s;%s;%d;%d;%d;%d;%d;%d",
-				season.Year, season.Quarter, week, track.Name, track.Category,
+			_, _ = data.WriteString(fmt.Sprintf("%dS%dW%d;%dS%d;%d;%s;%s;%d;%s;%d;%d;%s;%s;%d;%d;%d;%d;%d;%d",
+				season.Year, season.Quarter, week, season.Year, season.Quarter, week, track.Name, track.Category,
 				weekMetrics.Laps, weekMetrics.TimeOfDay.Format("2006-01-02 15:04"), officialRaces,
 				weekMetrics.AvgCautions, weekMetrics.AvgLaptime, weekMetrics.FastestLaptime,
 				weekMetrics.AvgSOF, weekMetrics.MaxSOF, numOfSplits, weekMetrics.AvgSize,
