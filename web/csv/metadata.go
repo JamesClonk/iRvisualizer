@@ -12,15 +12,12 @@ import (
 type Metadata struct {
 	CSVFilename string `json:"CSVFilename"`
 	SeriesID    int
-	SeasonID    int
-	Season      string
-	Year        int
-	Quarter     int
+	Mode        string
 	LastUpdated time.Time `json:"LastUpdated"`
 }
 
-func MetadataFilename(seriesID, seasonID int) string {
-	return fmt.Sprintf("%s.json", Filename(seriesID, seasonID))
+func MetadataFilename(seriesID int, mode string) string {
+	return fmt.Sprintf("%s.json", Filename(seriesID, mode))
 }
 
 func GetMetadata(filename string) (meta Metadata) {
@@ -39,17 +36,14 @@ func GetMetadata(filename string) (meta Metadata) {
 	return meta
 }
 
-func WriteMetadata(seriesID, seasonID int, season string, year, quarter int) error {
-	filename := MetadataFilename(seriesID, seasonID)
+func WriteMetadata(seriesID int, mode string) error {
+	filename := MetadataFilename(seriesID, mode)
 	log.Debugf("write metadata to [%s]", filename)
 
 	meta := Metadata{
-		CSVFilename: Filename(seriesID, seasonID),
+		CSVFilename: Filename(seriesID, mode),
 		SeriesID:    seriesID,
-		SeasonID:    seasonID,
-		Season:      season,
-		Year:        year,
-		Quarter:     quarter,
+		Mode:        mode,
 		LastUpdated: time.Now().UTC(),
 	}
 

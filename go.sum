@@ -1,5 +1,5 @@
-github.com/JamesClonk/iRcollector v0.0.0-20201122093918-6912da812494 h1:Dt2y8bF/R8DtPS4Tkp80FS7HkxqBvtKIzvSGAbzfOAo=
-github.com/JamesClonk/iRcollector v0.0.0-20201122093918-6912da812494/go.mod h1:6k7KPIQ39f4ku6IJjcpHAsK4PmR7D6qVawdjjFmGpfw=
+github.com/JamesClonk/iRcollector v0.0.0-20201123145152-1324afed4508 h1:bOvRsdCJqlCHFqjSuUMtLTf6YVLwTWy6t7rG96w6Q+o=
+github.com/JamesClonk/iRcollector v0.0.0-20201123145152-1324afed4508/go.mod h1:6k7KPIQ39f4ku6IJjcpHAsK4PmR7D6qVawdjjFmGpfw=
 github.com/Microsoft/go-winio v0.4.14 h1:+hMXMk01us9KgxGb7ftKQt2Xpf5hH/yky+TDA+qxleU=
 github.com/Microsoft/go-winio v0.4.14/go.mod h1:qXqCSQ3Xa7+6tgxaGTIe4Kpcdsi+P8jBhyzoq1bpyYA=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=

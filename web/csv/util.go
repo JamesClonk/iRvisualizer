@@ -9,10 +9,10 @@ import (
 	"github.com/JamesClonk/iRvisualizer/util"
 )
 
-func IsAvailable(seriesID, seasonID int) bool {
+func IsAvailable(seriesID int, mode string) bool {
 	// check if file already exists
-	csvFilename := Filename(seriesID, seasonID)
-	metaFilename := MetadataFilename(seriesID, seasonID)
+	csvFilename := Filename(seriesID, mode)
+	metaFilename := MetadataFilename(seriesID, mode)
 	if util.FileExists(metaFilename) && util.FileExists(csvFilename) {
 		metadata := GetMetadata(metaFilename)
 		// if it's newer than 24 hours
@@ -23,15 +23,15 @@ func IsAvailable(seriesID, seasonID int) bool {
 	return false
 }
 
-func Filename(seriesID, seasonID int) string {
-	if seasonID > 0 {
-		return fmt.Sprintf("public/csv/season_%d.csv", seasonID)
+func Filename(seriesID int, mode string) string {
+	if len(mode) == 0 || mode == "weekly" {
+		return fmt.Sprintf("public/csv/weekly_%d.csv", seriesID)
 	}
-	return fmt.Sprintf("public/csv/series_%d.csv", seriesID)
+	return fmt.Sprintf("public/csv/seasons_%d.csv", seriesID)
 }
 
-func Write(seriesID, seasonID int, data []byte) error {
-	filename := Filename(seriesID, seasonID)
+func Write(seriesID int, mode string, data []byte) error {
+	filename := Filename(seriesID, mode)
 	log.Debugf("write csv to [%s]", filename)
 	return ioutil.WriteFile(filename, data, 0644)
 }

@@ -58,7 +58,9 @@ func router(h *Handler) *mux.Router {
 
 	// data export
 	r.HandleFunc("/series", h.series).Methods("GET")
-	r.HandleFunc("/series/{seriesID}", h.seriesWeeklyExport).Methods("GET")
+	r.HandleFunc("/series/{seriesID}", h.seriesWeeklyExport).Methods("GET") // backwards-compatible endpoint
+	r.HandleFunc("/series/{seriesID}/weekly", h.seriesWeeklyExport).Methods("GET")
+	r.HandleFunc("/series/{seriesID}/season", h.seriesSeasonExport).Methods("GET")
 
 	// dynamic ranking/standings
 	r.HandleFunc("/season/{seasonID}/standings.png", h.ranking).Methods("GET")
