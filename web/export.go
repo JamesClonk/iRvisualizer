@@ -3,6 +3,7 @@ package web
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"net/http"
 	"sort"
 	"strconv"
@@ -59,7 +60,7 @@ func (h *Handler) seriesWeeklyExport(rw http.ResponseWriter, req *http.Request) 
 	}
 
 	var data bytes.Buffer
-	_, _ = data.WriteString("ID;SEASON;WEEK;TRACK;TYPE;LAPS;TIME_OF_DAY;OFFICIAL_RACES;AVG_CAUTIONS;AVG_LAPTIME;FASTEST_LAPTIME;AVG_SOF;HIGHEST_SOF;LOWEST_SOF;NUM_OF_SPLITS;AVG_DRIVERS_PER_SPLIT;UNIQUE_DRIVERS;TOTAL_DRIVERS\n")
+	_, _ = data.WriteString("ID;SEASON;WEEK;TRACK;TYPE;LAPS;TIME_OF_DAY;OFFICIAL_RACES;AVG_CAUTIONS;AVG_LAPTIME;FASTEST_LAPTIME;AVG_SOF;HIGHEST_SOF;LOWEST_SOF;NUM_OF_SPLITS;AVG_DRIVERS_PER_SPLIT;UNIQUE_DRIVERS;TOTAL_DRIVERS;AVG_RACES_PER_UNIQUE_DRIVER;STDEV_RACES_PER_DRIVER;STDEV_AVG_RACES_PER_WEEK\n")
 
 	// get all seasons
 	seasons, err := h.getSeasons(seriesID)
@@ -75,6 +76,9 @@ func (h *Handler) seriesWeeklyExport(rw http.ResponseWriter, req *http.Request) 
 
 	// get all 12 weeks for all seasons
 	for _, season := range seasons {
+		racesPerDriver := make([]float64, 0)
+		lines := make([]string, 0)
+
 		for week := 1; week <= 13; week++ {
 			_, track, err := h.getRaceWeek(season.SeasonID, week-1)
 			if err != nil {
@@ -99,7 +103,7 @@ func (h *Handler) seriesWeeklyExport(rw http.ResponseWriter, req *http.Request) 
 
 			var numOfSplits, uniqueDrivers, totalDrivers, officialRaces int
 			splitSubSessionIDs := make(map[int]bool)
-			driverIDs := make(map[int]bool)
+			driverIDs := make(map[int]int)
 			for _, result := range weekResults {
 				if result.Official {
 					officialRaces++
@@ -115,7 +119,11 @@ func (h *Handler) seriesWeeklyExport(rw http.ResponseWriter, req *http.Request) 
 					// get driver stats
 					for _, race := range raceResults {
 						if race.SubsessionID == result.SubsessionID {
-							driverIDs[race.Driver.DriverID] = true
+							if _, ok := driverIDs[race.Driver.DriverID]; ok {
+								driverIDs[race.Driver.DriverID] = driverIDs[race.Driver.DriverID] + 1
+							} else {
+								driverIDs[race.Driver.DriverID] = 1
+							}
 						}
 					}
 				}
@@ -123,13 +131,34 @@ func (h *Handler) seriesWeeklyExport(rw http.ResponseWriter, req *http.Request) 
 			numOfSplits = len(splitSubSessionIDs)
 			uniqueDrivers = len(driverIDs)
 
-			_, _ = data.WriteString(fmt.Sprintf("%dS%dW%d;%dS%d;%d;%s;%s;%d;%s;%d;%d;%s;%s;%d;%d;%d;%d;%d;%d;%d",
+			// stdev of races per driver this week
+			racesPerDriver = append(racesPerDriver, float64(totalDrivers)/float64(uniqueDrivers))
+			var stdev float64
+			for _, races := range driverIDs {
+				stdev += math.Pow(float64(races)-racesPerDriver[week-1], 2)
+			}
+			stdev = math.Sqrt(stdev / float64(uniqueDrivers))
+
+			// buffer week data, to also add week-stdev below
+			lines = append(lines, fmt.Sprintf("%dS%dW%d;%dS%d;%d;%s;%s;%d;%s;%d;%d;%s;%s;%d;%d;%d;%d;%d;%d;%d;%.2f;%.2f",
 				season.Year, season.Quarter, week, season.Year, season.Quarter, week, track.Name, track.Category,
 				weekMetrics.Laps, weekMetrics.TimeOfDay.Format("2006-01-02 15:04"), officialRaces,
 				weekMetrics.AvgCautions, weekMetrics.AvgLaptime, weekMetrics.FastestLaptime,
 				weekMetrics.AvgSOF, weekMetrics.MaxSOF, weekMetrics.MinSOF, numOfSplits, weekMetrics.AvgSize,
-				uniqueDrivers, totalDrivers,
+				uniqueDrivers, totalDrivers, racesPerDriver[week-1], stdev,
 			))
+		}
+
+		for week, line := range lines {
+			// stdev of races per driver compared to all weeks
+			var stdev float64
+			for _, weeks := range racesPerDriver {
+				stdev += math.Pow(weeks-racesPerDriver[week], 2)
+			}
+			stdev = math.Sqrt(stdev / float64(len(racesPerDriver)))
+
+			// print metrics
+			_, _ = data.WriteString(fmt.Sprintf("%s;%.2f", line, stdev))
 			_, _ = data.WriteString("\n")
 		}
 	}
@@ -181,7 +210,7 @@ func (h *Handler) seriesSeasonExport(rw http.ResponseWriter, req *http.Request) 
 	}
 
 	var data bytes.Buffer
-	_, _ = data.WriteString("SEASON;TIMESLOTS;WEEKS;OFFICIAL_RACES;AVG_DRIVERS_PER_SESSION;AVG_SOF;TOTAL_DRIVERS;UNIQUE_DRIVERS;UNIQUE_ROAD_DRIVERS;UNIQUE_ROAD_ONLY_DRIVERS;UNIQUE_OVAL_DRIVERS;UNIQUE_OVAL_ONLY_DRIVERS;UNIQUE_BOTH_DRIVERS;UNIQUE_EIGHT_WEEKS_DRIVERS;UNIQUE_FULL_SEASON_DRIVERS\n")
+	_, _ = data.WriteString("SEASON;TIMESLOTS;WEEKS;OFFICIAL_RACES;AVG_DRIVERS_PER_SESSION;AVG_SOF;TOTAL_DRIVERS;UNIQUE_DRIVERS;UNIQUE_ROAD_DRIVERS;UNIQUE_ROAD_ONLY_DRIVERS;UNIQUE_COMMITTED_ROAD_ONLY_DRIVERS;UNIQUE_OVAL_DRIVERS;UNIQUE_OVAL_ONLY_DRIVERS;UNIQUE_COMMITTED_OVAL_ONLY_DRIVERS;UNIQUE_BOTH_DRIVERS;UNIQUE_EIGHT_WEEKS_DRIVERS;UNIQUE_FULL_SEASON_DRIVERS\n")
 
 	// get all season metrics
 	metrics, err := h.getSeasonMetrics(seriesID)
@@ -193,11 +222,11 @@ func (h *Handler) seriesSeasonExport(rw http.ResponseWriter, req *http.Request) 
 
 	// print metrics
 	for _, season := range metrics {
-		_, _ = data.WriteString(fmt.Sprintf("%dS%d;%s;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d",
+		_, _ = data.WriteString(fmt.Sprintf("%dS%d;%s;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d",
 			season.Year, season.Quarter, season.Timeslots, season.Weeks, season.Sessions,
 			season.AvgSize, season.AvgSOF, season.Drivers,
-			season.UniqueDrivers, season.UniqueRoadDrivers, season.UniqueRoadDrivers-season.UniqueBothDrivers,
-			season.UniqueOvalDrivers, season.UniqueOvalDrivers-season.UniqueBothDrivers,
+			season.UniqueDrivers, season.UniqueRoadDrivers, season.UniqueRoadDrivers-season.UniqueBothDrivers, season.UniqueCommittedRoadOnlyDrivers,
+			season.UniqueOvalDrivers, season.UniqueOvalDrivers-season.UniqueBothDrivers, season.UniqueCommittedOvalOnlyDrivers,
 			season.UniqueBothDrivers, season.UniqueEightWeeksDrivers, season.UniqueFullSeasonDrivers,
 		))
 		_, _ = data.WriteString("\n")
