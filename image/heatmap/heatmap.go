@@ -115,12 +115,16 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 	// colorizer
 	var color scheme.Colorizer
 	switch h.ColorScheme {
+	case "green":
+		color = scheme.NewGreenScheme()
 	case "yellow":
 		color = scheme.NewYellowScheme()
 	case "red":
 		color = scheme.NewRedScheme()
 	case "simucube":
 		color = scheme.NewSimuCubeScheme()
+	case "apex":
+		color = scheme.NewApexScheme()
 	default:
 		color = scheme.NewBlueScheme()
 	}
