@@ -5,10 +5,10 @@ import (
 	"github.com/fogleman/gg"
 )
 
-type blue struct{}
+type pm18 struct{}
 
-func NewBlueScheme() Colorizer {
-	return &blue{}
+func NewPMScheme() Colorizer {
+	return &pm18{}
 }
 
 /*
@@ -29,77 +29,76 @@ func NewBlueScheme() Colorizer {
 	dc.SetRGB255(61, 133, 198) // dark blue 1
 	dc.SetRGB255(11, 83, 148) // dark blue 2
 	dc.SetRGB255(7, 55, 99) // dark blue 3
-	dc.SetRGB255(99, 166, 222) // light blue 1
 */
-func (c *blue) Border(dc *gg.Context) {
+func (c *pm18) Border(dc *gg.Context) {
 	dc.SetRGB255(39, 39, 39) // dark gray 1
 }
-func (c *blue) Background(dc *gg.Context) {
+func (c *pm18) Background(dc *gg.Context) {
 	dc.SetRGB255(243, 243, 243) // light gray 3
 }
-func (c *blue) Transparent(dc *gg.Context) {
+func (c *pm18) Transparent(dc *gg.Context) {
 	dc.SetRGBA255(0, 0, 0, 0) // transparent
 }
-func (c *blue) HeaderFG(dc *gg.Context) {
+func (c *pm18) HeaderFG(dc *gg.Context) {
 	dc.SetRGB255(255, 255, 255) // white
 }
-func (c *blue) HeaderLeftBG(dc *gg.Context) {
+func (c *pm18) HeaderLeftBG(dc *gg.Context) {
 	dc.SetRGB255(7, 55, 99) // dark blue 3
 }
-func (c *blue) HeaderRightBG(dc *gg.Context) {
+func (c *pm18) HeaderRightBG(dc *gg.Context) {
 	dc.SetRGB255(11, 83, 148) // dark blue 2
 }
-func (c *blue) TopNHeaderFG(dc *gg.Context) {
+func (c *pm18) TopNHeaderFG(dc *gg.Context) {
 	dc.SetRGB255(255, 255, 255) // white
 }
-func (c *blue) TopNHeaderBG(dc *gg.Context) {
-	dc.SetRGB255(66, 166, 255) // light blue 1
-}
-func (c *blue) TopNHeaderOutline(dc *gg.Context) {
-	dc.SetRGB255(55, 55, 55) // dark gray 2
-}
-func (c *blue) TopNCellDarkerBG(dc *gg.Context) {
-	dc.SetRGB255(225, 225, 225) // light gray 1.5
-}
-func (c *blue) TopNCellLighterBG(dc *gg.Context) {
-	dc.SetRGB255(241, 241, 241) // light gray 2.5
-}
-func (c *blue) TopNCellOutline(dc *gg.Context) {
-	dc.SetRGB255(155, 155, 155) // gray 2
-}
-func (c *blue) TopNCellPosition(dc *gg.Context) {
-	dc.SetRGB255(0, 0, 0) // black
-}
-func (c *blue) TopNCellDriver(dc *gg.Context) {
-	dc.SetRGB255(0, 0, 0) // black
-}
-func (c *blue) TopNCellValue(dc *gg.Context) {
-	dc.SetRGB255(7, 55, 99) // dark blue 3
-}
-func (c *blue) HeatmapHeaderFG(dc *gg.Context) {
-	dc.SetRGB255(0, 0, 0) // black
-}
-func (c *blue) HeatmapHeaderDarkerBG(dc *gg.Context) {
-	dc.SetRGB255(239, 239, 239) // light gray 2
-}
-func (c *blue) HeatmapHeaderLighterBG(dc *gg.Context) {
-	dc.SetRGB255(243, 243, 243) // light gray 3
-}
-func (c *blue) HeatmapTimeslotFG(dc *gg.Context) {
-	dc.SetRGB255(0, 0, 0) // black
-}
-func (c *blue) HeatmapTimeslotBG(dc *gg.Context) {
-	dc.SetRGB255(255, 255, 255) // white
-}
-func (c *blue) HeatmapTimeslotZero(dc *gg.Context) {
+func (c *pm18) TopNHeaderBG(dc *gg.Context) {
 	dc.SetRGB255(133, 133, 133) // gray 1
 }
-func (c *blue) HeatmapTimeslotMapping(dc *gg.Context, min, max, value int) {
-	dc.SetRGBA255(50-image.MapValueIntoRange(0, 45, min, max, value), 150-image.MapValueIntoRange(0, 120, min, max, value), 255-image.MapValueIntoRange(0, 160, min, max, value), image.MapValueIntoRange(10, 225, min, max, value)) // sof color
+func (c *pm18) TopNHeaderOutline(dc *gg.Context) {
+	dc.SetRGB255(55, 55, 55) // dark gray 2
 }
-func (c *blue) LastUpdate(dc *gg.Context) {
+func (c *pm18) TopNCellDarkerBG(dc *gg.Context) {
+	dc.SetRGB255(225, 225, 225) // light gray 1.5
+}
+func (c *pm18) TopNCellLighterBG(dc *gg.Context) {
+	dc.SetRGB255(241, 241, 241) // light gray 2.5
+}
+func (c *pm18) TopNCellOutline(dc *gg.Context) {
+	dc.SetRGB255(155, 155, 155) // gray 2
+}
+func (c *pm18) TopNCellPosition(dc *gg.Context) {
 	dc.SetRGB255(0, 0, 0) // black
 }
-func (c *blue) CreatedBy(dc *gg.Context) {
+func (c *pm18) TopNCellDriver(dc *gg.Context) {
+	dc.SetRGB255(0, 0, 0) // black
+}
+func (c *pm18) TopNCellValue(dc *gg.Context) {
+	dc.SetRGB255(7, 55, 99) // dark blue 3
+}
+func (c *pm18) HeatmapHeaderFG(dc *gg.Context) {
+	dc.SetRGB255(0, 0, 0) // black
+}
+func (c *pm18) HeatmapHeaderDarkerBG(dc *gg.Context) {
+	dc.SetRGB255(239, 239, 239) // light gray 2
+}
+func (c *pm18) HeatmapHeaderLighterBG(dc *gg.Context) {
+	dc.SetRGB255(243, 243, 243) // light gray 3
+}
+func (c *pm18) HeatmapTimeslotFG(dc *gg.Context) {
+	dc.SetRGB255(0, 0, 0) // black
+}
+func (c *pm18) HeatmapTimeslotBG(dc *gg.Context) {
+	dc.SetRGB255(255, 255, 255) // white
+}
+func (c *pm18) HeatmapTimeslotZero(dc *gg.Context) {
+	dc.SetRGB255(133, 133, 133) // gray 1
+}
+func (c *pm18) HeatmapTimeslotMapping(dc *gg.Context, min, max, value int) {
+	dc.SetRGBA255(50-image.MapValueIntoRange(0, 45, min, max, value), 150-image.MapValueIntoRange(0, 120, min, max, value), 255-image.MapValueIntoRange(0, 160, min, max, value), image.MapValueIntoRange(10, 225, min, max, value)) // sof color
+}
+func (c *pm18) LastUpdate(dc *gg.Context) {
+	dc.SetRGB255(0, 0, 0) // black
+}
+func (c *pm18) CreatedBy(dc *gg.Context) {
 	dc.SetRGB255(155, 155, 155) // gray 2
 }

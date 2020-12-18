@@ -106,21 +106,7 @@ func (t *Top) Draw(headerless bool) error {
 	log.Infof("draw top for [%s] - [%s]", topTitle, topTrackTitle)
 
 	// colorizer
-	var color scheme.Colorizer
-	switch t.ColorScheme {
-	case "green":
-		color = scheme.NewGreenScheme()
-	case "yellow":
-		color = scheme.NewYellowScheme()
-	case "red":
-		color = scheme.NewRedScheme()
-	case "simucube":
-		color = scheme.NewSimuCubeScheme()
-	case "apex":
-		color = scheme.NewApexScheme()
-	default:
-		color = scheme.NewBlueScheme()
-	}
+	color := scheme.Get(t.ColorScheme)
 
 	// strip header?
 	if headerless {

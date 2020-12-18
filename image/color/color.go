@@ -28,3 +28,28 @@ type Colorizer interface {
 	LastUpdate(*gg.Context)
 	CreatedBy(*gg.Context)
 }
+
+func Get(scheme string) Colorizer {
+	var c Colorizer
+	switch scheme {
+	case "blue":
+		c = NewBlueScheme()
+	case "green":
+		c = NewGreenScheme()
+	case "yellow":
+		c = NewYellowScheme()
+	case "red":
+		c = NewRedScheme()
+	case "black":
+		c = NewBlackScheme()
+	case "simucube":
+		c = NewSimuCubeScheme()
+	case "apex":
+		c = NewApexScheme()
+	case "indypro":
+		c = NewPMScheme()
+	default:
+		c = NewPMScheme()
+	}
+	return c
+}
