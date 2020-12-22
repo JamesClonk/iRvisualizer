@@ -259,27 +259,27 @@ func (h *Handler) seasonalHeatmap(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		// see how many results exist for that timeslot
-		var found bool
+		raceWeeksFound := make(map[int]bool, 0)
 		for _, results := range allResults {
 			for _, result := range results {
 				if timeslot.UTC().Weekday() == result.StartTime.UTC().Weekday() &&
 					timeslot.UTC().Hour() == result.StartTime.UTC().Hour() &&
 					timeslot.UTC().Minute() == result.StartTime.UTC().Minute() {
-					found = true
 					if result.Official {
 						finalResult.Official = true
 					}
 
 					finalResult.SizeOfField += result.SizeOfField
 					finalResult.StrengthOfField += result.StrengthOfField
+					raceWeeksFound[result.RaceWeekID] = true
 				}
 			}
 		}
 
 		// average size and sof
-		if found {
-			finalResult.SizeOfField = finalResult.SizeOfField / weeksFound
-			finalResult.StrengthOfField = finalResult.StrengthOfField / weeksFound
+		if len(raceWeeksFound) > 0 {
+			finalResult.SizeOfField = finalResult.SizeOfField / len(raceWeeksFound)
+			finalResult.StrengthOfField = finalResult.StrengthOfField / len(raceWeeksFound)
 		}
 
 		finalResults = append(finalResults, finalResult)
