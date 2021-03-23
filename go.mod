@@ -3,7 +3,7 @@ module github.com/JamesClonk/iRvisualizer
 go 1.14
 
 require (
-	github.com/JamesClonk/iRcollector v0.0.0-20201211123225-cf9b9c7919a0
+	github.com/JamesClonk/iRcollector v0.0.0-20210323140102-444618d3013a
 	github.com/cloudfoundry-community/go-cfenv v1.18.0 // indirect
 	github.com/fogleman/gg v1.3.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect

@@ -23,7 +23,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	seasonID, err := strconv.Atoi(vars["seasonID"])
 	if err != nil {
-		log.Errorf("could not convert seasonID [%s] to int: %v", vars["seasonID"], err)
+		log.Errorf("top scores: could not convert seasonID [%s] to int: %v", vars["seasonID"], err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -32,7 +32,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 	}
 	week, err := strconv.Atoi(vars["week"])
 	if err != nil {
-		log.Errorf("could not convert week [%s] to int: %v", vars["week"], err)
+		log.Errorf("top scores: could not convert week [%s] to int: %v", vars["week"], err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -49,7 +49,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 	if len(value) > 0 {
 		topN, err = strconv.Atoi(value)
 		if err != nil {
-			log.Errorf("could not convert topN [%s] to int: %v", value, err)
+			log.Errorf("top scores: could not convert topN [%s] to int: %v", value, err)
 			h.failure(rw, req, err)
 			return
 		}
@@ -61,7 +61,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 	if len(value) > 0 {
 		headerless, err = strconv.ParseBool(value)
 		if err != nil {
-			log.Errorf("could not convert headerless [%s] to bool: %v", value, err)
+			log.Errorf("top scores: could not convert headerless [%s] to bool: %v", value, err)
 			h.failure(rw, req, err)
 			return
 		}
@@ -73,7 +73,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 	if len(value) > 0 {
 		forceOverwrite, err = strconv.ParseBool(value)
 		if err != nil {
-			log.Errorf("could not convert forceOverwrite [%s] to bool: %v", value, err)
+			log.Errorf("top scores: could not convert forceOverwrite [%s] to bool: %v", value, err)
 			h.failure(rw, req, err)
 			return
 		}
@@ -97,7 +97,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 	// create/update top image
 	season, err := h.getSeason(seasonID)
 	if err != nil {
-		log.Errorf("could not get season: %v", err)
+		log.Errorf("top scores: could not get season: %v", err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -170,7 +170,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 
 	hm := top.New(colorScheme, image, season, raceweek, track, data)
 	if err := hm.Draw(headerless); err != nil {
-		log.Errorf("could not create weekly top [%s]: %v", image, err)
+		log.Errorf("top scores: could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -185,7 +185,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	seasonID, err := strconv.Atoi(vars["seasonID"])
 	if err != nil {
-		log.Errorf("could not convert seasonID [%s] to int: %v", vars["seasonID"], err)
+		log.Errorf("top racers: could not convert seasonID [%s] to int: %v", vars["seasonID"], err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -194,7 +194,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	}
 	week, err := strconv.Atoi(vars["week"])
 	if err != nil {
-		log.Errorf("could not convert week [%s] to int: %v", vars["week"], err)
+		log.Errorf("top racers: could not convert week [%s] to int: %v", vars["week"], err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -211,7 +211,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	if len(value) > 0 {
 		topN, err = strconv.Atoi(value)
 		if err != nil {
-			log.Errorf("could not convert topN [%s] to int: %v", value, err)
+			log.Errorf("top racers: could not convert topN [%s] to int: %v", value, err)
 			h.failure(rw, req, err)
 			return
 		}
@@ -223,7 +223,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	if len(value) > 0 {
 		headerless, err = strconv.ParseBool(value)
 		if err != nil {
-			log.Errorf("could not convert headerless [%s] to bool: %v", value, err)
+			log.Errorf("top racers: could not convert headerless [%s] to bool: %v", value, err)
 			h.failure(rw, req, err)
 			return
 		}
@@ -235,7 +235,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	if len(value) > 0 {
 		forceOverwrite, err = strconv.ParseBool(value)
 		if err != nil {
-			log.Errorf("could not convert forceOverwrite [%s] to bool: %v", value, err)
+			log.Errorf("top racers: could not convert forceOverwrite [%s] to bool: %v", value, err)
 			h.failure(rw, req, err)
 			return
 		}
@@ -259,7 +259,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	// create/update top image
 	season, err := h.getSeason(seasonID)
 	if err != nil {
-		log.Errorf("could not get season: %v", err)
+		log.Errorf("top racers: could not get season: %v", err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -336,7 +336,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 
 	hm := top.New(colorScheme, image, season, raceweek, track, data)
 	if err := hm.Draw(headerless); err != nil {
-		log.Errorf("could not create weekly top [%s]: %v", image, err)
+		log.Errorf("top racers: could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -351,7 +351,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	seasonID, err := strconv.Atoi(vars["seasonID"])
 	if err != nil {
-		log.Errorf("could not convert seasonID [%s] to int: %v", vars["seasonID"], err)
+		log.Errorf("top laps: could not convert seasonID [%s] to int: %v", vars["seasonID"], err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -360,7 +360,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	}
 	week, err := strconv.Atoi(vars["week"])
 	if err != nil {
-		log.Errorf("could not convert week [%s] to int: %v", vars["week"], err)
+		log.Errorf("top laps: could not convert week [%s] to int: %v", vars["week"], err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -377,7 +377,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	if len(value) > 0 {
 		topN, err = strconv.Atoi(value)
 		if err != nil {
-			log.Errorf("could not convert topN [%s] to int: %v", value, err)
+			log.Errorf("top laps: could not convert topN [%s] to int: %v", value, err)
 			h.failure(rw, req, err)
 			return
 		}
@@ -389,7 +389,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	if len(value) > 0 {
 		headerless, err = strconv.ParseBool(value)
 		if err != nil {
-			log.Errorf("could not convert headerless [%s] to bool: %v", value, err)
+			log.Errorf("top laps: could not convert headerless [%s] to bool: %v", value, err)
 			h.failure(rw, req, err)
 			return
 		}
@@ -401,7 +401,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	if len(value) > 0 {
 		forceOverwrite, err = strconv.ParseBool(value)
 		if err != nil {
-			log.Errorf("could not convert forceOverwrite [%s] to bool: %v", value, err)
+			log.Errorf("top laps: could not convert forceOverwrite [%s] to bool: %v", value, err)
 			h.failure(rw, req, err)
 			return
 		}
@@ -425,7 +425,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	// create/update top image
 	season, err := h.getSeason(seasonID)
 	if err != nil {
-		log.Errorf("could not get season: %v", err)
+		log.Errorf("top laps: could not get season: %v", err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -444,7 +444,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	}
 	timeRankings, err := h.getRaceWeekTimeRankings(seasonID, week-1)
 	if err != nil {
-		log.Errorf("could not get raceweek timerankings: %v", err)
+		log.Errorf("top laps: could not get raceweek timerankings: %v", err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -570,7 +570,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 
 	hm := top.New(colorScheme, image, season, raceweek, track, data)
 	if err := hm.Draw(headerless); err != nil {
-		log.Errorf("could not create weekly top [%s]: %v", image, err)
+		log.Errorf("top laps: could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -585,7 +585,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	seasonID, err := strconv.Atoi(vars["seasonID"])
 	if err != nil {
-		log.Errorf("could not convert seasonID [%s] to int: %v", vars["seasonID"], err)
+		log.Errorf("top safety: could not convert seasonID [%s] to int: %v", vars["seasonID"], err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -594,7 +594,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	}
 	week, err := strconv.Atoi(vars["week"])
 	if err != nil {
-		log.Errorf("could not convert week [%s] to int: %v", vars["week"], err)
+		log.Errorf("top safety: could not convert week [%s] to int: %v", vars["week"], err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -611,7 +611,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	if len(value) > 0 {
 		topN, err = strconv.Atoi(value)
 		if err != nil {
-			log.Errorf("could not convert topN [%s] to int: %v", value, err)
+			log.Errorf("top safety: could not convert topN [%s] to int: %v", value, err)
 			h.failure(rw, req, err)
 			return
 		}
@@ -623,7 +623,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	if len(value) > 0 {
 		headerless, err = strconv.ParseBool(value)
 		if err != nil {
-			log.Errorf("could not convert headerless [%s] to bool: %v", value, err)
+			log.Errorf("top safety: could not convert headerless [%s] to bool: %v", value, err)
 			h.failure(rw, req, err)
 			return
 		}
@@ -635,7 +635,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	if len(value) > 0 {
 		forceOverwrite, err = strconv.ParseBool(value)
 		if err != nil {
-			log.Errorf("could not convert forceOverwrite [%s] to bool: %v", value, err)
+			log.Errorf("top safety: could not convert forceOverwrite [%s] to bool: %v", value, err)
 			h.failure(rw, req, err)
 			return
 		}
@@ -659,7 +659,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	// create/update top image
 	season, err := h.getSeason(seasonID)
 	if err != nil {
-		log.Errorf("could not get season: %v", err)
+		log.Errorf("top safety: could not get season: %v", err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -747,7 +747,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 
 	hm := top.New(colorScheme, image, season, raceweek, track, data)
 	if err := hm.Draw(headerless); err != nil {
-		log.Errorf("could not create weekly top [%s]: %v", image, err)
+		log.Errorf("top safety: could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
 		return
 	}

@@ -32,5 +32,7 @@ public/top/*.png
 public/top/*.json
 public/top/*/*.png
 public/top/*/*.json
+public/laptimes/*.png
+public/laptimes/*.json
 public/ranking/*.png
 public/ranking/*.json

@@ -84,6 +84,9 @@ func router(h *Handler) *mux.Router {
 	r.HandleFunc("/season/{seasonID}/week/{week}/top/laps.png", h.weeklyTopLaps).Methods("GET")
 	r.HandleFunc("/season/{seasonID}/week/{week}/top/safety.png", h.weeklyTopSafety).Methods("GET")
 
+	// dynamic laptime chart
+	r.HandleFunc("/season/{seasonID}/week/{week}/laptimes.png", h.weeklyLaptimes).Methods("GET")
+
 	return r
 }
 
