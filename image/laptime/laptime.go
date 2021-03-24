@@ -7,6 +7,7 @@ import (
 	"github.com/JamesClonk/iRvisualizer/image"
 	scheme "github.com/JamesClonk/iRvisualizer/image/color"
 	"github.com/JamesClonk/iRvisualizer/log"
+	"github.com/JamesClonk/iRvisualizer/util"
 	"github.com/fogleman/gg"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -225,101 +226,73 @@ func (l *Laptime) Draw() error {
 	// draw rows
 	yPosRowStart := yPosColumnHeaderStart + l.ColumnHeaderHeight + l.PaddingSize
 	for row, entry := range l.Data {
-		// draw division
 		xPos := l.PaddingSize
 		yPos := yPosRowStart + float64(row)*l.DriverHeight
+		xLength := l.ImageWidth - l.PaddingSize*2
 
 		// zebra pattern
-		dc.DrawRectangle(xPos, yPos, l.ImageWidth-l.PaddingSize*2, l.DriverHeight)
+		dc.DrawRectangle(xPos, yPos, xLength, l.DriverHeight)
 		if row%2 == 0 {
 			color.TopNCellDarkerBG(dc)
 		} else {
 			color.TopNCellLighterBG(dc)
 		}
 		dc.Fill()
-		log.Debugf("%#v", entry)
+
+		// draw outline
+		color.TopNCellOutline(dc)
+		dc.MoveTo(xPos, yPos)
+		dc.LineTo(xPos+xLength, yPos)
+		dc.LineTo(xPos+xLength, yPos+l.DriverHeight)
+		dc.LineTo(xPos, yPos+l.DriverHeight)
+		dc.LineTo(xPos, yPos)
+		dc.SetLineWidth(0.5)
+		dc.Stroke()
+
+		// draw division
+		color.TopNCellPosition(dc)
+		if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 12); err != nil {
+			return fmt.Errorf("could not load font: %v", err)
+		}
+		dc.DrawStringAnchored(entry.Division, xPos+xDivisionLength/2, yPos+l.DriverHeight/2, 0.5, 0.5)
+
+		// draw driver
+		xPos = xDivisionLength + l.PaddingSize*2
+		color.TopNCellDriver(dc)
+		if err := dc.LoadFontFace("public/fonts/Roboto-Regular.ttf", 12); err != nil {
+			return fmt.Errorf("could not load font: %v", err)
+		}
+		dc.DrawStringAnchored(entry.Driver, xPos, yPos+l.DriverHeight/2, 0, 0.5)
+
+		// draw laptimes
+		xColumnLength := l.LaptimeColumnWidth - l.PaddingSize
+		for column := float64(0); column < l.LaptimeColumns; column++ {
+			xPos := xDivisionLength + l.PaddingSize*2 + xDriverLength + l.PaddingSize + float64(column)*l.LaptimeColumnWidth
+
+			color.TopNCellValue(dc)
+			if err := dc.LoadFontFace("public/fonts/Roboto-Light.ttf", 11); err != nil {
+				return fmt.Errorf("could not load font: %v", err)
+			}
+
+			xLength := xColumnLength
+			if column == 0 {
+				xLength = xLength + l.PaddingSize
+				color.TopNCellValue(dc)
+				if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 11); err != nil {
+					return fmt.Errorf("could not load font: %v", err)
+				}
+			} else {
+				xPos = xPos + l.PaddingSize
+			}
+
+			laptime := util.ConvertLaptime(entry.Laptime)
+			if column > 0 {
+				percentage := 100 + int(column) + int(column-1)
+				laptime = util.ConvertLaptime(database.Laptime(float64(entry.Laptime) / float64(100) * float64(percentage)))
+			}
+			dc.DrawStringAnchored(laptime, xPos+xLength/2, yPos+l.DriverHeight/2, 0.5, 0.5)
+		}
 	}
-
-	//------------------------------------------------------------------------------------------------------------------
-
-	// // draw the columns
-	// yPosColumnStart := yPosColumnHeaderStart + l.DriverHeight + l.PaddingSize
-	// for column, data := range l.Data {
-	// 	xPos := l.PaddingSize + float64(column)*l.ColumnWidth
-
-	// 	// rows
-	// 	var previousValue string
-	// 	for row, entry := range data.Rows {
-	// 		yPos := yPosColumnStart + float64(row)*l.DriverHeight
-
-	// 		// zebra pattern
-	// 		dc.DrawRectangle(xPos, yPos, xLength, l.DriverHeight)
-	// 		if row%2 == 0 {
-	// 			color.TopNCellDarkerBG(dc)
-	// 		} else {
-	// 			color.TopNCellLighterBG(dc)
-	// 		}
-	// 		dc.Fill()
-
-	// 		// position
-	// 		color.TopNCellPosition(dc)
-	// 		if err := dc.LoadFontFace("public/fonts/Roboto-Light.ttf", 11); err != nil {
-	// 			return fmt.Errorf("could not load font: %v", err)
-	// 		}
-	// 		if entry.Value != previousValue {
-	// 			previousValue = entry.Value
-
-	// 			// draw icons if specified
-	// 			if len(data.Icons) > 0 && row <= 2 {
-	// 				// load icon
-	// 				iconColor := "gold"
-	// 				if row == 1 {
-	// 					iconColor = "silver"
-	// 				}
-	// 				if row == 2 {
-	// 					iconColor = "bronze"
-	// 				}
-	// 				icon, err := gg.LoadPNG(fmt.Sprintf("public/icons/%s_%s.png", data.Icons, iconColor))
-	// 				if err != nil {
-	// 					return fmt.Errorf("could not load icon: %v", err)
-	// 				}
-	// 				dc.DrawImage(icon, int(xPos+l.PaddingSize), int(yPos))
-	// 			} else {
-	// 				dc.DrawStringAnchored(fmt.Sprintf("%d.", row+1), xPos+l.PaddingSize*2, yPos+l.DriverHeight/2, 0, 0.5)
-	// 			}
-	// 		}
-	// 		// name
-	// 		color.TopNCellDriver(dc)
-	// 		if err := dc.LoadFontFace("public/fonts/Roboto-Regular.ttf", 11); err != nil {
-	// 			return fmt.Errorf("could not load font: %v", err)
-	// 		}
-	// 		dc.DrawStringAnchored(entry.Driver, xPos+20+l.PaddingSize*2, yPos+l.DriverHeight/2, 0, 0.5)
-	// 		// value
-	// 		color.TopNCellValue(dc)
-	// 		if err := dc.LoadFontFace("public/fonts/roboto-mono_regular.ttf", 12); err != nil {
-	// 			return fmt.Errorf("could not load font: %v", err)
-	// 		}
-	// 		dc.DrawStringAnchored(entry.Value, xPos+xLength-l.PaddingSize*2, yPos+l.DriverHeight/2, 1, 0.5)
-	// 		// draw an icon if specified
-	// 		if len(entry.Icon) > 0 {
-	// 			icon, err := gg.LoadPNG(fmt.Sprintf("public/icons/%s.png", entry.Icon))
-	// 			if err != nil {
-	// 				return fmt.Errorf("could not load icon: %v", err)
-	// 			}
-	// 			dc.DrawImageAnchored(icon, int(xPos+xLength-l.PaddingSize*2)-entry.IconPosition, int(yPos), 1, 0)
-	// 		}
-
-	// 		// draw outline
-	// 		color.TopNCellOutline(dc)
-	// 		dc.MoveTo(xPos, yPos)
-	// 		dc.LineTo(xPos+xLength, yPos)
-	// 		dc.LineTo(xPos+xLength, yPos+l.DriverHeight)
-	// 		dc.LineTo(xPos, yPos+l.DriverHeight)
-	// 		dc.LineTo(xPos, yPos)
-	// 		dc.SetLineWidth(0.5)
-	// 		dc.Stroke()
-	// 	}
-	// }
 
 	// add border to image
 	bdc := gg.NewContext(int(l.ImageWidth+l.BorderSize*2), int(l.ImageHeight+l.BorderSize*2))
