@@ -57,14 +57,14 @@ func New(colorScheme string, season database.Season, week database.RaceWeek, tra
 		Data:                data,
 		BorderSize:          float64(2),
 		FooterHeight:        float64(14),
-		ImageWidth:          float64(512),
+		ImageWidth:          float64(528),
 		HeaderHeight:        float64(46),
 		ColumnHeaderHeight:  float64(16),
 		DriverHeight:        float64(24),
 		PaddingSize:         float64(3),
 		Rows:                float64(len(data)),
 		LaptimeColumns:      float64(5),
-		LaptimeColumnWidth:  float64(48),
+		LaptimeColumnWidth:  float64(56),
 		DivisionColumnWidth: float64(64),
 	}
 	lap.DriverColumnWidth = lap.ImageWidth - (lap.DivisionColumnWidth + (lap.LaptimeColumnWidth * lap.LaptimeColumns))
@@ -154,7 +154,7 @@ func (l *Laptime) Draw() error {
 
 	// draw driver column header
 	xDriverLength := l.DriverColumnWidth - l.PaddingSize*2
-	xPos = xDivisionLength + l.PaddingSize
+	xPos = xDivisionLength + l.PaddingSize*2
 
 	dc.DrawRectangle(xPos, yPos, xDriverLength, l.ColumnHeaderHeight)
 	color.TopNHeaderBG(dc)
@@ -165,6 +165,32 @@ func (l *Laptime) Draw() error {
 		return fmt.Errorf("could not load font: %v", err)
 	}
 	dc.DrawStringAnchored("Driver", xPos+xDriverLength/2, yPos+l.ColumnHeaderHeight/2, 0.5, 0.5)
+
+	// draw laptime column headers
+	xColumnLength := l.LaptimeColumnWidth - l.PaddingSize
+	for column := float64(0); column < l.LaptimeColumns; column++ {
+		xPos := xDivisionLength + l.PaddingSize*2 + xDriverLength + l.PaddingSize + float64(column)*l.LaptimeColumnWidth
+		yPos := yPosColumnHeaderStart
+
+		title := fmt.Sprintf("%d%%", 100+int(column)+int(column-1))
+		xLength := xColumnLength
+		if column == 0 {
+			xLength = xLength + l.PaddingSize
+			title = "100%"
+		} else {
+			xPos = xPos + l.PaddingSize
+		}
+
+		dc.DrawRectangle(xPos, yPos, xLength, l.ColumnHeaderHeight)
+		color.TopNHeaderBG(dc)
+		dc.Fill()
+
+		color.TopNHeaderFG(dc)
+		if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 12); err != nil {
+			return fmt.Errorf("could not load font: %v", err)
+		}
+		dc.DrawStringAnchored(title, xPos+xLength/2, yPos+l.ColumnHeaderHeight/2, 0.5, 0.5)
+	}
 
 	//------------------------------------------------------------------------------------------------------------------
 
