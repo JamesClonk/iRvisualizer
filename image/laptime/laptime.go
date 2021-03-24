@@ -152,6 +152,16 @@ func (l *Laptime) Draw() error {
 	}
 	dc.DrawStringAnchored("Division", xPos+xDivisionLength/2, yPos+l.ColumnHeaderHeight/2, 0.5, 0.5)
 
+	// draw outline
+	color.TopNHeaderOutline(dc)
+	dc.MoveTo(xPos, yPos)
+	dc.LineTo(xPos+xDivisionLength, yPos)
+	dc.LineTo(xPos+xDivisionLength, yPos+l.ColumnHeaderHeight)
+	dc.LineTo(xPos, yPos+l.ColumnHeaderHeight)
+	dc.LineTo(xPos, yPos)
+	dc.SetLineWidth(1)
+	dc.Stroke()
+
 	// draw driver column header
 	xDriverLength := l.DriverColumnWidth - l.PaddingSize*2
 	xPos = xDivisionLength + l.PaddingSize*2
@@ -165,6 +175,16 @@ func (l *Laptime) Draw() error {
 		return fmt.Errorf("could not load font: %v", err)
 	}
 	dc.DrawStringAnchored("Driver", xPos+xDriverLength/2, yPos+l.ColumnHeaderHeight/2, 0.5, 0.5)
+
+	// draw outline
+	color.TopNHeaderOutline(dc)
+	dc.MoveTo(xPos, yPos)
+	dc.LineTo(xPos+xDriverLength, yPos)
+	dc.LineTo(xPos+xDriverLength, yPos+l.ColumnHeaderHeight)
+	dc.LineTo(xPos, yPos+l.ColumnHeaderHeight)
+	dc.LineTo(xPos, yPos)
+	dc.SetLineWidth(1)
+	dc.Stroke()
 
 	// draw laptime column headers
 	xColumnLength := l.LaptimeColumnWidth - l.PaddingSize
@@ -190,6 +210,16 @@ func (l *Laptime) Draw() error {
 			return fmt.Errorf("could not load font: %v", err)
 		}
 		dc.DrawStringAnchored(title, xPos+xLength/2, yPos+l.ColumnHeaderHeight/2, 0.5, 0.5)
+
+		// draw outline
+		color.TopNHeaderOutline(dc)
+		dc.MoveTo(xPos, yPos)
+		dc.LineTo(xPos+xLength, yPos)
+		dc.LineTo(xPos+xLength, yPos+l.ColumnHeaderHeight)
+		dc.LineTo(xPos, yPos+l.ColumnHeaderHeight)
+		dc.LineTo(xPos, yPos)
+		dc.SetLineWidth(1)
+		dc.Stroke()
 	}
 
 	//------------------------------------------------------------------------------------------------------------------
