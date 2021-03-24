@@ -51,7 +51,7 @@ func (h *Handler) weeklyLaptimes(rw http.ResponseWriter, req *http.Request) {
 	if refLap < 1 {
 		refLap = 0
 	}
-	refName := vars["reference"]
+	refName := req.URL.Query().Get("reference")
 	if len(refName) == 0 {
 		refName = "Reference"
 	}
