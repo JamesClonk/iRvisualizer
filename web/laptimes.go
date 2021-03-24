@@ -114,7 +114,7 @@ func (h *Handler) weeklyLaptimes(rw http.ResponseWriter, req *http.Request) {
 	}
 	for division := 1; division <= 5; division++ {
 		for _, timeRanking := range timeRankings {
-			if timeRanking.Driver.Division == division {
+			if timeRanking.Driver.Division == division && timeRanking.Race > 100 {
 				laptimes = append(laptimes, laptime.DataSet{
 					Division: fmt.Sprintf("%v", timeRanking.Driver.Division),
 					Driver:   timeRanking.Driver.Name,

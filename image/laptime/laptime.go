@@ -68,7 +68,7 @@ func New(colorScheme string, season database.Season, week database.RaceWeek, tra
 		DivisionColumnWidth: float64(64),
 	}
 	lap.DriverColumnWidth = lap.ImageWidth - (lap.DivisionColumnWidth + (lap.LaptimeColumnWidth * lap.LaptimeColumns))
-	lap.ImageHeight = lap.Rows*lap.DriverHeight + lap.DriverHeight + lap.HeaderHeight + lap.PaddingSize*3
+	lap.ImageHeight = lap.Rows*lap.DriverHeight + lap.ColumnHeaderHeight + lap.HeaderHeight + lap.PaddingSize*3
 	return lap
 }
 
@@ -222,35 +222,25 @@ func (l *Laptime) Draw() error {
 		dc.Stroke()
 	}
 
+	// draw rows
+	yPosRowStart := yPosColumnHeaderStart + l.ColumnHeaderHeight + l.PaddingSize
+	for row, entry := range l.Data {
+		// draw division
+		xPos := l.PaddingSize
+		yPos := yPosRowStart + float64(row)*l.DriverHeight
+
+		// zebra pattern
+		dc.DrawRectangle(xPos, yPos, l.ImageWidth-l.PaddingSize*2, l.DriverHeight)
+		if row%2 == 0 {
+			color.TopNCellDarkerBG(dc)
+		} else {
+			color.TopNCellLighterBG(dc)
+		}
+		dc.Fill()
+		log.Debugf("%#v", entry)
+	}
+
 	//------------------------------------------------------------------------------------------------------------------
-
-	// // draw the column headers
-	// xLength := l.ColumnWidth - l.PaddingSize*2
-	// for column, data := range l.Data {
-	// 	xPos := l.PaddingSize + float64(column)*l.ColumnWidth
-	// 	yPos := yPosColumnHeaderStart
-
-	// 	// add column header
-	// 	dc.DrawRectangle(xPos, yPos, xLength, l.DriverHeight)
-	// 	color.TopNHeaderBG(dc)
-	// 	dc.Fill()
-
-	// 	color.TopNHeaderFG(dc)
-	// 	if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 12); err != nil {
-	// 		return fmt.Errorf("could not load font: %v", err)
-	// 	}
-	// 	dc.DrawStringAnchored(data.Title, xPos+xLength/2, yPos+l.DriverHeight/2, 0.5, 0.5)
-
-	// 	// draw outline
-	// 	color.TopNHeaderOutline(dc)
-	// 	dc.MoveTo(xPos, yPos)
-	// 	dc.LineTo(xPos+xLength, yPos)
-	// 	dc.LineTo(xPos+xLength, yPos+l.DriverHeight)
-	// 	dc.LineTo(xPos, yPos+l.DriverHeight)
-	// 	dc.LineTo(xPos, yPos)
-	// 	dc.SetLineWidth(1)
-	// 	dc.Stroke()
-	// }
 
 	// // draw the columns
 	// yPosColumnStart := yPosColumnHeaderStart + l.DriverHeight + l.PaddingSize
