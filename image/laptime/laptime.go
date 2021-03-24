@@ -66,7 +66,7 @@ func New(colorScheme string, season database.Season, week database.RaceWeek, tra
 		Rows:                float64(len(data)),
 		LaptimeColumns:      float64(5),
 		LaptimeColumnWidth:  float64(56),
-		DivisionColumnWidth: float64(64),
+		DivisionColumnWidth: float64(58),
 	}
 	lap.DriverColumnWidth = lap.ImageWidth - (lap.DivisionColumnWidth + (lap.LaptimeColumnWidth * lap.LaptimeColumns))
 	lap.ImageHeight = lap.Rows*lap.DriverHeight + lap.ColumnHeaderHeight + lap.HeaderHeight + lap.PaddingSize*3

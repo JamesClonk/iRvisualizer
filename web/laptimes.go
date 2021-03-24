@@ -5,12 +5,14 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/JamesClonk/iRcollector/database"
 	"github.com/JamesClonk/iRvisualizer/image/laptime"
 	"github.com/JamesClonk/iRvisualizer/log"
+	"github.com/JamesClonk/iRvisualizer/util"
 	"github.com/gorilla/mux"
 )
 
@@ -38,7 +40,14 @@ func (h *Handler) weeklyLaptimes(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// was there a reference lap given?
-	refLap, _ := strconv.Atoi(vars["laptime"])
+	var refLap int
+	lap := req.URL.Query().Get("laptime")
+	if strings.Contains(lap, "s") { // 1m23s456ms format
+		refLap = int(util.ParseLaptime(lap))
+	} else { // int milliseconds
+		refLap, _ = strconv.Atoi(lap)
+		refLap = refLap * 10
+	}
 	if refLap < 1 {
 		refLap = 0
 	}
@@ -105,7 +114,7 @@ func (h *Handler) weeklyLaptimes(rw http.ResponseWriter, req *http.Request) {
 
 	// collect first/fastest driver for each division, 1-5
 	laptimes := make([]laptime.DataSet, 0)
-	if refLap > 0 {
+	if refLap > 0 && len(refName) > 0 {
 		laptimes = append(laptimes, laptime.DataSet{
 			Division: "-",
 			Driver:   refName,

@@ -26,3 +26,8 @@ func ConvertLaptime(laptime database.Laptime) string {
 
 	return fmt.Sprintf("%d:%02d.%03d", minutes, seconds, milliseconds)
 }
+
+func ParseLaptime(laptime string) database.Laptime {
+	l, _ := time.ParseDuration(laptime)
+	return database.Laptime(l.Milliseconds() * 10)
+}
