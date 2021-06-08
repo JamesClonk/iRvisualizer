@@ -55,6 +55,8 @@ func router(h *Handler) *mux.Router {
 	r.HandleFunc("/season/{seasonID}/week/", h.index).Methods("GET")
 	r.HandleFunc("/season/{seasonID}/week/{week}/", h.indexHeatmap).Methods("GET")
 	r.HandleFunc("/season/{seasonID}/week/{week}/top/", h.indexTop).Methods("GET")
+	// fake banner
+	r.HandleFunc("/banner.png", h.banner).Methods("GET")
 
 	// data export
 	r.HandleFunc("/series", h.series).Methods("GET")
@@ -112,6 +114,10 @@ func (h *Handler) verifyBasicAuth(rw http.ResponseWriter, req *http.Request) boo
 		return false
 	}
 	return true
+}
+
+func (h *Handler) banner(rw http.ResponseWriter, req *http.Request) {
+	http.ServeFile(rw, req, "public/banner.png")
 }
 
 func (h *Handler) index(rw http.ResponseWriter, req *http.Request) {
