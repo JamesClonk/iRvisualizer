@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/JamesClonk/iRcollector/database"
+	"github.com/JamesClonk/iRvisualizer/log"
 	"github.com/JamesClonk/iRvisualizer/util"
 )
 
@@ -26,6 +27,7 @@ func IsAvailable(colorScheme, image string, seasonID, week int) bool {
 			// or if it's from a week longer than 10 days ago and updated somewhere within 10 days after weekstart
 			(time.Now().Sub(metadata.StartDate.AddDate(0, 0, metadata.Week*7)) > time.Hour*24*10 &&
 				metadata.LastUpdated.Sub(metadata.StartDate.AddDate(0, 0, metadata.Week*7)) > time.Hour*24*10) {
+			log.Debugf("file [%s] already exists", imageFilename)
 			return true
 		}
 	}

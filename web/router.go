@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/JamesClonk/iRcollector/database"
+	"github.com/JamesClonk/iRvisualizer/log"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -89,19 +90,29 @@ func router(h *Handler) *mux.Router {
 	// dynamic laptime chart
 	r.HandleFunc("/season/{seasonID}/week/{week}/laptimes.png", h.weeklyLaptimes).Methods("GET")
 
+	// catch-all
+	r.PathPrefix("/").HandlerFunc(h.index)
+
 	return r
 }
 
+func Logging(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		log.Debugf("received request: %#v", req)
+		next.ServeHTTP(rw, req)
+	})
+}
+
 func (h *Handler) failure(rw http.ResponseWriter, req *http.Request, err error) {
-	rw.WriteHeader(500)
 	rw.Header().Set("Content-Type", "application/json")
+	rw.WriteHeader(500)
 	_, _ = rw.Write([]byte(fmt.Sprintf(`{ "error": "%v" }`, err.Error())))
 	visualizerErrors.Inc()
 }
 
 func (h *Handler) health(rw http.ResponseWriter, req *http.Request) {
-	rw.WriteHeader(200)
 	rw.Header().Set("Content-Type", "application/json")
+	rw.WriteHeader(200)
 	_, _ = rw.Write([]byte(`{ "status": "ok" }`))
 }
 
@@ -117,10 +128,15 @@ func (h *Handler) verifyBasicAuth(rw http.ResponseWriter, req *http.Request) boo
 }
 
 func (h *Handler) banner(rw http.ResponseWriter, req *http.Request) {
+	rw.Header().Set("Content-Type", "image/png")
+	rw.WriteHeader(200)
 	http.ServeFile(rw, req, "public/banner.png")
 }
 
 func (h *Handler) index(rw http.ResponseWriter, req *http.Request) {
+	rw.Header().Set("Content-Type", "text/html")
+	rw.WriteHeader(200)
+
 	index, _ := template.New("index").Parse(`
 <html>
 <head>
@@ -136,6 +152,9 @@ nothing here...
 }
 
 func (h *Handler) indexHeatmap(rw http.ResponseWriter, req *http.Request) {
+	rw.Header().Set("Content-Type", "text/html")
+	rw.WriteHeader(200)
+
 	index, _ := template.New("index").Parse(`
 <html>
 <head>
@@ -151,6 +170,9 @@ func (h *Handler) indexHeatmap(rw http.ResponseWriter, req *http.Request) {
 }
 
 func (h *Handler) indexTop(rw http.ResponseWriter, req *http.Request) {
+	rw.Header().Set("Content-Type", "text/html")
+	rw.WriteHeader(200)
+
 	index, _ := template.New("index").Parse(`
 <html>
 <head>
