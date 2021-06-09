@@ -99,8 +99,8 @@ func router(h *Handler) *mux.Router {
 
 func Logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		if strings.HasSuffix(req.RequestURI, ".png") {
-			log.Debugf("received request: %#v", req)
+		if strings.Contains(req.RequestURI, ".png") {
+			log.Debugf("received request: %v; %v; %v; %v;", req.UserAgent(), req.Proto, req.Method, req.RequestURI)
 		}
 		next.ServeHTTP(rw, req)
 	})
