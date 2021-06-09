@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/JamesClonk/iRcollector/database"
@@ -98,7 +99,9 @@ func router(h *Handler) *mux.Router {
 
 func Logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		log.Debugf("received request: %#v", req)
+		if strings.HasSuffix(req.RequestURI, ".png") {
+			log.Debugf("received request: %#v", req)
+		}
 		next.ServeHTTP(rw, req)
 	})
 }
