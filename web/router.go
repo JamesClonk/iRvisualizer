@@ -51,45 +51,45 @@ func router(h *Handler) *mux.Router {
 	r.PathPrefix("/metrics").Handler(promhttp.Handler())
 
 	// fake index html
-	r.HandleFunc("/", h.index).Methods("GET")
-	r.HandleFunc("/season/", h.index).Methods("GET")
-	r.HandleFunc("/season/{seasonID}/", h.indexHeatmap).Methods("GET")
-	r.HandleFunc("/season/{seasonID}/week/", h.index).Methods("GET")
-	r.HandleFunc("/season/{seasonID}/week/{week}/", h.indexHeatmap).Methods("GET")
-	r.HandleFunc("/season/{seasonID}/week/{week}/top/", h.indexTop).Methods("GET")
+	r.HandleFunc("/", h.index)
+	r.HandleFunc("/season/", h.index)
+	r.HandleFunc("/season/{seasonID}/", h.indexHeatmap)
+	r.HandleFunc("/season/{seasonID}/week/", h.index)
+	r.HandleFunc("/season/{seasonID}/week/{week}/", h.indexHeatmap)
+	r.HandleFunc("/season/{seasonID}/week/{week}/top/", h.indexTop)
 	// fake banner
-	r.HandleFunc("/banner.png", h.banner).Methods("GET")
+	r.HandleFunc("/banner.png", h.banner)
 
 	// data export
-	r.HandleFunc("/series", h.series).Methods("GET")
-	r.HandleFunc("/series/{seriesID}", h.seriesWeeklyExport).Methods("GET") // backwards-compatible endpoint
-	r.HandleFunc("/series/{seriesID}/weekly", h.seriesWeeklyExport).Methods("GET")
-	r.HandleFunc("/series/{seriesID}/week", h.seriesWeeklyExport).Methods("GET")
-	r.HandleFunc("/series/{seriesID}/season", h.seriesSeasonExport).Methods("GET")
-	r.HandleFunc("/series/{seriesID}/seasonal", h.seriesSeasonExport).Methods("GET")
+	r.HandleFunc("/series", h.series)
+	r.HandleFunc("/series/{seriesID}", h.seriesWeeklyExport) // backwards-compatible endpoint
+	r.HandleFunc("/series/{seriesID}/weekly", h.seriesWeeklyExport)
+	r.HandleFunc("/series/{seriesID}/week", h.seriesWeeklyExport)
+	r.HandleFunc("/series/{seriesID}/season", h.seriesSeasonExport)
+	r.HandleFunc("/series/{seriesID}/seasonal", h.seriesSeasonExport)
 
 	// dynamic ranking/standings
-	r.HandleFunc("/season/{seasonID}/standings.png", h.ranking).Methods("GET")
-	r.HandleFunc("/season/{seasonID}/standing.png", h.ranking).Methods("GET")
-	r.HandleFunc("/season/{seasonID}/rankings.png", h.ranking).Methods("GET")
-	r.HandleFunc("/season/{seasonID}/ranking.png", h.ranking).Methods("GET")
-	r.HandleFunc("/season/{seasonID}/oval_standings.png", h.ovalRanking).Methods("GET")
-	r.HandleFunc("/season/{seasonID}/oval_standing.png", h.ovalRanking).Methods("GET")
-	r.HandleFunc("/season/{seasonID}/oval_rankings.png", h.ovalRanking).Methods("GET")
-	r.HandleFunc("/season/{seasonID}/oval_ranking.png", h.ovalRanking).Methods("GET")
+	r.HandleFunc("/season/{seasonID}/standings.png", h.ranking)
+	r.HandleFunc("/season/{seasonID}/standing.png", h.ranking)
+	r.HandleFunc("/season/{seasonID}/rankings.png", h.ranking)
+	r.HandleFunc("/season/{seasonID}/ranking.png", h.ranking)
+	r.HandleFunc("/season/{seasonID}/oval_standings.png", h.ovalRanking)
+	r.HandleFunc("/season/{seasonID}/oval_standing.png", h.ovalRanking)
+	r.HandleFunc("/season/{seasonID}/oval_rankings.png", h.ovalRanking)
+	r.HandleFunc("/season/{seasonID}/oval_ranking.png", h.ovalRanking)
 
 	// dynamic heatmap
-	r.HandleFunc("/season/{seasonID}/week/{week}/heatmap.png", h.weeklyHeatmap).Methods("GET")
-	r.HandleFunc("/season/{seasonID}/heatmap.png", h.seasonalHeatmap).Methods("GET")
+	r.HandleFunc("/season/{seasonID}/week/{week}/heatmap.png", h.weeklyHeatmap)
+	r.HandleFunc("/season/{seasonID}/heatmap.png", h.seasonalHeatmap)
 
 	// dynamic scores
-	r.HandleFunc("/season/{seasonID}/week/{week}/top/scores.png", h.weeklyTopScores).Methods("GET")
-	r.HandleFunc("/season/{seasonID}/week/{week}/top/racers.png", h.weeklyTopRacers).Methods("GET")
-	r.HandleFunc("/season/{seasonID}/week/{week}/top/laps.png", h.weeklyTopLaps).Methods("GET")
-	r.HandleFunc("/season/{seasonID}/week/{week}/top/safety.png", h.weeklyTopSafety).Methods("GET")
+	r.HandleFunc("/season/{seasonID}/week/{week}/top/scores.png", h.weeklyTopScores)
+	r.HandleFunc("/season/{seasonID}/week/{week}/top/racers.png", h.weeklyTopRacers)
+	r.HandleFunc("/season/{seasonID}/week/{week}/top/laps.png", h.weeklyTopLaps)
+	r.HandleFunc("/season/{seasonID}/week/{week}/top/safety.png", h.weeklyTopSafety)
 
 	// dynamic laptime chart
-	r.HandleFunc("/season/{seasonID}/week/{week}/laptimes.png", h.weeklyLaptimes).Methods("GET")
+	r.HandleFunc("/season/{seasonID}/week/{week}/laptimes.png", h.weeklyLaptimes)
 
 	// catch-all
 	r.PathPrefix("/").HandlerFunc(h.index)
