@@ -50,7 +50,7 @@ func New(colorScheme string, season database.Season, champdata []DataRow) Rankin
 		ChampData:    champdata,
 		BorderSize:   float64(2),
 		FooterHeight: float64(14),
-		ImageWidth:   float64(740),
+		ImageWidth:   float64(816),
 		HeaderHeight: float64(24),
 		DriverHeight: float64(16),
 		PaddingSize:  float64(3),

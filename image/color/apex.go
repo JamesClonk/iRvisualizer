@@ -29,6 +29,8 @@ func NewApexScheme() Colorizer {
 	dc.SetRGB255(2, 35, 43) // dark green 1
 	dc.SetRGB255(33, 144, 55) // dark green 2
 	dc.SetRGB255(27, 204, 110) // lime green
+	dc.SetRGB255(144, 33, 33) // muted dark red
+	dc.SetRGB255(155, 0, 0) // dark red 2.5
 */
 func (c *apex) Border(dc *gg.Context) {
 	dc.SetRGB255(39, 39, 39) // dark gray 1
@@ -50,6 +52,9 @@ func (c *apex) HeaderRightBG(dc *gg.Context) {
 }
 func (c *apex) TopNHeaderFG(dc *gg.Context) {
 	dc.SetRGB255(0, 0, 0) // black
+}
+func (c *apex) TopNHeaderFGDanger(dc *gg.Context) {
+	dc.SetRGB255(155, 0, 0) // dark red 2.5
 }
 func (c *apex) TopNHeaderBG(dc *gg.Context) {
 	dc.SetRGB255(27, 204, 110) // lime green
@@ -75,6 +80,9 @@ func (c *apex) TopNCellDriver(dc *gg.Context) {
 func (c *apex) TopNCellValue(dc *gg.Context) {
 	dc.SetRGB255(33, 144, 55) // dark green 2
 }
+func (c *apex) TopNCellValueDanger(dc *gg.Context) {
+	dc.SetRGB255(144, 33, 33) // muted dark red
+}
 func (c *apex) HeatmapHeaderFG(dc *gg.Context) {
 	dc.SetRGB255(0, 0, 0) // black
 }
@@ -97,7 +105,7 @@ func (c *apex) HeatmapTimeslotMapping(dc *gg.Context, min, max, value int) {
 	dc.SetRGBA255(33-image.MapValueIntoRange(22, 0, min, max, value), 240-image.MapValueIntoRange(0, 150, min, max, value), 77-image.MapValueIntoRange(55, 0, min, max, value), image.MapValueIntoRange(5, 255, min, max, value)) // sof color
 }
 func (c *apex) LastUpdate(dc *gg.Context) {
-	dc.SetRGB255(0, 0, 0) // black
+	dc.SetRGB255(155, 155, 155) // gray 2
 }
 func (c *apex) CreatedBy(dc *gg.Context) {
 	dc.SetRGB255(155, 155, 155) // gray 2

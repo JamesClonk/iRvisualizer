@@ -30,6 +30,8 @@ func NewBlueScheme() Colorizer {
 	dc.SetRGB255(11, 83, 148) // dark blue 2
 	dc.SetRGB255(7, 55, 99) // dark blue 3
 	dc.SetRGB255(99, 166, 222) // light blue 1
+	dc.SetRGB255(144, 33, 33) // muted dark red
+	dc.SetRGB255(199, 0, 0) // red 1
 */
 func (c *blue) Border(dc *gg.Context) {
 	dc.SetRGB255(39, 39, 39) // dark gray 1
@@ -51,6 +53,9 @@ func (c *blue) HeaderRightBG(dc *gg.Context) {
 }
 func (c *blue) TopNHeaderFG(dc *gg.Context) {
 	dc.SetRGB255(255, 255, 255) // white
+}
+func (c *blue) TopNHeaderFGDanger(dc *gg.Context) {
+	dc.SetRGB255(199, 0, 0) // red 1
 }
 func (c *blue) TopNHeaderBG(dc *gg.Context) {
 	dc.SetRGB255(66, 166, 255) // light blue 1
@@ -76,6 +81,9 @@ func (c *blue) TopNCellDriver(dc *gg.Context) {
 func (c *blue) TopNCellValue(dc *gg.Context) {
 	dc.SetRGB255(7, 55, 99) // dark blue 3
 }
+func (c *blue) TopNCellValueDanger(dc *gg.Context) {
+	dc.SetRGB255(144, 33, 33) // muted dark red
+}
 func (c *blue) HeatmapHeaderFG(dc *gg.Context) {
 	dc.SetRGB255(0, 0, 0) // black
 }
@@ -98,7 +106,7 @@ func (c *blue) HeatmapTimeslotMapping(dc *gg.Context, min, max, value int) {
 	dc.SetRGBA255(50-image.MapValueIntoRange(0, 45, min, max, value), 150-image.MapValueIntoRange(0, 120, min, max, value), 255-image.MapValueIntoRange(0, 160, min, max, value), image.MapValueIntoRange(10, 225, min, max, value)) // sof color
 }
 func (c *blue) LastUpdate(dc *gg.Context) {
-	dc.SetRGB255(0, 0, 0) // black
+	dc.SetRGB255(155, 155, 155) // gray 2
 }
 func (c *blue) CreatedBy(dc *gg.Context) {
 	dc.SetRGB255(155, 155, 155) // gray 2

@@ -60,7 +60,7 @@ func New(colorScheme, name string, season database.Season, week database.RaceWee
 		Data:         data,
 		BorderSize:   float64(2),
 		FooterHeight: float64(14),
-		ImageWidth:   float64(740),
+		ImageWidth:   float64(816),
 		HeaderHeight: float64(24),
 		DriverHeight: float64(16),
 		PaddingSize:  float64(3),

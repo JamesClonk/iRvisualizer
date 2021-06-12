@@ -31,6 +31,11 @@ func NewSimuCubeScheme() Colorizer {
 	dc.SetRGB255(40, 68, 75) // dark green 3
 	dc.SetRGB255(232, 78, 15) // light orange 1
 	dc.SetRGB255(200, 40, 10) // dark orange 1
+	dc.SetRGB255(144, 33, 33) // muted dark red
+	dc.SetRGB255(120, 0, 0) // dark red 2
+	dc.SetRGB255(155, 0, 0) // dark red 2.5
+	dc.SetRGB255(199, 0, 0) // red 1
+	dc.SetRGB255(240, 50, 50) // light red 1
 */
 func (c *sc) Border(dc *gg.Context) {
 	dc.SetRGB255(39, 39, 39) // dark gray 1
@@ -52,6 +57,9 @@ func (c *sc) HeaderRightBG(dc *gg.Context) {
 }
 func (c *sc) TopNHeaderFG(dc *gg.Context) {
 	dc.SetRGB255(255, 255, 255) // white
+}
+func (c *sc) TopNHeaderFGDanger(dc *gg.Context) {
+	dc.SetRGB255(240, 50, 50) // light red 1
 }
 func (c *sc) TopNHeaderBG(dc *gg.Context) {
 	dc.SetRGB255(40, 68, 75) // dark green 3
@@ -77,6 +85,9 @@ func (c *sc) TopNCellDriver(dc *gg.Context) {
 func (c *sc) TopNCellValue(dc *gg.Context) {
 	dc.SetRGB255(200, 40, 10) // dark orange 1
 }
+func (c *sc) TopNCellValueDanger(dc *gg.Context) {
+	dc.SetRGB255(120, 0, 0) // dark red 2
+}
 func (c *sc) HeatmapHeaderFG(dc *gg.Context) {
 	dc.SetRGB255(0, 0, 0) // black
 }
@@ -99,7 +110,7 @@ func (c *sc) HeatmapTimeslotMapping(dc *gg.Context, min, max, value int) {
 	dc.SetRGBA255(220-image.MapValueIntoRange(50, 0, min, max, value), 100-image.MapValueIntoRange(0, 30, min, max, value), 15, image.MapValueIntoRange(5, 240, min, max, value)) // sof color
 }
 func (c *sc) LastUpdate(dc *gg.Context) {
-	dc.SetRGB255(0, 0, 0) // black
+	dc.SetRGB255(155, 155, 155) // gray 2
 }
 func (c *sc) CreatedBy(dc *gg.Context) {
 	dc.SetRGB255(155, 155, 155) // gray 2

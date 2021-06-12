@@ -58,13 +58,13 @@ func New(colorScheme string, season database.Season, week database.RaceWeek, tra
 		Data:                data,
 		BorderSize:          float64(2),
 		FooterHeight:        float64(14),
-		ImageWidth:          float64(528),
+		ImageWidth:          float64(756),
 		HeaderHeight:        float64(46),
 		ColumnHeaderHeight:  float64(16),
 		DriverHeight:        float64(24),
 		PaddingSize:         float64(3),
 		Rows:                float64(len(data)),
-		LaptimeColumns:      float64(5),
+		LaptimeColumns:      float64(9),
 		LaptimeColumnWidth:  float64(56),
 		DivisionColumnWidth: float64(58),
 	}
@@ -193,7 +193,7 @@ func (l *Laptime) Draw() error {
 		xPos := xDivisionLength + l.PaddingSize*2 + xDriverLength + l.PaddingSize + float64(column)*l.LaptimeColumnWidth
 		yPos := yPosColumnHeaderStart
 
-		title := fmt.Sprintf("%d%%", 100+int(column)+int(column-1))
+		title := fmt.Sprintf("%d%%", 100+int(column))
 		xLength := xColumnLength
 		if column == 0 {
 			xLength = xLength + l.PaddingSize
@@ -207,6 +207,9 @@ func (l *Laptime) Draw() error {
 		dc.Fill()
 
 		color.TopNHeaderFG(dc)
+		if column == l.LaptimeColumns-1 {
+			color.TopNHeaderFGDanger(dc)
+		}
 		if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 12); err != nil {
 			return fmt.Errorf("could not load font: %v", err)
 		}
@@ -270,6 +273,9 @@ func (l *Laptime) Draw() error {
 			xPos := xDivisionLength + l.PaddingSize*2 + xDriverLength + l.PaddingSize + float64(column)*l.LaptimeColumnWidth
 
 			color.TopNCellValue(dc)
+			if column == l.LaptimeColumns-1 {
+				color.TopNCellValueDanger(dc)
+			}
 			if err := dc.LoadFontFace("public/fonts/Roboto-Light.ttf", 11); err != nil {
 				return fmt.Errorf("could not load font: %v", err)
 			}
@@ -287,7 +293,7 @@ func (l *Laptime) Draw() error {
 
 			laptime := util.ConvertLaptime(entry.Laptime)
 			if column > 0 {
-				percentage := 100 + int(column) + int(column-1)
+				percentage := 100 + int(column)
 				laptime = util.ConvertLaptime(database.Laptime(float64(entry.Laptime) / float64(100) * float64(percentage)))
 			}
 			dc.DrawStringAnchored(laptime, xPos+xLength/2, yPos+l.DriverHeight/2, 0.5, 0.5)
