@@ -277,7 +277,7 @@ func (t *Top) Draw(headerless bool) error {
 	if err := fdc.LoadFontFace("public/fonts/Roboto-Light.ttf", 9); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	fdc.DrawStringAnchored("created by Fabio Berchtold", t.FooterHeight/2, float64(bdc.Height())+t.FooterHeight/2, 0, 0.5)
+	fdc.DrawStringAnchored("by Fabio Berchtold", t.FooterHeight/2, float64(bdc.Height())+t.FooterHeight/2, 0, 0.5)
 
 	if err := t.WriteMetadata(); err != nil {
 		return err

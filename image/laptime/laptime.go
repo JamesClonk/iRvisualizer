@@ -323,7 +323,7 @@ func (l *Laptime) Draw() error {
 	if err := fdc.LoadFontFace("public/fonts/Roboto-Light.ttf", 9); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	fdc.DrawStringAnchored("created by Fabio Berchtold", l.FooterHeight/2, float64(bdc.Height())+l.FooterHeight/2, 0, 0.5)
+	fdc.DrawStringAnchored("by Fabio Berchtold", l.FooterHeight/2, float64(bdc.Height())+l.FooterHeight/2, 0, 0.5)
 
 	if err := l.WriteMetadata(); err != nil {
 		return err

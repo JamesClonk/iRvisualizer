@@ -244,7 +244,7 @@ func (r *Ranking) Draw(num, ofTotal int) error {
 	if err := fdc.LoadFontFace("public/fonts/Roboto-Light.ttf", 9); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	fdc.DrawStringAnchored("created by Fabio Berchtold", r.FooterHeight/2, float64(bdc.Height())+r.FooterHeight/2, 0, 0.5)
+	fdc.DrawStringAnchored("by Fabio Berchtold", r.FooterHeight/2, float64(bdc.Height())+r.FooterHeight/2, 0, 0.5)
 
 	if err := r.WriteMetadata(); err != nil {
 		return err
