@@ -94,6 +94,9 @@ func (r *Ranking) Draw(num, ofTotal int) error {
 	log.Infof("draw ranking for [%s] - [%s]", rankingTitle, rankingBestOfTitle)
 
 	// colorizer
+	if len(r.ColorScheme) == 0 {
+		r.ColorScheme = r.Season.SeriesColorScheme // get series default if needed
+	}
 	color := scheme.Get(r.ColorScheme)
 
 	// create canvas

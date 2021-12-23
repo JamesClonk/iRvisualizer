@@ -107,6 +107,9 @@ func (t *Top) Draw(headerless bool) error {
 	log.Infof("draw top for [%s] - [%s]", topTitle, topTrackTitle)
 
 	// colorizer
+	if len(t.ColorScheme) == 0 {
+		t.ColorScheme = t.Season.SeriesColorScheme // get series default if needed
+	}
 	color := scheme.Get(t.ColorScheme)
 
 	// strip header?

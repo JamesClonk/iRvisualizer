@@ -100,6 +100,9 @@ func (l *Laptime) Draw() error {
 	log.Infof("draw laptimes for [%s] - [%s]", lapTitle, lapTrackTitle)
 
 	// colorizer
+	if len(l.ColorScheme) == 0 {
+		l.ColorScheme = l.Season.SeriesColorScheme // get series default if needed
+	}
 	color := scheme.Get(l.ColorScheme)
 
 	// create canvas

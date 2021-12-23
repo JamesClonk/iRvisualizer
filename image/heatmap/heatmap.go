@@ -113,6 +113,9 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 	}
 
 	// colorizer
+	if len(h.ColorScheme) == 0 {
+		h.ColorScheme = h.Season.SeriesColorScheme // get series default if needed
+	}
 	color := scheme.Get(h.ColorScheme)
 
 	// create canvas
