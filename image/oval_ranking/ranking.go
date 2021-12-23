@@ -24,6 +24,7 @@ var (
 type DataRow struct {
 	Driver string
 	Value  string
+	Marked bool
 }
 
 type Ranking struct {
@@ -169,6 +170,10 @@ func (r *Ranking) Draw(num, ofTotal int) error {
 		} else {
 			color.TopNCellLighterBG(dc)
 		}
+		// marked driver?
+		if data.Marked {
+			color.TopNHeaderBG(dc)
+		}
 		dc.Fill()
 
 		// position
@@ -199,12 +204,20 @@ func (r *Ranking) Draw(num, ofTotal int) error {
 		}
 		// name
 		color.TopNCellDriver(dc)
+		// marked driver?
+		if data.Marked {
+			color.TopNHeaderFG(dc)
+		}
 		if err := dc.LoadFontFace("public/fonts/Roboto-Regular.ttf", 11); err != nil {
 			return fmt.Errorf("could not load font: %v", err)
 		}
 		dc.DrawStringAnchored(data.Driver, xPos+20+r.PaddingSize*2, yPos+r.DriverHeight/2, 0, 0.5)
 		// value
 		color.TopNCellValue(dc)
+		// marked driver?
+		if data.Marked {
+			color.TopNHeaderFGDanger(dc)
+		}
 		if err := dc.LoadFontFace("public/fonts/roboto-mono_regular.ttf", 12); err != nil {
 			return fmt.Errorf("could not load font: %v", err)
 		}

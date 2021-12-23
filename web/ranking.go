@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/JamesClonk/iRcollector/database"
@@ -43,6 +44,9 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
+
+	// are there any marked drivers given?
+	drivers := strings.Split(req.URL.Query().Get("drivers"), ",")
 
 	// do we need to update the image file?
 	// check if file already exists and is up-to-date, serve it immediately if yes
@@ -138,6 +142,7 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 		champData = append(champData, ranking.DataRow{
 			Driver: driver.Name,
 			Value:  fmt.Sprintf("%d", int(math.Floor(total))),
+			Marked: isDriverMarked(drivers, driver.DriverID),
 		})
 	}
 	// sort by values
@@ -161,6 +166,7 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 		ttData = append(ttData, ranking.DataRow{
 			Driver: driver.Name,
 			Value:  fmt.Sprintf("%d", total),
+			Marked: isDriverMarked(drivers, driver.DriverID),
 		})
 	}
 	// sort by values
@@ -210,6 +216,9 @@ func (h *Handler) ovalRanking(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
+
+	// are there any marked drivers given?
+	drivers := strings.Split(req.URL.Query().Get("drivers"), ",")
 
 	// do we need to update the image file?
 	// check if file already exists and is up-to-date, serve it immediately if yes
@@ -290,6 +299,7 @@ func (h *Handler) ovalRanking(rw http.ResponseWriter, req *http.Request) {
 		champData = append(champData, oval_ranking.DataRow{
 			Driver: driver.Name,
 			Value:  fmt.Sprintf("%d", int(math.Floor(total))),
+			Marked: isDriverMarked(drivers, driver.DriverID),
 		})
 	}
 	// sort by values

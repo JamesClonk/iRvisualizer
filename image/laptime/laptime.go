@@ -24,6 +24,7 @@ type DataSet struct {
 	Division string
 	Driver   string
 	Laptime  database.Laptime
+	Marked   bool
 }
 
 type Laptime struct {
@@ -240,6 +241,10 @@ func (l *Laptime) Draw() error {
 		} else {
 			color.TopNCellLighterBG(dc)
 		}
+		// marked driver?
+		if entry.Marked {
+			color.TopNHeaderBG(dc)
+		}
 		dc.Fill()
 
 		// draw outline
@@ -262,6 +267,10 @@ func (l *Laptime) Draw() error {
 		// draw driver
 		xPos = xDivisionLength + l.PaddingSize*2
 		color.TopNCellDriver(dc)
+		// marked driver?
+		if entry.Marked {
+			color.TopNHeaderFG(dc)
+		}
 		if err := dc.LoadFontFace("public/fonts/Roboto-Regular.ttf", 12); err != nil {
 			return fmt.Errorf("could not load font: %v", err)
 		}
@@ -295,6 +304,11 @@ func (l *Laptime) Draw() error {
 			if column > 0 {
 				percentage := 100 + int(column)
 				laptime = util.ConvertLaptime(database.Laptime(float64(entry.Laptime) / float64(100) * float64(percentage)))
+			}
+
+			// marked driver?
+			if entry.Marked {
+				color.TopNHeaderFGDanger(dc)
 			}
 			dc.DrawStringAnchored(laptime, xPos+xLength/2, yPos+l.DriverHeight/2, 0.5, 0.5)
 		}

@@ -30,6 +30,7 @@ type DataSetRow struct {
 	Value        string
 	Icon         string
 	IconPosition int
+	Marked       bool
 }
 
 type Top struct {
@@ -192,6 +193,10 @@ func (t *Top) Draw(headerless bool) error {
 			} else {
 				color.TopNCellLighterBG(dc)
 			}
+			// marked driver?
+			if entry.Marked {
+				color.TopNHeaderBG(dc)
+			}
 			dc.Fill()
 
 			// position
@@ -223,12 +228,20 @@ func (t *Top) Draw(headerless bool) error {
 			}
 			// name
 			color.TopNCellDriver(dc)
+			// marked driver?
+			if entry.Marked {
+				color.TopNHeaderFG(dc)
+			}
 			if err := dc.LoadFontFace("public/fonts/Roboto-Regular.ttf", 11); err != nil {
 				return fmt.Errorf("could not load font: %v", err)
 			}
 			dc.DrawStringAnchored(entry.Driver, xPos+20+t.PaddingSize*2, yPos+t.DriverHeight/2, 0, 0.5)
 			// value
 			color.TopNCellValue(dc)
+			// marked driver?
+			if entry.Marked {
+				color.TopNHeaderFGDanger(dc)
+			}
 			if err := dc.LoadFontFace("public/fonts/roboto-mono_regular.ttf", 12); err != nil {
 				return fmt.Errorf("could not load font: %v", err)
 			}
