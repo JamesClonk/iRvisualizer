@@ -48,6 +48,8 @@ func Get(scheme string) Colorizer {
 		c = NewSimuCubeScheme()
 	case "apex":
 		c = NewApexScheme()
+	case "radical":
+		c = NewRadicalScheme()
 	case "indypro":
 		c = NewPMScheme()
 	default:
