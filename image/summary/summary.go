@@ -2,12 +2,12 @@ package summary
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/JamesClonk/iRcollector/database"
 	"github.com/JamesClonk/iRvisualizer/image"
 	scheme "github.com/JamesClonk/iRvisualizer/image/color"
 	"github.com/JamesClonk/iRvisualizer/log"
-	"github.com/JamesClonk/iRvisualizer/util"
 	"github.com/fogleman/gg"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -21,67 +21,65 @@ var (
 )
 
 type DataSet struct {
-	Division string
-	Driver   string
-	Laptime  database.Laptime
-	Marked   bool
+	Summary database.Summary
+	Marked  bool
 }
 
 type Summary struct {
-	ColorScheme         string
-	Team                string
-	Name                string
-	Season              database.Season
-	Week                database.RaceWeek
-	Track               database.Track
-	Data                []DataSet
-	BorderSize          float64
-	FooterHeight        float64
-	ImageHeight         float64
-	ImageWidth          float64
-	HeaderHeight        float64
-	ColumnHeaderHeight  float64
-	DriverHeight        float64
-	PaddingSize         float64
-	Rows                float64
-	LaptimeColumns      float64
-	LaptimeColumnWidth  float64
-	DivisionColumnWidth float64
-	DriverColumnWidth   float64
+	ColorScheme        string
+	Team               string
+	Name               string
+	Season             database.Season
+	Week               database.RaceWeek
+	Track              database.Track
+	Data               []DataSet
+	BorderSize         float64
+	FooterHeight       float64
+	ImageHeight        float64
+	ImageWidth         float64
+	HeaderHeight       float64
+	ColumnHeaderHeight float64
+	DriverHeight       float64
+	PaddingSize        float64
+	Rows               float64
+	SummaryColumns     float64
+	SummaryColumnWidth float64
+	PointsColumnWidth  float64
+	DriverColumnWidth  float64
 }
 
 func New(colorScheme, team string, season database.Season, week database.RaceWeek, track database.Track, data []DataSet) Summary {
 	lap := Summary{
-		ColorScheme:         colorScheme,
-		Team:                team,
-		Name:                "laptimes",
-		Season:              season,
-		Week:                week,
-		Track:               track,
-		Data:                data,
-		BorderSize:          float64(2),
-		FooterHeight:        float64(14),
-		ImageWidth:          float64(756),
-		HeaderHeight:        float64(46),
-		ColumnHeaderHeight:  float64(16),
-		DriverHeight:        float64(24),
-		PaddingSize:         float64(3),
-		Rows:                float64(len(data)),
-		LaptimeColumns:      float64(9),
-		LaptimeColumnWidth:  float64(56),
-		DivisionColumnWidth: float64(58),
+		ColorScheme:        colorScheme,
+		Team:               team,
+		Name:               "summary",
+		Season:             season,
+		Week:               week,
+		Track:              track,
+		Data:               data,
+		BorderSize:         float64(2),
+		FooterHeight:       float64(14),
+		ImageWidth:         float64(756),
+		HeaderHeight:       float64(46),
+		ColumnHeaderHeight: float64(16),
+		DriverHeight:       float64(24),
+		PaddingSize:        float64(3),
+		Rows:               float64(len(data)),
+		SummaryColumns:     float64(10),
+		SummaryColumnWidth: float64(50),
+		PointsColumnWidth:  float64(48),
 	}
-	lap.DriverColumnWidth = lap.ImageWidth - (lap.DivisionColumnWidth + (lap.LaptimeColumnWidth * lap.LaptimeColumns))
+	lap.DriverColumnWidth = lap.ImageWidth - (lap.PointsColumnWidth + (lap.SummaryColumnWidth * lap.SummaryColumns))
 	lap.ImageHeight = lap.Rows*lap.DriverHeight + lap.ColumnHeaderHeight + lap.HeaderHeight + lap.PaddingSize*3
 	return lap
 }
 
 func IsAvailable(colorScheme string, seasonID, week int, team string) bool {
-	return image.IsAvailable(colorScheme, "laptimes", seasonID, week, team)
+	return image.IsAvailable(colorScheme, "summary", seasonID, week, team)
 }
 
 func Filename(seasonID, week int, team string) string {
-	return image.ImageFilename("laptimes", seasonID, week, team)
+	return image.ImageFilename("summary", seasonID, week, team)
 }
 
 func (s *Summary) Filename() string {
@@ -91,15 +89,21 @@ func (s *Summary) Filename() string {
 func (s *Summary) Draw() error {
 	summaryDraws.Inc()
 
-	// laptime titles, season + track
-	lapTitle := fmt.Sprintf("%s - Fastest Laptimes", s.Season.SeasonName)
+	// summary titles, season + track
+	summaryTitle := fmt.Sprintf("%s - Driver summary", s.Season.SeasonName)
 	if len(s.Season.SeasonName) > 64 {
-		lapTitle = s.Season.SeasonName
+		summaryTitle = s.Season.SeasonName
 	}
-	lapWeekTitle := fmt.Sprintf("Week %d", s.Week.RaceWeek+1)
-	lapTrackTitle := s.Track.Name
+	summaryWeekTitle := fmt.Sprintf("Week %d", s.Week.RaceWeek+1)
+	summaryTrackTitle := s.Track.Name
 
-	log.Infof("draw laptimes for [%s] - [%s]", lapTitle, lapTrackTitle)
+	if s.Week.RaceWeek == -1 { // seasonal summary
+		summaryTitle = s.Season.SeasonName
+		summaryWeekTitle = ""
+		summaryTrackTitle = "Seasonal driver summary"
+	}
+
+	log.Infof("draw summary for [%s] - [%s]", summaryTitle, summaryTrackTitle)
 
 	// colorizer
 	if len(s.ColorScheme) == 0 {
@@ -127,25 +131,25 @@ func (s *Summary) Draw() error {
 		return fmt.Errorf("could not load font: %v", err)
 	}
 	color.HeaderFG(dc)
-	dc.DrawStringAnchored(lapTitle, s.PaddingSize*3, s.HeaderHeight/4, 0, 0.5)
+	dc.DrawStringAnchored(summaryTitle, s.PaddingSize*3, s.HeaderHeight/4, 0, 0.5)
 	// draw week title
 	if err := dc.LoadFontFace("public/fonts/Roboto-BoldItalic.ttf", 14); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
 	color.HeaderFG(dc)
-	dc.DrawStringAnchored(lapWeekTitle, s.ImageWidth/4, s.HeaderHeight/4*3, 0.5, 0.5)
+	dc.DrawStringAnchored(summaryWeekTitle, s.ImageWidth/4, s.HeaderHeight/4*3, 0.5, 0.5)
 	// draw track title
 	if err := dc.LoadFontFace("public/fonts/Roboto-BoldItalic.ttf", 14); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
 	color.HeaderFG(dc)
-	dc.DrawStringAnchored(lapTrackTitle, s.ImageWidth/3*2, s.HeaderHeight/4*3, 0.5, 0.5)
+	dc.DrawStringAnchored(summaryTrackTitle, s.ImageWidth/3*2, s.HeaderHeight/4*3, 0.5, 0.5)
 
 	// adjust to header height
 	yPosColumnHeaderStart := s.HeaderHeight + s.PaddingSize
 
 	// draw division column header
-	xDivisionLength := s.DivisionColumnWidth - s.PaddingSize*2
+	xDivisionLength := s.PointsColumnWidth - s.PaddingSize*2
 	xPos := s.PaddingSize
 	yPos := yPosColumnHeaderStart
 
@@ -157,7 +161,7 @@ func (s *Summary) Draw() error {
 	if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 12); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	dc.DrawStringAnchored("Division", xPos+xDivisionLength/2, yPos+s.ColumnHeaderHeight/2, 0.5, 0.5)
+	dc.DrawStringAnchored("HPts", xPos+xDivisionLength/2, yPos+s.ColumnHeaderHeight/2, 0.5, 0.5)
 
 	// draw outline
 	color.TopNHeaderOutline(dc)
@@ -193,17 +197,17 @@ func (s *Summary) Draw() error {
 	dc.SetLineWidth(1)
 	dc.Stroke()
 
-	// draw laptime column headers
-	xColumnLength := s.LaptimeColumnWidth - s.PaddingSize
-	for column := float64(0); column < s.LaptimeColumns; column++ {
-		xPos := xDivisionLength + s.PaddingSize*2 + xDriverLength + s.PaddingSize + float64(column)*s.LaptimeColumnWidth
+	// draw summary column headers
+	titles := []string{"+iR", "+SR", "Races", "Win", "Pole", "Podium", "Top 5", "+Pos", "LLaps", "Inc/L"}
+	xColumnLength := s.SummaryColumnWidth - s.PaddingSize
+	for column := float64(0); column < s.SummaryColumns; column++ {
+		xPos := xDivisionLength + s.PaddingSize*2 + xDriverLength + s.PaddingSize + float64(column)*s.SummaryColumnWidth
 		yPos := yPosColumnHeaderStart
 
-		title := fmt.Sprintf("%d%%", 100+int(column))
+		title := titles[int(column)]
 		xLength := xColumnLength
 		if column == 0 {
 			xLength = xLength + s.PaddingSize
-			title = "100%"
 		} else {
 			xPos = xPos + s.PaddingSize
 		}
@@ -213,9 +217,6 @@ func (s *Summary) Draw() error {
 		dc.Fill()
 
 		color.TopNHeaderFG(dc)
-		if column == s.LaptimeColumns-1 {
-			color.TopNHeaderFGDanger(dc)
-		}
 		if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 12); err != nil {
 			return fmt.Errorf("could not load font: %v", err)
 		}
@@ -263,11 +264,11 @@ func (s *Summary) Draw() error {
 		dc.Stroke()
 
 		// draw division
-		color.TopNCellPosition(dc)
+		color.TopNCellValueDanger(dc)
 		if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 12); err != nil {
 			return fmt.Errorf("could not load font: %v", err)
 		}
-		dc.DrawStringAnchored(entry.Division, xPos+xDivisionLength/2, yPos+s.DriverHeight/2, 0.5, 0.5)
+		dc.DrawStringAnchored(strconv.Itoa(entry.Summary.HighestChampPoints), xPos+xDivisionLength/2, yPos+s.DriverHeight/2, 0.5, 0.5)
 
 		// draw driver
 		xPos = xDivisionLength + s.PaddingSize*2
@@ -279,43 +280,65 @@ func (s *Summary) Draw() error {
 		if err := dc.LoadFontFace("public/fonts/Roboto-Regular.ttf", 12); err != nil {
 			return fmt.Errorf("could not load font: %v", err)
 		}
-		dc.DrawStringAnchored(entry.Driver, xPos, yPos+s.DriverHeight/2, 0, 0.5)
+		dc.DrawStringAnchored(entry.Summary.Driver.Name, xPos, yPos+s.DriverHeight/2, 0, 0.5)
 
-		// draw laptimes
-		xColumnLength := s.LaptimeColumnWidth - s.PaddingSize
-		for column := float64(0); column < s.LaptimeColumns; column++ {
-			xPos := xDivisionLength + s.PaddingSize*2 + xDriverLength + s.PaddingSize + float64(column)*s.LaptimeColumnWidth
-
-			color.TopNCellValue(dc)
-			if column == s.LaptimeColumns-1 {
-				color.TopNCellValueDanger(dc)
-			}
-			if err := dc.LoadFontFace("public/fonts/Roboto-Light.ttf", 11); err != nil {
-				return fmt.Errorf("could not load font: %v", err)
-			}
-
+		// draw summary
+		xColumnLength := s.SummaryColumnWidth - s.PaddingSize
+		for column := float64(0); column < s.SummaryColumns; column++ {
+			xPos := xDivisionLength + s.PaddingSize*2 + xDriverLength + s.PaddingSize + float64(column)*s.SummaryColumnWidth
 			xLength := xColumnLength
 			if column == 0 {
 				xLength = xLength + s.PaddingSize
-				color.TopNCellValue(dc)
-				if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 11); err != nil {
-					return fmt.Errorf("could not load font: %v", err)
-				}
 			} else {
 				xPos = xPos + s.PaddingSize
 			}
 
-			laptime := util.ConvertLaptime(entry.Laptime)
-			if column > 0 {
-				percentage := 100 + int(column)
-				laptime = util.ConvertLaptime(database.Laptime(float64(entry.Laptime) / float64(100) * float64(percentage)))
+			color.TopNCellValue(dc)
+			var value string
+			switch column {
+			case 0:
+				value = strconv.Itoa(entry.Summary.TotalIRatingGain)
+				if entry.Summary.TotalIRatingGain < 0 {
+					color.TopNCellValueDanger(dc)
+				}
+			case 1:
+				value = strconv.Itoa(entry.Summary.TotalSafetyRatingGain)
+				if entry.Summary.TotalSafetyRatingGain < 0 {
+					color.TopNCellValueDanger(dc)
+				}
+			case 2:
+				value = strconv.Itoa(entry.Summary.NumberOfRaces)
+			case 3:
+				value = strconv.Itoa(entry.Summary.Wins)
+			case 4:
+				value = strconv.Itoa(entry.Summary.Poles)
+			case 5:
+				value = strconv.Itoa(entry.Summary.Podiums)
+			case 6:
+				value = strconv.Itoa(entry.Summary.Top5)
+			case 7:
+				value = strconv.Itoa(entry.Summary.TotalPositionsGained)
+				if entry.Summary.TotalPositionsGained < 0 {
+					color.TopNCellValueDanger(dc)
+				}
+			case 8:
+				value = strconv.Itoa(entry.Summary.LapsLead)
+			case 9:
+				value = fmt.Sprintf("%0.2f", entry.Summary.AverageIncidentsPerLap)
+				if entry.Summary.AverageIncidentsPerLap > 0.5 {
+					color.TopNCellValueDanger(dc)
+				}
 			}
 
 			// marked driver?
 			if entry.Marked {
 				color.TopNHeaderFGDanger(dc)
 			}
-			dc.DrawStringAnchored(laptime, xPos+xLength/2, yPos+s.DriverHeight/2, 0.5, 0.5)
+
+			if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 11); err != nil {
+				return fmt.Errorf("could not load font: %v", err)
+			}
+			dc.DrawStringAnchored(value, xPos+xLength/2, yPos+s.DriverHeight/2, 0.5, 0.5)
 		}
 	}
 

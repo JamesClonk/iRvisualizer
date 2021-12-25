@@ -82,6 +82,26 @@ func (h *Handler) getRaceWeekSummaries(seasonID, week int) ([]database.Summary, 
 	return summaries, nil
 }
 
+func (h *Handler) getRaceWeekSummariesByTeam(seasonID, week int, team string) ([]database.Summary, error) {
+	log.Infof("collect raceweek summaries for season [%d], week [%d], team [%s]", seasonID, week, team)
+
+	summaries, err := h.DB.GetDriverSummariesBySeasonIDAndWeekAndTeam(seasonID, week, team)
+	if err != nil {
+		return nil, err
+	}
+	return summaries, nil
+}
+
+func (h *Handler) getSeasonalSummariesByTeam(seasonID int, team string) ([]database.Summary, error) {
+	log.Infof("collect seasonal summaries for season [%d], team [%s]", seasonID, team)
+
+	summaries, err := h.DB.GetDriverSummariesBySeasonIDAndTeam(seasonID, team)
+	if err != nil {
+		return nil, err
+	}
+	return summaries, nil
+}
+
 func (h *Handler) getRaceWeekTimeRankings(seasonID, week int) ([]database.TimeRanking, error) {
 	log.Infof("collect raceweek timerankings for season [%d], week [%d]", seasonID, week)
 
