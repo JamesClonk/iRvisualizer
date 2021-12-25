@@ -5,7 +5,7 @@ import (
 )
 
 func (r *Ranking) MetadataFilename() string {
-	return image.MetadataFilename("ranking", r.Season.SeasonID, -1)
+	return image.MetadataFilename("ranking", r.Season.SeasonID, -1, r.Team)
 }
 
 func (r *Ranking) ReadMetadata() (meta image.Metadata) {
@@ -17,6 +17,6 @@ func (r *Ranking) WriteMetadata() error {
 	return image.WriteMetadata(r.ColorScheme, "ranking",
 		r.Season.SeasonID, -1,
 		r.Season.SeasonName, r.Season.Year, r.Season.Quarter,
-		"ranking", r.Season.StartDate,
+		"ranking", r.Team, r.Season.StartDate,
 	)
 }

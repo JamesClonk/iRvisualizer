@@ -5,7 +5,7 @@ import (
 )
 
 func (l *Laptime) MetadataFilename() string {
-	return image.MetadataFilename("laptimes", l.Season.SeasonID, l.Week.RaceWeek+1)
+	return image.MetadataFilename("laptimes", l.Season.SeasonID, l.Week.RaceWeek+1, l.Team)
 }
 
 func (l *Laptime) ReadMetadata() (meta image.Metadata) {
@@ -17,6 +17,6 @@ func (l *Laptime) WriteMetadata() error {
 	return image.WriteMetadata(l.ColorScheme, "laptimes",
 		l.Season.SeasonID, l.Week.RaceWeek+1,
 		l.Season.SeasonName, l.Season.Year, l.Season.Quarter,
-		l.Track.Name, l.Season.StartDate,
+		l.Track.Name, l.Team, l.Season.StartDate,
 	)
 }

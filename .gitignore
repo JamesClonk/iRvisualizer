@@ -34,5 +34,9 @@ public/top/*/*.png
 public/top/*/*.json
 public/laptimes/*.png
 public/laptimes/*.json
+public/summary/*.png
+public/summary/*.json
+public/oval_ranking/*.png
+public/oval_ranking/*.json
 public/ranking/*.png
 public/ranking/*.json

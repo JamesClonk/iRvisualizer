@@ -45,21 +45,24 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// are there any marked drivers given?
+	// are there any individually marked drivers given?
 	drivers := strings.Split(req.URL.Query().Get("drivers"), ",")
+
+	// is there a team given?
+	team := req.URL.Query().Get("team")
 
 	// do we need to update the image file?
 	// check if file already exists and is up-to-date, serve it immediately if yes
-	if !forceOverwrite && ranking.IsAvailable(colorScheme, seasonID) {
-		http.ServeFile(rw, req, ranking.Filename(seasonID))
+	if !forceOverwrite && ranking.IsAvailable(colorScheme, seasonID, team) {
+		http.ServeFile(rw, req, ranking.Filename(seasonID, team))
 		return
 	}
 	// lock global mutex
 	rankingMutex.Lock()
 	defer rankingMutex.Unlock()
 	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
-	if !forceOverwrite && ranking.IsAvailable(colorScheme, seasonID) {
-		http.ServeFile(rw, req, ranking.Filename(seasonID))
+	if !forceOverwrite && ranking.IsAvailable(colorScheme, seasonID, team) {
+		http.ServeFile(rw, req, ranking.Filename(seasonID, team))
 		return
 	}
 
@@ -142,7 +145,7 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 		champData = append(champData, ranking.DataRow{
 			Driver: driver.Name,
 			Value:  fmt.Sprintf("%d", int(math.Floor(total))),
-			Marked: isDriverMarked(drivers, driver.DriverID),
+			Marked: isDriverMarked(drivers, driver.DriverID) || (driver.Team == team && len(team) > 0),
 		})
 	}
 	// sort by values
@@ -166,7 +169,7 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 		ttData = append(ttData, ranking.DataRow{
 			Driver: driver.Name,
 			Value:  fmt.Sprintf("%d", total),
-			Marked: isDriverMarked(drivers, driver.DriverID),
+			Marked: isDriverMarked(drivers, driver.DriverID) || (driver.Team == team && len(team) > 0),
 		})
 	}
 	// sort by values
@@ -179,7 +182,7 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 		return a > b
 	})
 
-	r := ranking.New(colorScheme, season, champData, ttData)
+	r := ranking.New(colorScheme, team, season, champData, ttData)
 	if err := r.Draw(bestN, weeks); err != nil {
 		log.Errorf("could not create season ranking: %v", err)
 		h.failure(rw, req, err)
@@ -187,7 +190,7 @@ func (h *Handler) ranking(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// serve new/updated image
-	http.ServeFile(rw, req, ranking.Filename(seasonID))
+	http.ServeFile(rw, req, ranking.Filename(seasonID, team))
 }
 
 func (h *Handler) ovalRanking(rw http.ResponseWriter, req *http.Request) {
@@ -217,21 +220,24 @@ func (h *Handler) ovalRanking(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// are there any marked drivers given?
+	// are there any individually marked drivers given?
 	drivers := strings.Split(req.URL.Query().Get("drivers"), ",")
+
+	// is there a team given?
+	team := req.URL.Query().Get("team")
 
 	// do we need to update the image file?
 	// check if file already exists and is up-to-date, serve it immediately if yes
-	if !forceOverwrite && oval_ranking.IsAvailable(colorScheme, seasonID) {
-		http.ServeFile(rw, req, oval_ranking.Filename(seasonID))
+	if !forceOverwrite && oval_ranking.IsAvailable(colorScheme, seasonID, team) {
+		http.ServeFile(rw, req, oval_ranking.Filename(seasonID, team))
 		return
 	}
 	// lock global mutex
 	rankingMutex.Lock()
 	defer rankingMutex.Unlock()
 	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
-	if !forceOverwrite && oval_ranking.IsAvailable(colorScheme, seasonID) {
-		http.ServeFile(rw, req, oval_ranking.Filename(seasonID))
+	if !forceOverwrite && oval_ranking.IsAvailable(colorScheme, seasonID, team) {
+		http.ServeFile(rw, req, oval_ranking.Filename(seasonID, team))
 		return
 	}
 
@@ -299,7 +305,7 @@ func (h *Handler) ovalRanking(rw http.ResponseWriter, req *http.Request) {
 		champData = append(champData, oval_ranking.DataRow{
 			Driver: driver.Name,
 			Value:  fmt.Sprintf("%d", int(math.Floor(total))),
-			Marked: isDriverMarked(drivers, driver.DriverID),
+			Marked: isDriverMarked(drivers, driver.DriverID) || (driver.Team == team && len(team) > 0),
 		})
 	}
 	// sort by values
@@ -312,7 +318,7 @@ func (h *Handler) ovalRanking(rw http.ResponseWriter, req *http.Request) {
 		return a > b
 	})
 
-	r := oval_ranking.New(colorScheme, season, champData)
+	r := oval_ranking.New(colorScheme, team, season, champData)
 	if err := r.Draw(bestN, weeks); err != nil {
 		log.Errorf("could not create season oval ranking: %v", err)
 		h.failure(rw, req, err)
@@ -320,5 +326,5 @@ func (h *Handler) ovalRanking(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// serve new/updated image
-	http.ServeFile(rw, req, oval_ranking.Filename(seasonID))
+	http.ServeFile(rw, req, oval_ranking.Filename(seasonID, team))
 }

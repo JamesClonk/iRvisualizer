@@ -29,6 +29,7 @@ type DataRow struct {
 
 type Ranking struct {
 	ColorScheme  string
+	Team         string
 	Season       database.Season
 	ChampData    []DataRow
 	BorderSize   float64
@@ -44,9 +45,10 @@ type Ranking struct {
 	Rows         float64
 }
 
-func New(colorScheme string, season database.Season, champdata []DataRow) Ranking {
+func New(colorScheme, team string, season database.Season, champdata []DataRow) Ranking {
 	ranking := Ranking{
 		ColorScheme:  colorScheme,
+		Team:         team,
 		Season:       season,
 		ChampData:    champdata,
 		BorderSize:   float64(2),
@@ -63,16 +65,16 @@ func New(colorScheme string, season database.Season, champdata []DataRow) Rankin
 	return ranking
 }
 
-func IsAvailable(colorScheme string, seasonID int) bool {
-	return image.IsAvailable(colorScheme, "oval_ranking", seasonID, -1)
+func IsAvailable(colorScheme string, seasonID int, team string) bool {
+	return image.IsAvailable(colorScheme, "oval_ranking", seasonID, -1, team)
 }
 
-func Filename(seasonID int) string {
-	return image.ImageFilename("oval_ranking", seasonID, -1)
+func Filename(seasonID int, team string) string {
+	return image.ImageFilename("oval_ranking", seasonID, -1, team)
 }
 
 func (r *Ranking) Filename() string {
-	return Filename(r.Season.SeasonID)
+	return Filename(r.Season.SeasonID, r.Team)
 }
 
 func (r *Ranking) Draw(num, ofTotal int) error {

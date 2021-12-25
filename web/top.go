@@ -80,21 +80,24 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// are there any marked drivers given?
+	// are there any individually marked drivers given?
 	drivers := strings.Split(req.URL.Query().Get("drivers"), ",")
+
+	// is there a team given?
+	team := req.URL.Query().Get("team")
 
 	// do we need to update the image file?
 	// check if file already exists and is up-to-date, serve it immediately if yes
-	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week) {
-		http.ServeFile(rw, req, top.Filename(image, seasonID, week))
+	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week, team) {
+		http.ServeFile(rw, req, top.Filename(image, seasonID, week, team))
 		return
 	}
 	// lock global mutex
 	topMutex.Lock()
 	defer topMutex.Unlock()
 	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
-	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week) {
-		http.ServeFile(rw, req, top.Filename(image, seasonID, week))
+	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week, team) {
+		http.ServeFile(rw, req, top.Filename(image, seasonID, week, team))
 		return
 	}
 
@@ -134,7 +137,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 		champ.Rows = append(champ.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
 			Value:  fmt.Sprintf("%d", summaries[i].HighestChampPoints),
-			Marked: isDriverMarked(drivers, summaries[i].Driver.DriverID),
+			Marked: isDriverMarked(drivers, summaries[i].Driver.DriverID) || (summaries[i].Driver.Team == team && len(team) > 0),
 		})
 	}
 	data = append(data, champ)
@@ -152,7 +155,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 		club.Rows = append(club.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
 			Value:  fmt.Sprintf("%d", summaries[i].TotalClubPoints),
-			Marked: isDriverMarked(drivers, summaries[i].Driver.DriverID),
+			Marked: isDriverMarked(drivers, summaries[i].Driver.DriverID) || (summaries[i].Driver.Team == team && len(team) > 0),
 		})
 	}
 	data = append(data, club)
@@ -170,12 +173,12 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 		podiums.Rows = append(podiums.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
 			Value:  fmt.Sprintf("%d", summaries[i].Podiums),
-			Marked: isDriverMarked(drivers, summaries[i].Driver.DriverID),
+			Marked: isDriverMarked(drivers, summaries[i].Driver.DriverID) || (summaries[i].Driver.Team == team && len(team) > 0),
 		})
 	}
 	data = append(data, podiums)
 
-	hm := top.New(colorScheme, image, season, raceweek, track, data)
+	hm := top.New(colorScheme, team, image, season, raceweek, track, data)
 	if err := hm.Draw(headerless); err != nil {
 		log.Errorf("top scores: could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
@@ -183,7 +186,7 @@ func (h *Handler) weeklyTopScores(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// serve new/updated image
-	http.ServeFile(rw, req, top.Filename(image, seasonID, week))
+	http.ServeFile(rw, req, top.Filename(image, seasonID, week, team))
 }
 
 func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
@@ -248,21 +251,24 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// are there any marked drivers given?
+	// are there any individually marked drivers given?
 	drivers := strings.Split(req.URL.Query().Get("drivers"), ",")
+
+	// is there a team given?
+	team := req.URL.Query().Get("team")
 
 	// do we need to update the image file?
 	// check if file already exists and is up-to-date, serve it immediately if yes
-	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week) {
-		http.ServeFile(rw, req, top.Filename(image, seasonID, week))
+	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week, team) {
+		http.ServeFile(rw, req, top.Filename(image, seasonID, week, team))
 		return
 	}
 	// lock global mutex
 	topMutex.Lock()
 	defer topMutex.Unlock()
 	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
-	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week) {
-		http.ServeFile(rw, req, top.Filename(image, seasonID, week))
+	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week, team) {
+		http.ServeFile(rw, req, top.Filename(image, seasonID, week, team))
 		return
 	}
 
@@ -301,7 +307,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 		top5.Rows = append(top5.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
 			Value:  fmt.Sprintf("%d", summaries[i].Top5),
-			Marked: isDriverMarked(drivers, summaries[i].Driver.DriverID),
+			Marked: isDriverMarked(drivers, summaries[i].Driver.DriverID) || (summaries[i].Driver.Team == team && len(team) > 0),
 		})
 	}
 	data = append(data, top5)
@@ -323,7 +329,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 		positions.Rows = append(positions.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
 			Value:  value,
-			Marked: isDriverMarked(drivers, summaries[i].Driver.DriverID),
+			Marked: isDriverMarked(drivers, summaries[i].Driver.DriverID) || (summaries[i].Driver.Team == team && len(team) > 0),
 		})
 	}
 	data = append(data, positions)
@@ -342,12 +348,12 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 		races.Rows = append(races.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
 			Value:  fmt.Sprintf("%d", summaries[i].NumberOfRaces),
-			Marked: isDriverMarked(drivers, summaries[i].Driver.DriverID),
+			Marked: isDriverMarked(drivers, summaries[i].Driver.DriverID) || (summaries[i].Driver.Team == team && len(team) > 0),
 		})
 	}
 	data = append(data, races)
 
-	hm := top.New(colorScheme, image, season, raceweek, track, data)
+	hm := top.New(colorScheme, team, image, season, raceweek, track, data)
 	if err := hm.Draw(headerless); err != nil {
 		log.Errorf("top racers: could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
@@ -355,7 +361,7 @@ func (h *Handler) weeklyTopRacers(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// serve new/updated image
-	http.ServeFile(rw, req, top.Filename(image, seasonID, week))
+	http.ServeFile(rw, req, top.Filename(image, seasonID, week, team))
 }
 
 func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
@@ -420,21 +426,24 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// are there any marked drivers given?
+	// are there any individually marked drivers given?
 	drivers := strings.Split(req.URL.Query().Get("drivers"), ",")
+
+	// is there a team given?
+	team := req.URL.Query().Get("team")
 
 	// do we need to update the image file?
 	// check if file already exists and is up-to-date, serve it immediately if yes
-	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week) {
-		http.ServeFile(rw, req, top.Filename(image, seasonID, week))
+	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week, team) {
+		http.ServeFile(rw, req, top.Filename(image, seasonID, week, team))
 		return
 	}
 	// lock global mutex
 	topMutex.Lock()
 	defer topMutex.Unlock()
 	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
-	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week) {
-		http.ServeFile(rw, req, top.Filename(image, seasonID, week))
+	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week, team) {
+		http.ServeFile(rw, req, top.Filename(image, seasonID, week, team))
 		return
 	}
 
@@ -495,7 +504,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 			Icon:         icon,
 			IconPosition: 55,
 			Value:        util.ConvertLaptime(filtered[i].TimeTrial),
-			Marked:       isDriverMarked(drivers, filtered[i].Driver.DriverID),
+			Marked:       isDriverMarked(drivers, filtered[i].Driver.DriverID) || (filtered[i].Driver.Team == team && len(team) > 0),
 		})
 	}
 	data = append(data, tt)
@@ -550,8 +559,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 			Icon:         icon,
 			IconPosition: 55,
 			Value:        util.ConvertLaptime(filtered[i].Race),
-
-			Marked: isDriverMarked(drivers, filtered[i].Driver.DriverID),
+			Marked:       isDriverMarked(drivers, filtered[i].Driver.DriverID) || (filtered[i].Driver.Team == team && len(team) > 0),
 		})
 	}
 	data = append(data, race)
@@ -583,12 +591,12 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 			Icon:         icon,
 			IconPosition: iconPos,
 			Value:        fmt.Sprintf("%d", summaries[i].LapsCompleted),
-			Marked:       isDriverMarked(drivers, summaries[i].Driver.DriverID),
+			Marked:       isDriverMarked(drivers, summaries[i].Driver.DriverID) || (summaries[i].Driver.Team == team && len(team) > 0),
 		})
 	}
 	data = append(data, laps)
 
-	hm := top.New(colorScheme, image, season, raceweek, track, data)
+	hm := top.New(colorScheme, team, image, season, raceweek, track, data)
 	if err := hm.Draw(headerless); err != nil {
 		log.Errorf("top laps: could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
@@ -596,7 +604,7 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// serve new/updated image
-	http.ServeFile(rw, req, top.Filename(image, seasonID, week))
+	http.ServeFile(rw, req, top.Filename(image, seasonID, week, team))
 }
 
 func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
@@ -661,21 +669,24 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// are there any marked drivers given?
+	// are there any individually marked drivers given?
 	drivers := strings.Split(req.URL.Query().Get("drivers"), ",")
+
+	// is there a team given?
+	team := req.URL.Query().Get("team")
 
 	// do we need to update the image file?
 	// check if file already exists and is up-to-date, serve it immediately if yes
-	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week) {
-		http.ServeFile(rw, req, top.Filename(image, seasonID, week))
+	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week, team) {
+		http.ServeFile(rw, req, top.Filename(image, seasonID, week, team))
 		return
 	}
 	// lock global mutex
 	topMutex.Lock()
 	defer topMutex.Unlock()
 	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
-	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week) {
-		http.ServeFile(rw, req, top.Filename(image, seasonID, week))
+	if !forceOverwrite && top.IsAvailable(colorScheme, image, seasonID, week, team) {
+		http.ServeFile(rw, req, top.Filename(image, seasonID, week, team))
 		return
 	}
 
@@ -718,7 +729,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 		irating.Rows = append(irating.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
 			Value:  value,
-			Marked: isDriverMarked(drivers, summaries[i].Driver.DriverID),
+			Marked: isDriverMarked(drivers, summaries[i].Driver.DriverID) || (summaries[i].Driver.Team == team && len(team) > 0),
 		})
 	}
 	data = append(data, irating)
@@ -740,7 +751,7 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 		sr.Rows = append(sr.Rows, top.DataSetRow{
 			Driver: summaries[i].Driver.Name,
 			Value:  value,
-			Marked: isDriverMarked(drivers, summaries[i].Driver.DriverID),
+			Marked: isDriverMarked(drivers, summaries[i].Driver.DriverID) || (summaries[i].Driver.Team == team && len(team) > 0),
 		})
 	}
 	data = append(data, sr)
@@ -766,12 +777,12 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 		inc.Rows = append(inc.Rows, top.DataSetRow{
 			Driver: filtered[i].Driver.Name,
 			Value:  fmt.Sprintf("%.3f", filtered[i].AverageIncidentsPerLap),
-			Marked: isDriverMarked(drivers, filtered[i].Driver.DriverID),
+			Marked: isDriverMarked(drivers, filtered[i].Driver.DriverID) || (filtered[i].Driver.Team == team && len(team) > 0),
 		})
 	}
 	data = append(data, inc)
 
-	hm := top.New(colorScheme, image, season, raceweek, track, data)
+	hm := top.New(colorScheme, team, image, season, raceweek, track, data)
 	if err := hm.Draw(headerless); err != nil {
 		log.Errorf("top safety: could not create weekly top [%s]: %v", image, err)
 		h.failure(rw, req, err)
@@ -779,5 +790,5 @@ func (h *Handler) weeklyTopSafety(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// serve new/updated image
-	http.ServeFile(rw, req, top.Filename(image, seasonID, week))
+	http.ServeFile(rw, req, top.Filename(image, seasonID, week, team))
 }

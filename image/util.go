@@ -2,6 +2,7 @@ package image
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/JamesClonk/iRcollector/database"
@@ -9,32 +10,52 @@ import (
 	"github.com/JamesClonk/iRvisualizer/util"
 )
 
-func IsAvailable(colorScheme, image string, seasonID, week int) bool {
+func IsAvailable(colorScheme, image string, seasonID, week int, team string) bool {
 	// check if file already exists
-	imageFilename := ImageFilename(image, seasonID, week)
-	metaFilename := MetadataFilename(image, seasonID, week)
+	imageFilename := ImageFilename(image, seasonID, week, team)
+	metaFilename := MetadataFilename(image, seasonID, week, team)
 	if util.FileExists(metaFilename) && util.FileExists(imageFilename) {
 		metadata := GetMetadata(metaFilename)
-		if metadata.ColorScheme != colorScheme {
+		if metadata.ColorScheme != colorScheme && len(colorScheme) > 0 {
+			log.Debugf("file [%s] has a different colorScheme, needs to be regenerated", imageFilename)
 			return false // cached image has a different colorscheme, needs to be regenerated
 		}
 
 		if week <= 0 {
 			metadata.Week = 12 // set to 12 if we want to calculate a seasonal image file from last season ago
 		}
-		// if it's older than 2 hours
-		if (time.Now().Sub(metadata.LastUpdated) < time.Hour*2) ||
-			// or if it's from a week longer than 10 days ago and updated somewhere within 10 days after weekstart
-			(time.Now().Sub(metadata.StartDate.AddDate(0, 0, metadata.Week*7)) > time.Hour*24*10 &&
-				metadata.LastUpdated.Sub(metadata.StartDate.AddDate(0, 0, metadata.Week*7)) > time.Hour*24*10) {
-			log.Debugf("file [%s] already exists", imageFilename)
+
+		// if it's from a week longer than 10 days ago and updated somewhere within 10 days after weekstart
+		if time.Since(metadata.StartDate.AddDate(0, 0, metadata.Week*7)) > time.Hour*24*10 &&
+			metadata.LastUpdated.Sub(metadata.StartDate.AddDate(0, 0, metadata.Week*7)) > time.Hour*24*10 {
+			//log.Debugf("file [%s] already exists", imageFilename)
+			return true
+		}
+
+		// if it's a team file and older than 15 minutes
+		if len(metadata.Team) > 0 && time.Since(metadata.LastUpdated) > time.Minute*15 {
+			//log.Debugf("file [%s] is older than 15 minutes, needs to be regenerated", imageFilename)
+			return false // cached image needs to be regenerated
+		}
+
+		// if it's younger than 2 hours
+		if time.Since(metadata.LastUpdated) < time.Hour*2 {
+			//log.Debugf("file [%s] already exists", imageFilename)
 			return true
 		}
 	}
-	return false
+	return false // cached image needs to be regenerated
 }
 
-func ImageFilename(image string, seasonID, week int) string {
+func ImageFilename(image string, seasonID, week int, team string) string {
+	if len(team) > 0 {
+		team = strings.ReplaceAll(strings.ToLower(team), " ", "_")
+		if week <= 0 {
+			return fmt.Sprintf("public/%s/season_%d_%s.png", image, seasonID, team)
+		}
+		return fmt.Sprintf("public/%s/season_%d_week_%d_%s.png", image, seasonID, week, team)
+	}
+
 	if week <= 0 {
 		return fmt.Sprintf("public/%s/season_%d.png", image, seasonID)
 	}

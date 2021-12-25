@@ -71,21 +71,24 @@ func (h *Handler) weeklyLaptimes(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// are there any marked drivers given?
+	// are there any individually marked drivers given?
 	drivers := strings.Split(req.URL.Query().Get("drivers"), ",")
+
+	// is there a team given?
+	team := req.URL.Query().Get("team")
 
 	// do we need to update the image file?
 	// check if file already exists and is up-to-date, serve it immediately if yes
-	if !forceOverwrite && laptime.IsAvailable(colorScheme, seasonID, week) {
-		http.ServeFile(rw, req, laptime.Filename(seasonID, week))
+	if !forceOverwrite && laptime.IsAvailable(colorScheme, seasonID, week, team) {
+		http.ServeFile(rw, req, laptime.Filename(seasonID, week, team))
 		return
 	}
 	// lock global mutex
 	laptimeMutex.Lock()
 	defer laptimeMutex.Unlock()
 	// doublecheck, to make sure it wasn't updated by now by another goroutine that held the lock before
-	if !forceOverwrite && laptime.IsAvailable(colorScheme, seasonID, week) {
-		http.ServeFile(rw, req, laptime.Filename(seasonID, week))
+	if !forceOverwrite && laptime.IsAvailable(colorScheme, seasonID, week, team) {
+		http.ServeFile(rw, req, laptime.Filename(seasonID, week, team))
 		return
 	}
 
@@ -131,14 +134,14 @@ func (h *Handler) weeklyLaptimes(rw http.ResponseWriter, req *http.Request) {
 					Division: fmt.Sprintf("%v", timeRanking.Driver.Division),
 					Driver:   timeRanking.Driver.Name,
 					Laptime:  timeRanking.Race,
-					Marked:   isDriverMarked(drivers, timeRanking.Driver.DriverID),
+					Marked:   isDriverMarked(drivers, timeRanking.Driver.DriverID) || (timeRanking.Driver.Team == team && len(team) > 0),
 				})
 				break
 			}
 		}
 	}
 
-	l := laptime.New(colorScheme, season, raceweek, track, laptimes)
+	l := laptime.New(colorScheme, team, season, raceweek, track, laptimes)
 	if err := l.Draw(); err != nil {
 		log.Errorf("laptimes: could not create weekly laptime chart: %v", err)
 		h.failure(rw, req, err)
@@ -146,5 +149,5 @@ func (h *Handler) weeklyLaptimes(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// serve new/updated image
-	http.ServeFile(rw, req, laptime.Filename(seasonID, week))
+	http.ServeFile(rw, req, laptime.Filename(seasonID, week, team))
 }

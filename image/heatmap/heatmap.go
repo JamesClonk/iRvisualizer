@@ -56,11 +56,11 @@ func New(colorScheme string, season database.Season, week database.RaceWeek, tra
 }
 
 func IsAvailable(colorScheme string, seasonID, week int) bool {
-	return image.IsAvailable(colorScheme, "heatmap", seasonID, week)
+	return image.IsAvailable(colorScheme, "heatmap", seasonID, week, "")
 }
 
 func Filename(seasonID, week int) string {
-	return image.ImageFilename("heatmap", seasonID, week)
+	return image.ImageFilename("heatmap", seasonID, week, "")
 }
 
 func (h *Heatmap) Filename() string {

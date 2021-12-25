@@ -35,6 +35,7 @@ type DataSetRow struct {
 
 type Top struct {
 	ColorScheme  string
+	Team         string
 	Name         string
 	Season       database.Season
 	Week         database.RaceWeek
@@ -51,9 +52,10 @@ type Top struct {
 	ColumnWidth  float64
 }
 
-func New(colorScheme, name string, season database.Season, week database.RaceWeek, track database.Track, data []DataSet) Top {
+func New(colorScheme, team, name string, season database.Season, week database.RaceWeek, track database.Track, data []DataSet) Top {
 	top := Top{
 		ColorScheme:  colorScheme,
+		Team:         team,
 		Name:         name,
 		Season:       season,
 		Week:         week,
@@ -79,16 +81,16 @@ func New(colorScheme, name string, season database.Season, week database.RaceWee
 	return top
 }
 
-func IsAvailable(colorScheme string, name string, seasonID, week int) bool {
-	return image.IsAvailable(colorScheme, "top/"+name, seasonID, week)
+func IsAvailable(colorScheme string, name string, seasonID, week int, team string) bool {
+	return image.IsAvailable(colorScheme, "top/"+name, seasonID, week, team)
 }
 
-func Filename(name string, seasonID, week int) string {
-	return image.ImageFilename("top/"+name, seasonID, week)
+func Filename(name string, seasonID, week int, team string) string {
+	return image.ImageFilename("top/"+name, seasonID, week, team)
 }
 
 func (t *Top) Filename() string {
-	return Filename(t.Name, t.Season.SeasonID, t.Week.RaceWeek+1)
+	return Filename(t.Name, t.Season.SeasonID, t.Week.RaceWeek+1, t.Team)
 }
 
 func (t *Top) Draw(headerless bool) error {

@@ -1,4 +1,4 @@
-package laptime
+package summary
 
 import (
 	"fmt"
@@ -14,9 +14,9 @@ import (
 )
 
 var (
-	laptimeDraws = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "irvisualizer_laptimes_drawn_total",
-		Help: "Total laptimes drawn by iRvisualizer.",
+	summaryDraws = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "irvisualizer_summaries_drawn_total",
+		Help: "Total driver summaries drawn by iRvisualizer.",
 	})
 )
 
@@ -27,7 +27,7 @@ type DataSet struct {
 	Marked   bool
 }
 
-type Laptime struct {
+type Summary struct {
 	ColorScheme         string
 	Team                string
 	Name                string
@@ -50,8 +50,8 @@ type Laptime struct {
 	DriverColumnWidth   float64
 }
 
-func New(colorScheme, team string, season database.Season, week database.RaceWeek, track database.Track, data []DataSet) Laptime {
-	lap := Laptime{
+func New(colorScheme, team string, season database.Season, week database.RaceWeek, track database.Track, data []DataSet) Summary {
+	lap := Summary{
 		ColorScheme:         colorScheme,
 		Team:                team,
 		Name:                "laptimes",
@@ -84,41 +84,41 @@ func Filename(seasonID, week int, team string) string {
 	return image.ImageFilename("laptimes", seasonID, week, team)
 }
 
-func (l *Laptime) Filename() string {
-	return Filename(l.Season.SeasonID, l.Week.RaceWeek+1, l.Team)
+func (s *Summary) Filename() string {
+	return Filename(s.Season.SeasonID, s.Week.RaceWeek+1, s.Team)
 }
 
-func (l *Laptime) Draw() error {
-	laptimeDraws.Inc()
+func (s *Summary) Draw() error {
+	summaryDraws.Inc()
 
 	// laptime titles, season + track
-	lapTitle := fmt.Sprintf("%s - Fastest Laptimes", l.Season.SeasonName)
-	if len(l.Season.SeasonName) > 64 {
-		lapTitle = l.Season.SeasonName
+	lapTitle := fmt.Sprintf("%s - Fastest Laptimes", s.Season.SeasonName)
+	if len(s.Season.SeasonName) > 64 {
+		lapTitle = s.Season.SeasonName
 	}
-	lapWeekTitle := fmt.Sprintf("Week %d", l.Week.RaceWeek+1)
-	lapTrackTitle := l.Track.Name
+	lapWeekTitle := fmt.Sprintf("Week %d", s.Week.RaceWeek+1)
+	lapTrackTitle := s.Track.Name
 
 	log.Infof("draw laptimes for [%s] - [%s]", lapTitle, lapTrackTitle)
 
 	// colorizer
-	if len(l.ColorScheme) == 0 {
-		l.ColorScheme = l.Season.SeriesColorScheme // get series default if needed
+	if len(s.ColorScheme) == 0 {
+		s.ColorScheme = s.Season.SeriesColorScheme // get series default if needed
 	}
-	color := scheme.Get(l.ColorScheme)
+	color := scheme.Get(s.ColorScheme)
 
 	// create canvas
-	dc := gg.NewContext(int(l.ImageWidth), int(l.ImageHeight))
+	dc := gg.NewContext(int(s.ImageWidth), int(s.ImageHeight))
 
 	// background
 	color.Background(dc)
 	dc.Clear()
 
 	// header
-	dc.DrawRectangle(0, 0, l.ImageWidth, l.HeaderHeight/2)
+	dc.DrawRectangle(0, 0, s.ImageWidth, s.HeaderHeight/2)
 	color.HeaderLeftBG(dc)
 	dc.Fill()
-	dc.DrawRectangle(0, l.HeaderHeight/2, l.ImageWidth, l.HeaderHeight/2)
+	dc.DrawRectangle(0, s.HeaderHeight/2, s.ImageWidth, s.HeaderHeight/2)
 	color.HeaderRightBG(dc)
 	dc.Fill()
 
@@ -127,29 +127,29 @@ func (l *Laptime) Draw() error {
 		return fmt.Errorf("could not load font: %v", err)
 	}
 	color.HeaderFG(dc)
-	dc.DrawStringAnchored(lapTitle, l.PaddingSize*3, l.HeaderHeight/4, 0, 0.5)
+	dc.DrawStringAnchored(lapTitle, s.PaddingSize*3, s.HeaderHeight/4, 0, 0.5)
 	// draw week title
 	if err := dc.LoadFontFace("public/fonts/Roboto-BoldItalic.ttf", 14); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
 	color.HeaderFG(dc)
-	dc.DrawStringAnchored(lapWeekTitle, l.ImageWidth/4, l.HeaderHeight/4*3, 0.5, 0.5)
+	dc.DrawStringAnchored(lapWeekTitle, s.ImageWidth/4, s.HeaderHeight/4*3, 0.5, 0.5)
 	// draw track title
 	if err := dc.LoadFontFace("public/fonts/Roboto-BoldItalic.ttf", 14); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
 	color.HeaderFG(dc)
-	dc.DrawStringAnchored(lapTrackTitle, l.ImageWidth/3*2, l.HeaderHeight/4*3, 0.5, 0.5)
+	dc.DrawStringAnchored(lapTrackTitle, s.ImageWidth/3*2, s.HeaderHeight/4*3, 0.5, 0.5)
 
 	// adjust to header height
-	yPosColumnHeaderStart := l.HeaderHeight + l.PaddingSize
+	yPosColumnHeaderStart := s.HeaderHeight + s.PaddingSize
 
 	// draw division column header
-	xDivisionLength := l.DivisionColumnWidth - l.PaddingSize*2
-	xPos := l.PaddingSize
+	xDivisionLength := s.DivisionColumnWidth - s.PaddingSize*2
+	xPos := s.PaddingSize
 	yPos := yPosColumnHeaderStart
 
-	dc.DrawRectangle(xPos, yPos, xDivisionLength, l.ColumnHeaderHeight)
+	dc.DrawRectangle(xPos, yPos, xDivisionLength, s.ColumnHeaderHeight)
 	color.TopNHeaderBG(dc)
 	dc.Fill()
 
@@ -157,23 +157,23 @@ func (l *Laptime) Draw() error {
 	if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 12); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	dc.DrawStringAnchored("Division", xPos+xDivisionLength/2, yPos+l.ColumnHeaderHeight/2, 0.5, 0.5)
+	dc.DrawStringAnchored("Division", xPos+xDivisionLength/2, yPos+s.ColumnHeaderHeight/2, 0.5, 0.5)
 
 	// draw outline
 	color.TopNHeaderOutline(dc)
 	dc.MoveTo(xPos, yPos)
 	dc.LineTo(xPos+xDivisionLength, yPos)
-	dc.LineTo(xPos+xDivisionLength, yPos+l.ColumnHeaderHeight)
-	dc.LineTo(xPos, yPos+l.ColumnHeaderHeight)
+	dc.LineTo(xPos+xDivisionLength, yPos+s.ColumnHeaderHeight)
+	dc.LineTo(xPos, yPos+s.ColumnHeaderHeight)
 	dc.LineTo(xPos, yPos)
 	dc.SetLineWidth(1)
 	dc.Stroke()
 
 	// draw driver column header
-	xDriverLength := l.DriverColumnWidth - l.PaddingSize*2
-	xPos = xDivisionLength + l.PaddingSize*2
+	xDriverLength := s.DriverColumnWidth - s.PaddingSize*2
+	xPos = xDivisionLength + s.PaddingSize*2
 
-	dc.DrawRectangle(xPos, yPos, xDriverLength, l.ColumnHeaderHeight)
+	dc.DrawRectangle(xPos, yPos, xDriverLength, s.ColumnHeaderHeight)
 	color.TopNHeaderBG(dc)
 	dc.Fill()
 
@@ -181,66 +181,66 @@ func (l *Laptime) Draw() error {
 	if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 12); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	dc.DrawStringAnchored("Driver", xPos+xDriverLength/2, yPos+l.ColumnHeaderHeight/2, 0.5, 0.5)
+	dc.DrawStringAnchored("Driver", xPos+xDriverLength/2, yPos+s.ColumnHeaderHeight/2, 0.5, 0.5)
 
 	// draw outline
 	color.TopNHeaderOutline(dc)
 	dc.MoveTo(xPos, yPos)
 	dc.LineTo(xPos+xDriverLength, yPos)
-	dc.LineTo(xPos+xDriverLength, yPos+l.ColumnHeaderHeight)
-	dc.LineTo(xPos, yPos+l.ColumnHeaderHeight)
+	dc.LineTo(xPos+xDriverLength, yPos+s.ColumnHeaderHeight)
+	dc.LineTo(xPos, yPos+s.ColumnHeaderHeight)
 	dc.LineTo(xPos, yPos)
 	dc.SetLineWidth(1)
 	dc.Stroke()
 
 	// draw laptime column headers
-	xColumnLength := l.LaptimeColumnWidth - l.PaddingSize
-	for column := float64(0); column < l.LaptimeColumns; column++ {
-		xPos := xDivisionLength + l.PaddingSize*2 + xDriverLength + l.PaddingSize + float64(column)*l.LaptimeColumnWidth
+	xColumnLength := s.LaptimeColumnWidth - s.PaddingSize
+	for column := float64(0); column < s.LaptimeColumns; column++ {
+		xPos := xDivisionLength + s.PaddingSize*2 + xDriverLength + s.PaddingSize + float64(column)*s.LaptimeColumnWidth
 		yPos := yPosColumnHeaderStart
 
 		title := fmt.Sprintf("%d%%", 100+int(column))
 		xLength := xColumnLength
 		if column == 0 {
-			xLength = xLength + l.PaddingSize
+			xLength = xLength + s.PaddingSize
 			title = "100%"
 		} else {
-			xPos = xPos + l.PaddingSize
+			xPos = xPos + s.PaddingSize
 		}
 
-		dc.DrawRectangle(xPos, yPos, xLength, l.ColumnHeaderHeight)
+		dc.DrawRectangle(xPos, yPos, xLength, s.ColumnHeaderHeight)
 		color.TopNHeaderBG(dc)
 		dc.Fill()
 
 		color.TopNHeaderFG(dc)
-		if column == l.LaptimeColumns-1 {
+		if column == s.LaptimeColumns-1 {
 			color.TopNHeaderFGDanger(dc)
 		}
 		if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 12); err != nil {
 			return fmt.Errorf("could not load font: %v", err)
 		}
-		dc.DrawStringAnchored(title, xPos+xLength/2, yPos+l.ColumnHeaderHeight/2, 0.5, 0.5)
+		dc.DrawStringAnchored(title, xPos+xLength/2, yPos+s.ColumnHeaderHeight/2, 0.5, 0.5)
 
 		// draw outline
 		color.TopNHeaderOutline(dc)
 		dc.MoveTo(xPos, yPos)
 		dc.LineTo(xPos+xLength, yPos)
-		dc.LineTo(xPos+xLength, yPos+l.ColumnHeaderHeight)
-		dc.LineTo(xPos, yPos+l.ColumnHeaderHeight)
+		dc.LineTo(xPos+xLength, yPos+s.ColumnHeaderHeight)
+		dc.LineTo(xPos, yPos+s.ColumnHeaderHeight)
 		dc.LineTo(xPos, yPos)
 		dc.SetLineWidth(1)
 		dc.Stroke()
 	}
 
 	// draw rows
-	yPosRowStart := yPosColumnHeaderStart + l.ColumnHeaderHeight + l.PaddingSize
-	for row, entry := range l.Data {
-		xPos := l.PaddingSize
-		yPos := yPosRowStart + float64(row)*l.DriverHeight
-		xLength := l.ImageWidth - l.PaddingSize*2
+	yPosRowStart := yPosColumnHeaderStart + s.ColumnHeaderHeight + s.PaddingSize
+	for row, entry := range s.Data {
+		xPos := s.PaddingSize
+		yPos := yPosRowStart + float64(row)*s.DriverHeight
+		xLength := s.ImageWidth - s.PaddingSize*2
 
 		// zebra pattern
-		dc.DrawRectangle(xPos, yPos, xLength, l.DriverHeight)
+		dc.DrawRectangle(xPos, yPos, xLength, s.DriverHeight)
 		if row%2 == 0 {
 			color.TopNCellDarkerBG(dc)
 		} else {
@@ -256,8 +256,8 @@ func (l *Laptime) Draw() error {
 		color.TopNCellOutline(dc)
 		dc.MoveTo(xPos, yPos)
 		dc.LineTo(xPos+xLength, yPos)
-		dc.LineTo(xPos+xLength, yPos+l.DriverHeight)
-		dc.LineTo(xPos, yPos+l.DriverHeight)
+		dc.LineTo(xPos+xLength, yPos+s.DriverHeight)
+		dc.LineTo(xPos, yPos+s.DriverHeight)
 		dc.LineTo(xPos, yPos)
 		dc.SetLineWidth(0.5)
 		dc.Stroke()
@@ -267,10 +267,10 @@ func (l *Laptime) Draw() error {
 		if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 12); err != nil {
 			return fmt.Errorf("could not load font: %v", err)
 		}
-		dc.DrawStringAnchored(entry.Division, xPos+xDivisionLength/2, yPos+l.DriverHeight/2, 0.5, 0.5)
+		dc.DrawStringAnchored(entry.Division, xPos+xDivisionLength/2, yPos+s.DriverHeight/2, 0.5, 0.5)
 
 		// draw driver
-		xPos = xDivisionLength + l.PaddingSize*2
+		xPos = xDivisionLength + s.PaddingSize*2
 		color.TopNCellDriver(dc)
 		// marked driver?
 		if entry.Marked {
@@ -279,15 +279,15 @@ func (l *Laptime) Draw() error {
 		if err := dc.LoadFontFace("public/fonts/Roboto-Regular.ttf", 12); err != nil {
 			return fmt.Errorf("could not load font: %v", err)
 		}
-		dc.DrawStringAnchored(entry.Driver, xPos, yPos+l.DriverHeight/2, 0, 0.5)
+		dc.DrawStringAnchored(entry.Driver, xPos, yPos+s.DriverHeight/2, 0, 0.5)
 
 		// draw laptimes
-		xColumnLength := l.LaptimeColumnWidth - l.PaddingSize
-		for column := float64(0); column < l.LaptimeColumns; column++ {
-			xPos := xDivisionLength + l.PaddingSize*2 + xDriverLength + l.PaddingSize + float64(column)*l.LaptimeColumnWidth
+		xColumnLength := s.LaptimeColumnWidth - s.PaddingSize
+		for column := float64(0); column < s.LaptimeColumns; column++ {
+			xPos := xDivisionLength + s.PaddingSize*2 + xDriverLength + s.PaddingSize + float64(column)*s.LaptimeColumnWidth
 
 			color.TopNCellValue(dc)
-			if column == l.LaptimeColumns-1 {
+			if column == s.LaptimeColumns-1 {
 				color.TopNCellValueDanger(dc)
 			}
 			if err := dc.LoadFontFace("public/fonts/Roboto-Light.ttf", 11); err != nil {
@@ -296,13 +296,13 @@ func (l *Laptime) Draw() error {
 
 			xLength := xColumnLength
 			if column == 0 {
-				xLength = xLength + l.PaddingSize
+				xLength = xLength + s.PaddingSize
 				color.TopNCellValue(dc)
 				if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 11); err != nil {
 					return fmt.Errorf("could not load font: %v", err)
 				}
 			} else {
-				xPos = xPos + l.PaddingSize
+				xPos = xPos + s.PaddingSize
 			}
 
 			laptime := util.ConvertLaptime(entry.Laptime)
@@ -315,18 +315,18 @@ func (l *Laptime) Draw() error {
 			if entry.Marked {
 				color.TopNHeaderFGDanger(dc)
 			}
-			dc.DrawStringAnchored(laptime, xPos+xLength/2, yPos+l.DriverHeight/2, 0.5, 0.5)
+			dc.DrawStringAnchored(laptime, xPos+xLength/2, yPos+s.DriverHeight/2, 0.5, 0.5)
 		}
 	}
 
 	// add border to image
-	bdc := gg.NewContext(int(l.ImageWidth+l.BorderSize*2), int(l.ImageHeight+l.BorderSize*2))
+	bdc := gg.NewContext(int(s.ImageWidth+s.BorderSize*2), int(s.ImageHeight+s.BorderSize*2))
 	color.Border(bdc)
 	bdc.Clear()
-	bdc.DrawImage(dc.Image(), int(l.BorderSize), int(l.BorderSize))
+	bdc.DrawImage(dc.Image(), int(s.BorderSize), int(s.BorderSize))
 
 	// add footer to image
-	fdc := gg.NewContext(bdc.Width(), bdc.Height()+int(l.FooterHeight))
+	fdc := gg.NewContext(bdc.Width(), bdc.Height()+int(s.FooterHeight))
 	color.Transparent(fdc)
 	fdc.Clear()
 	fdc.DrawImage(bdc.Image(), 0, 0)
@@ -335,17 +335,17 @@ func (l *Laptime) Draw() error {
 	if err := fdc.LoadFontFace("public/fonts/roboto-mono_light.ttf", 10); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	lastUpdate := l.Week.LastUpdate.UTC().Format("2006-01-02 15:04:05 -07 MST")
-	fdc.DrawStringAnchored(fmt.Sprintf("Last Update: %s", lastUpdate), float64(bdc.Width())-l.FooterHeight/2, float64(bdc.Height())+l.FooterHeight/2, 1, 0.5)
+	lastUpdate := s.Week.LastUpdate.UTC().Format("2006-01-02 15:04:05 -07 MST")
+	fdc.DrawStringAnchored(fmt.Sprintf("Last Update: %s", lastUpdate), float64(bdc.Width())-s.FooterHeight/2, float64(bdc.Height())+s.FooterHeight/2, 1, 0.5)
 
 	color.CreatedBy(fdc)
 	if err := fdc.LoadFontFace("public/fonts/Roboto-Light.ttf", 9); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	fdc.DrawStringAnchored("by Fabio Berchtold", l.FooterHeight/2, float64(bdc.Height())+l.FooterHeight/2, 0, 0.5)
+	fdc.DrawStringAnchored("by Fabio Berchtold", s.FooterHeight/2, float64(bdc.Height())+s.FooterHeight/2, 0, 0.5)
 
-	if err := l.WriteMetadata(); err != nil {
+	if err := s.WriteMetadata(); err != nil {
 		return err
 	}
-	return fdc.SavePNG(l.Filename()) // finally write to file
+	return fdc.SavePNG(s.Filename()) // finally write to file
 }
