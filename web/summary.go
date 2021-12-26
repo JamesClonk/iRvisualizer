@@ -187,7 +187,7 @@ func (h *Handler) seasonSummary(rw http.ResponseWriter, req *http.Request) {
 
 	// is there a team given?
 	team := req.URL.Query().Get("team")
-	if len(team) > 0 {
+	if len(team) == 0 {
 		team = "TNT Racing"
 	}
 
