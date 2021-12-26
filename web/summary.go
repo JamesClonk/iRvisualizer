@@ -141,7 +141,7 @@ func (h *Handler) weeklySummary(rw http.ResponseWriter, req *http.Request) {
 	http.ServeFile(rw, req, summary.Filename(seasonID, week, team))
 }
 
-func (h *Handler) seasonalSummary(rw http.ResponseWriter, req *http.Request) {
+func (h *Handler) seasonSummary(rw http.ResponseWriter, req *http.Request) {
 	image := "summary"
 
 	vars := mux.Vars(req)
@@ -214,9 +214,9 @@ func (h *Handler) seasonalSummary(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	var summaries []database.Summary
-	summaries, err = h.getSeasonalSummariesByTeam(seasonID, team)
+	summaries, err = h.getSeasonSummariesByTeam(seasonID, team)
 	if err != nil {
-		log.Errorf("summary: could not get seasonal summaries for season[%d], team[%s]: %v", seasonID, team, err)
+		log.Errorf("summary: could not get season summaries for season[%d], team[%s]: %v", seasonID, team, err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -224,7 +224,7 @@ func (h *Handler) seasonalSummary(rw http.ResponseWriter, req *http.Request) {
 	data := make([]summary.DataSet, 0)
 	// sort by champ points
 	sort.Slice(summaries, func(i, j int) bool {
-		return summaries[i].HighestChampPoints > summaries[j].HighestChampPoints
+		return summaries[i].AverageChampPoints > summaries[j].AverageChampPoints
 	})
 	for i := 0; i < topN && i < len(summaries); i++ {
 		data = append(data, summary.DataSet{
@@ -235,7 +235,7 @@ func (h *Handler) seasonalSummary(rw http.ResponseWriter, req *http.Request) {
 
 	hm := summary.New(colorScheme, team, season, database.RaceWeek{RaceWeek: -1, LastUpdate: time.Now()}, database.Track{}, data)
 	if err := hm.Draw(); err != nil {
-		log.Errorf("summary: could not create seasonal summary [%s]: %v", image, err)
+		log.Errorf("summary: could not create season summary [%s]: %v", image, err)
 		h.failure(rw, req, err)
 		return
 	}

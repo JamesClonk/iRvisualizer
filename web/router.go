@@ -89,7 +89,7 @@ func router(h *Handler) *mux.Router {
 	r.HandleFunc("/season/{seasonID}/week/{week}/top/safety.png", h.weeklyTopSafety)
 
 	// dynamic driver summaries
-	r.HandleFunc("/season/{seasonID}/summary.png", h.seasonalSummary)
+	r.HandleFunc("/season/{seasonID}/summary.png", h.seasonSummary)
 	r.HandleFunc("/season/{seasonID}/week/{week}/summary.png", h.weeklySummary)
 
 	// dynamic laptime chart

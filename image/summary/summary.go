@@ -67,7 +67,7 @@ func New(colorScheme, team string, season database.Season, week database.RaceWee
 		Rows:               float64(len(data)),
 		SummaryColumns:     float64(10),
 		SummaryColumnWidth: float64(50),
-		PointsColumnWidth:  float64(48),
+		PointsColumnWidth:  float64(50),
 	}
 	lap.DriverColumnWidth = lap.ImageWidth - (lap.PointsColumnWidth + (lap.SummaryColumnWidth * lap.SummaryColumns))
 	lap.ImageHeight = lap.Rows*lap.DriverHeight + lap.ColumnHeaderHeight + lap.HeaderHeight + lap.PaddingSize*3
@@ -97,10 +97,10 @@ func (s *Summary) Draw() error {
 	summaryWeekTitle := fmt.Sprintf("Week %d", s.Week.RaceWeek+1)
 	summaryTrackTitle := s.Track.Name
 
-	if s.Week.RaceWeek == -1 { // seasonal summary
+	if s.Week.RaceWeek == -1 { // season summary
 		summaryTitle = s.Season.SeasonName
 		summaryWeekTitle = ""
-		summaryTrackTitle = "Seasonal driver summary"
+		summaryTrackTitle = "Season driver summary"
 	}
 
 	log.Infof("draw summary for [%s] - [%s]", summaryTitle, summaryTrackTitle)
@@ -161,7 +161,11 @@ func (s *Summary) Draw() error {
 	if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 12); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
-	dc.DrawStringAnchored("HPts", xPos+xDivisionLength/2, yPos+s.ColumnHeaderHeight/2, 0.5, 0.5)
+	value := "HPts"
+	if s.Week.RaceWeek == -1 { // season summary
+		value = "AvgPts"
+	}
+	dc.DrawStringAnchored(value, xPos+xDivisionLength/2, yPos+s.ColumnHeaderHeight/2, 0.5, 0.5)
 
 	// draw outline
 	color.TopNHeaderOutline(dc)
@@ -268,7 +272,11 @@ func (s *Summary) Draw() error {
 		if err := dc.LoadFontFace("public/fonts/Roboto-Medium.ttf", 12); err != nil {
 			return fmt.Errorf("could not load font: %v", err)
 		}
-		dc.DrawStringAnchored(strconv.Itoa(entry.Summary.HighestChampPoints), xPos+xDivisionLength/2, yPos+s.DriverHeight/2, 0.5, 0.5)
+		value := strconv.Itoa(entry.Summary.HighestChampPoints)
+		if s.Week.RaceWeek == -1 { // season summary
+			value = strconv.Itoa(entry.Summary.AverageChampPoints)
+		}
+		dc.DrawStringAnchored(value, xPos+xDivisionLength/2, yPos+s.DriverHeight/2, 0.5, 0.5)
 
 		// draw driver
 		xPos = xDivisionLength + s.PaddingSize*2
