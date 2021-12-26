@@ -62,6 +62,7 @@ func router(h *Handler) *mux.Router {
 
 	// data export
 	r.HandleFunc("/series", h.series)
+	r.HandleFunc("/series_json", h.seriesJson)
 	r.HandleFunc("/series/{seriesID}", h.seriesWeeklyExport) // backwards-compatible endpoint
 	r.HandleFunc("/series/{seriesID}/weekly", h.seriesWeeklyExport)
 	r.HandleFunc("/series/{seriesID}/week", h.seriesWeeklyExport)

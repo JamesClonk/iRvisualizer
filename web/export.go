@@ -3,6 +3,7 @@ package web
 import (
 	"bytes"
 	"fmt"
+	"html/template"
 	"math"
 	"net/http"
 	"sort"
@@ -26,6 +27,36 @@ func (h *Handler) series(rw http.ResponseWriter, req *http.Request) {
 	for _, series := range series {
 		_, _ = rw.Write([]byte(fmt.Sprintf("%d;%s;%s;%d;%d\n", series.SeriesID, series.SeriesNameShort, series.CurrentSeason, series.CurrentSeasonID, series.CurrentWeek)))
 	}
+}
+
+func (h *Handler) seriesJson(rw http.ResponseWriter, req *http.Request) {
+	// show all active series as JSON output
+	series, err := h.getSeries()
+	if err != nil {
+		log.Errorf("could not get series: %v", err)
+		h.failure(rw, req, err)
+		return
+	}
+
+	seriesTmpl := `[
+{{ range $index, $series := . }}  {{ if $index }},{{ end }}{
+	"series_id": {{ $series.SeriesID }},
+	"name": "{{ $series.SeriesNameShort }}",
+	"current_season": "{{ $series.CurrentSeason }}",
+	"current_season_id": {{ $series.CurrentSeasonID }},
+	"current_week": {{ $series.CurrentWeek }}
+}
+{{ end }}]`
+	serie := template.Must(template.New("series").Parse(seriesTmpl))
+	var buf bytes.Buffer
+	if err := serie.Execute(&buf, series); err != nil {
+		log.Errorf("could not parse series template: %v", err)
+		h.failure(rw, req, err)
+		return
+	}
+	rw.Header().Set("Content-Type", "application/json")
+	rw.WriteHeader(200)
+	_, _ = rw.Write(buf.Bytes())
 }
 
 func (h *Handler) seriesWeeklyExport(rw http.ResponseWriter, req *http.Request) {
