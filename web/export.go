@@ -22,9 +22,9 @@ func (h *Handler) series(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	_, _ = rw.Write([]byte("SERIES_ID;SERIES_NAME\n"))
+	_, _ = rw.Write([]byte("SERIES_ID;SERIES_NAME;CURRENT_SEASON;CURRENT_SEASON_ID;CURRENT_WEEK\n"))
 	for _, series := range series {
-		_, _ = rw.Write([]byte(fmt.Sprintf("%d;%s\n", series.SeriesID, series.SeriesName)))
+		_, _ = rw.Write([]byte(fmt.Sprintf("%d;%s;%s;%d;%d\n", series.SeriesID, series.SeriesNameShort, series.CurrentSeason, series.CurrentSeasonID, series.CurrentWeek)))
 	}
 }
 
