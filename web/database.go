@@ -125,7 +125,7 @@ func (h *Handler) getChampPoints(seasonID, week int) ([]database.Points, error) 
 func (h *Handler) getChampPointsForOvals(seasonID, week int) ([]database.Points, error) {
 	log.Infof("collect championship points for oval tracks for season [%d], week [%d]", seasonID, week)
 
-	points, err := h.DB.GetPointsBySeasonIDAndWeekAndTrackCategory(seasonID, week, "Oval")
+	points, err := h.DB.GetPointsBySeasonIDAndWeekAndTrackCategory(seasonID, week, "oval")
 	if err != nil {
 		return nil, err
 	}
