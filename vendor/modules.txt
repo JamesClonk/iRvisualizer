@@ -1,4 +1,4 @@
-# github.com/JamesClonk/iRcollector v0.0.0-20220514081816-991ce20a4aec
+# github.com/JamesClonk/iRcollector v0.0.0-20220517134756-6c3419fd4037
 ## explicit
 github.com/JamesClonk/iRcollector/database
 github.com/JamesClonk/iRcollector/env
