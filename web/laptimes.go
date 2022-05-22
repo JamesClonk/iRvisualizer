@@ -106,16 +106,16 @@ func (h *Handler) weeklyLaptimes(rw http.ResponseWriter, req *http.Request) {
 		raceweek.LastUpdate = time.Now()
 		track.Name = "starting soon..."
 	}
-	timeRankings, err := h.getRaceWeekTimeRankings(seasonID, week-1)
+	raceweekLaptimes, err := h.getRaceWeekFastestRaceLaptimes(seasonID, week-1)
 	if err != nil {
-		log.Errorf("laptimes: could not get raceweek timerankings: %v", err)
+		log.Errorf("laptimes: could not get raceweek fastest race laptimes: %v", err)
 		h.failure(rw, req, err)
 		return
 	}
 
-	// sort by fastest race laptimes
-	sort.Slice(timeRankings, func(i, j int) bool {
-		return timeRankings[i].Race < timeRankings[j].Race
+	// sort by fastest laptimes if not already
+	sort.Slice(raceweekLaptimes, func(i, j int) bool {
+		return raceweekLaptimes[i].Laptime < raceweekLaptimes[j].Laptime
 	})
 
 	// collect first/fastest driver for each division, 1-5
@@ -128,13 +128,13 @@ func (h *Handler) weeklyLaptimes(rw http.ResponseWriter, req *http.Request) {
 		})
 	}
 	for division := 1; division <= 5; division++ {
-		for _, timeRanking := range timeRankings {
-			if timeRanking.Driver.Division == division && timeRanking.Race > 100 {
+		for _, rl := range raceweekLaptimes {
+			if rl.Driver.Division == division && rl.Laptime > 100 {
 				laptimes = append(laptimes, laptime.DataSet{
-					Division: fmt.Sprintf("%v", timeRanking.Driver.Division),
-					Driver:   timeRanking.Driver.Name,
-					Laptime:  timeRanking.Race,
-					Marked:   isDriverMarked(drivers, timeRanking.Driver.DriverID) || (timeRanking.Driver.Team == team && len(team) > 0),
+					Division: fmt.Sprintf("%v", rl.Driver.Division),
+					Driver:   rl.Driver.Name,
+					Laptime:  rl.Laptime,
+					Marked:   isDriverMarked(drivers, rl.Driver.DriverID) || (rl.Driver.Team == team && len(team) > 0),
 				})
 				break
 			}

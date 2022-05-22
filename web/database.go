@@ -112,6 +112,26 @@ func (h *Handler) getRaceWeekTimeRankings(seasonID, week int) ([]database.TimeRa
 	return timeRankings, nil
 }
 
+func (h *Handler) getRaceWeekFastestTimeTrialSessions(seasonID, week int) ([]database.FastestLaptime, error) {
+	log.Infof("collect raceweek fastest time trial sessions for season [%d], week [%d]", seasonID, week)
+
+	laptimes, err := h.DB.GetFastestTimeTrialSessionsBySeasonIDAndWeek(seasonID, week)
+	if err != nil {
+		return nil, err
+	}
+	return laptimes, nil
+}
+
+func (h *Handler) getRaceWeekFastestRaceLaptimes(seasonID, week int) ([]database.FastestLaptime, error) {
+	log.Infof("collect raceweek fastest race laptimes for season [%d], week [%d]", seasonID, week)
+
+	laptimes, err := h.DB.GetFastestRaceLaptimesBySeasonIDAndWeek(seasonID, week)
+	if err != nil {
+		return nil, err
+	}
+	return laptimes, nil
+}
+
 func (h *Handler) getChampPoints(seasonID, week int) ([]database.Points, error) {
 	log.Infof("collect championship points for season [%d], week [%d]", seasonID, week)
 

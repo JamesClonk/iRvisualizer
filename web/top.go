@@ -467,9 +467,15 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 		h.failure(rw, req, err)
 		return
 	}
-	timeRankings, err := h.getRaceWeekTimeRankings(seasonID, week-1)
+	timeTrialSessions, err := h.getRaceWeekFastestTimeTrialSessions(seasonID, week-1)
 	if err != nil {
-		log.Errorf("top laps: could not get raceweek timerankings: %v", err)
+		log.Errorf("top laps: could not get raceweek time trial sessions: %v", err)
+		h.failure(rw, req, err)
+		return
+	}
+	raceLaptimes, err := h.getRaceWeekFastestRaceLaptimes(seasonID, week-1)
+	if err != nil {
+		log.Errorf("top laps: could not get raceweek race laptimes: %v", err)
 		h.failure(rw, req, err)
 		return
 	}
@@ -482,28 +488,28 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 		Rows:  make([]top.DataSetRow, 0),
 	}
 	// filter by > 100
-	filtered := make([]database.TimeRanking, 0)
-	for _, ranking := range timeRankings {
-		if ranking.TimeTrial > 100 {
-			filtered = append(filtered, ranking)
+	filtered := make([]database.FastestLaptime, 0)
+	for _, session := range timeTrialSessions {
+		if session.Laptime > 100 {
+			filtered = append(filtered, session)
 		}
 	}
-	// sort by tt lap
+	// sort by laptime if not already
 	sort.Slice(filtered, func(i, j int) bool {
-		return filtered[i].TimeTrial < filtered[j].TimeTrial
+		return filtered[i].Laptime < filtered[j].Laptime
 	})
 	for i := 0; i < topN && i < len(filtered); i++ {
 		icon := ""
 		//if (((filtered[i].TimeTrial) - (filtered[i].TimeTrialFastestLap)) / 10) < 150 { // if smaller than 150ms
-		if ((filtered[i].TimeTrial-filtered[i].TimeTrialFastestLap)/10) < (filtered[i].TimeTrial/7777) &&
-			(filtered[i].TimeTrial-filtered[i].TimeTrialFastestLap) > 0 {
-			icon = "fire"
-		}
+		// if ((filtered[i].TimeTrial-filtered[i].TimeTrialFastestLap)/10) < (filtered[i].TimeTrial/7777) &&
+		// 	(filtered[i].TimeTrial-filtered[i].TimeTrialFastestLap) > 0 {
+		// 	icon = "fire"
+		// }
 		tt.Rows = append(tt.Rows, top.DataSetRow{
 			Driver:       filtered[i].Driver.Name,
 			Icon:         icon,
 			IconPosition: 55,
-			Value:        util.ConvertLaptime(filtered[i].TimeTrial),
+			Value:        util.ConvertLaptime(filtered[i].Laptime),
 			Marked:       isDriverMarked(drivers, filtered[i].Driver.DriverID) || (filtered[i].Driver.Team == team && len(team) > 0),
 		})
 	}
@@ -538,27 +544,27 @@ func (h *Handler) weeklyTopLaps(rw http.ResponseWriter, req *http.Request) {
 		Rows:  make([]top.DataSetRow, 0),
 	}
 	// filter by > 100
-	filtered = make([]database.TimeRanking, 0)
-	for _, ranking := range timeRankings {
-		if ranking.Race > 100 {
-			filtered = append(filtered, ranking)
+	filtered = make([]database.FastestLaptime, 0)
+	for _, laps := range raceLaptimes {
+		if laps.Laptime > 100 {
+			filtered = append(filtered, laps)
 		}
 	}
-	// sort by race lap
+	// sort by laptime if not already
 	sort.Slice(filtered, func(i, j int) bool {
-		return filtered[i].Race < filtered[j].Race
+		return filtered[i].Laptime < filtered[j].Laptime
 	})
 	for i := 0; i < topN && i < len(filtered); i++ {
 		icon := ""
 		if i+1 < len(filtered) &&
-			filtered[i+1].Race-filtered[i].Race > filtered[i].Race/333 {
+			filtered[i+1].Laptime-filtered[i].Laptime > filtered[i].Laptime/333 {
 			icon = "green_arrow"
 		}
 		race.Rows = append(race.Rows, top.DataSetRow{
 			Driver:       filtered[i].Driver.Name,
 			Icon:         icon,
 			IconPosition: 55,
-			Value:        util.ConvertLaptime(filtered[i].Race),
+			Value:        util.ConvertLaptime(filtered[i].Laptime),
 			Marked:       isDriverMarked(drivers, filtered[i].Driver.DriverID) || (filtered[i].Driver.Team == team && len(team) > 0),
 		})
 	}
