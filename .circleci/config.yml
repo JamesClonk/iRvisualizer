@@ -13,8 +13,7 @@ jobs:
   build:
     docker:
     - image: cimg/go:1.19
-
-    working_directory: /go/src/github.com/JamesClonk/iRvisualizer
+    working_directory: ~/repo
 
     steps:
     - setup_remote_docker:
