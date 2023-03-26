@@ -10,10 +10,9 @@ require (
 	github.com/gorilla/mux v1.7.4
 	github.com/lib/pq v1.7.0 // indirect
 	github.com/mitchellh/mapstructure v1.3.2 // indirect
-	github.com/prometheus/client_golang v1.7.1
+	github.com/prometheus/client_golang v1.11.1
 	github.com/robfig/cron v1.2.0
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/image v0.0.0-20190516052701-61b8692d9a5c // indirect
-	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
 )
