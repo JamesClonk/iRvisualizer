@@ -13,7 +13,7 @@ jobs:
   build:
     docker:
     - image: cimg/go:1.19
-    working_directory: ~/repo
+    working_directory: ~/irvisualizer
 
     steps:
     - setup_remote_docker:
