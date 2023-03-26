@@ -19,5 +19,5 @@ func main() {
 	log.Infoln("auth username:", username)
 
 	// start listener
-	log.Fatalln(http.ListenAndServe(":"+port, web.Logging(web.NewRouter(username, password))))
+	log.Fatalln(http.ListenAndServe(":"+port, web.NewRouter(username, password)))
 }

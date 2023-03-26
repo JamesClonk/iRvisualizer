@@ -99,14 +99,27 @@ func router(h *Handler) *mux.Router {
 	// catch-all
 	r.PathPrefix("/").HandlerFunc(h.index)
 
+	// add logging
+	r.Use(logging)
+
+	// add cache-control headers
+	r.Use(caching)
+
 	return r
 }
 
-func Logging(next http.Handler) http.Handler {
+func logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		if strings.Contains(req.RequestURI, ".png") {
 			log.Debugf("received request: %v; %v; %v; %v;", req.UserAgent(), req.Proto, req.Method, req.RequestURI)
 		}
+		next.ServeHTTP(rw, req)
+	})
+}
+
+func caching(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.Header().Set("Cache-Control", "private, max-age=900, s-maxage=900")
 		next.ServeHTTP(rw, req)
 	})
 }
