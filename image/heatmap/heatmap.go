@@ -50,7 +50,7 @@ func New(colorScheme string, season database.Season, week database.RaceWeek, tra
 		ImageWidth:     float64(1024),
 		HeaderHeight:   float64(38),
 		TimeslotHeight: float64(50),
-		DayWidth:       float64(160),
+		DayWidth:       float64(128),
 		Days:           7, // pretty sure that's never gonna change..
 	}
 }
@@ -97,6 +97,16 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 	for next.Before(schedule.Next(start.AddDate(0, 0, 1))) { // collect all timeslots of 1 day
 		timeslots = append(timeslots, next)
 		next = schedule.Next(next)
+	}
+
+	// adjust font size if timeslots are shorter than every 2 hours
+	fontMultiplierSlots := 1.0
+	fontMultiplierSOF := 1.0
+	fontMultiplierField := 1.0
+	if len(timeslots) > 12 {
+		fontMultiplierSlots = 0.65
+		fontMultiplierSOF = 0.75
+		fontMultiplierField = 0.95
 	}
 
 	// figure out dynamic SOF
@@ -155,7 +165,7 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 	}
 	color.HeatmapHeaderFG(dc)
 	dc.DrawStringAnchored("UTC / GMT+0", h.DayWidth/2, h.HeaderHeight+h.TimeslotHeight/2, 0.5, 0.5)
-	if err := dc.LoadFontFace("public/fonts/roboto-mono_medium.ttf", 16); err != nil {
+	if err := dc.LoadFontFace("public/fonts/roboto-mono_medium.ttf", 16*fontMultiplierSlots); err != nil {
 		return fmt.Errorf("could not load font: %v", err)
 	}
 	timeslotWidth := ((h.ImageWidth - h.DayWidth) / float64(len(timeslots))) - 1
@@ -228,18 +238,22 @@ func (h *Heatmap) Draw(minSOF, maxSOF int, drawEmptySlots bool) error {
 							dc.Fill()
 						}
 					}
+					sofText := fmt.Sprintf("%d", sof)
+					if fontMultiplierSOF < 1.0 {
+						sofText = fmt.Sprintf("%.1fk", float64(sof)/1000)
+					}
 
 					color.HeatmapTimeslotFG(dc)
 					dc.SetLineWidth(1)
 					dc.DrawLine(slotX+eventWidth/3, slotY+eventHeight/2, slotX+eventWidth/1.5, slotY+eventHeight/2)
 					dc.Stroke()
 
-					if err := dc.LoadFontFace("public/fonts/roboto-mono_regular.ttf", 15); err != nil {
+					if err := dc.LoadFontFace("public/fonts/roboto-mono_regular.ttf", 15*fontMultiplierSOF); err != nil {
 						return fmt.Errorf("could not load font: %v", err)
 					}
-					textWithBorder(dc, color, fmt.Sprintf("%d", sof), slotX+eventWidth/2, slotY+eventHeight/3-1)
+					textWithBorder(dc, color, sofText, slotX+eventWidth/2, slotY+eventHeight/3-1)
 
-					if err := dc.LoadFontFace("public/fonts/roboto-mono_light.ttf", 13); err != nil {
+					if err := dc.LoadFontFace("public/fonts/roboto-mono_light.ttf", 13*fontMultiplierField); err != nil {
 						return fmt.Errorf("could not load font: %v", err)
 					}
 					textWithBorder(dc, color, fmt.Sprintf("%d", result.SizeOfField), slotX+eventWidth/2, slotY+eventHeight/1.5+1)
