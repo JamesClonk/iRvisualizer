@@ -38,8 +38,8 @@ func IsAvailable(colorScheme, image string, seasonID, week int, team string) boo
 			return false // cached image needs to be regenerated
 		}
 
-		// if it's younger than 2 hours
-		if time.Since(metadata.LastUpdated) < time.Hour*2 {
+		// if it's younger than an hours
+		if time.Since(metadata.LastUpdated) < time.Hour*1 {
 			//log.Debugf("file [%s] already exists", imageFilename)
 			return true
 		}
